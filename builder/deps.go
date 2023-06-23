@@ -1,17 +1,12 @@
 package builder
 
 import (
-	"github.com/konveyor/analyzer-lsp/provider"
+	report "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	"github.com/konveyor/tackle2-hub/api"
 	"gopkg.in/yaml.v3"
 	"io"
 	"os"
 )
-
-type DepItem struct {
-	Provider     string         `yaml:"provider"`
-	Dependencies []provider.Dep `yaml:"dependencies"`
-}
 
 //
 // Deps builds dependencies.
@@ -61,8 +56,8 @@ func (b *Deps) Write(writer io.Writer) (err error) {
 
 //
 // read dependencies.
-func (b *Deps) read() (input []DepItem, err error) {
-	input = []DepItem{}
+func (b *Deps) read() (input []report.DepsFlatItem, err error) {
+	input = []report.DepsFlatItem{}
 	f, err := os.Open(b.Path)
 	if err != nil {
 		return
