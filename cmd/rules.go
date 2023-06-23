@@ -48,6 +48,10 @@ func (r *Rules) AddOptions(options *command.Options) (err error) {
 	for _, path := range r.rules {
 		options.Add("--rules", path)
 	}
+	err = r.addSelector(options)
+	if err != nil {
+		return
+	}
 	return
 }
 
@@ -196,5 +200,80 @@ func (r *Rules) addRepository() (err error) {
 	}
 	ruleDir := path.Join(rootDir, r.Repository.Path)
 	r.rules = append(r.rules, ruleDir)
+	return
+}
+
+//
+// addSelector adds label selector.
+func (r *Rules) addSelector(options *command.Options) (err error) {
+	var clauses []string
+	var sources, targets []string
+	for _, s := range r.Labels.Included {
+		label := Label(s)
+		if label.Namespace() != "konveyor.io" {
+			continue
+		}
+		switch label.Name() {
+		case "source":
+			sources = append(sources, s)
+		case "target":
+			targets = append(targets, s)
+		}
+	}
+	if len(sources) > 0 {
+		clauses = append(
+			clauses,
+			"("+strings.Join(sources, "||")+")")
+	}
+	if len(targets) > 0 {
+		clauses = append(
+			clauses,
+			"("+strings.Join(targets, "||")+")")
+	}
+	if len(clauses) > 0 {
+		options.Add(
+			"--label-selector",
+			strings.Join(clauses, "&&"))
+	}
+	return
+}
+
+//
+// Label formatted labels.
+// Formats:
+// - name
+// - name=value
+// - namespace/name
+// - namespace/name=value
+type Label string
+
+//
+// Namespace returns the (optional) namespace.
+func (r *Label) Namespace() (s string) {
+	s = string(*r)
+	part := strings.Split(s, "/")
+	if len(part) > 1 {
+		s = part[0]
+	}
+	return
+}
+
+//
+// Name returns the name.
+func (r *Label) Name() (s string) {
+	s = string(*r)
+	_, s = path.Split(s)
+	s = strings.Split(s, "=")[0]
+	return
+}
+
+//
+// Value returns the (optional) value.
+func (r *Label) Value() (s string) {
+	s = r.Name()
+	part := strings.SplitN(s, "=", 2)
+	if len(part) == 2 {
+		s = part[1]
+	}
 	return
 }
