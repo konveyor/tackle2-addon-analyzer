@@ -1,7 +1,7 @@
 package builder
 
 import (
-	report "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
+	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	"github.com/konveyor/tackle2-hub/api"
 	"gopkg.in/yaml.v3"
 	"io"
@@ -56,8 +56,8 @@ func (b *Deps) Write(writer io.Writer) (err error) {
 
 //
 // read dependencies.
-func (b *Deps) read() (input []report.DepsFlatItem, err error) {
-	input = []report.DepsFlatItem{}
+func (b *Deps) read() (input []output.DepsFlatItem, err error) {
+	input = []output.DepsFlatItem{}
 	f, err := os.Open(b.Path)
 	if err != nil {
 		return

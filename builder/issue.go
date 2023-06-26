@@ -2,7 +2,7 @@ package builder
 
 import (
 	"encoding/json"
-	report "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
+	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	"github.com/konveyor/tackle2-hub/api"
 	"go.lsp.dev/uri"
 	"gopkg.in/yaml.v3"
@@ -86,8 +86,8 @@ func (b *Issues) Write(writer io.Writer) (err error) {
 
 //
 // read ruleSets.
-func (b *Issues) read() (input []report.RuleSet, err error) {
-	input = []report.RuleSet{}
+func (b *Issues) read() (input []output.RuleSet, err error) {
+	input = []output.RuleSet{}
 	f, err := os.Open(b.Path)
 	if err != nil {
 		return
