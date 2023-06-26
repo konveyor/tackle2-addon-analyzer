@@ -18,5 +18,6 @@ RUN microdnf -y install \
 ENV HOME=/addon ADDON=/addon
 WORKDIR /addon
 ARG GOPATH=/opt/app-root
+COPY --from=addon $GOPATH/src/settings.json $ADDON/opt/settings.json
 COPY --from=addon $GOPATH/src/bin/addon /usr/bin
 ENTRYPOINT ["/usr/bin/addon"]

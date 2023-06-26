@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	SETTINGS = "/analyzer-lsp/provider_settings.json"
+	SETTINGS = "/addon/opt/settings.json"
 )
 
 //
