@@ -18,11 +18,13 @@ var (
 	Dir       = ""
 	M2Dir     = ""
 	RuleDir   = ""
+	OptDir    = ""
 	Source    = "Analysis"
 )
 
 func init() {
 	Dir, _ = os.Getwd()
+	OptDir = path.Join(Dir, "opt")
 	SourceDir = path.Join(Dir, "source")
 	BinDir = path.Join(Dir, "bin")
 	RuleDir = path.Join(Dir, "rules")
@@ -58,7 +60,7 @@ func main() {
 		}
 		//
 		// Create directories.
-		for _, dir := range []string{BinDir, M2Dir, RuleDir} {
+		for _, dir := range []string{BinDir, M2Dir, RuleDir, OptDir} {
 			err = nas.MkDir(dir, 0755)
 			if err != nil {
 				return

@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.9.0
-	github.com/konveyor/analyzer-lsp v0.0.0-20230621153005-fb49760f7762
+	github.com/konveyor/analyzer-lsp v0.0.0-20230627143304-7d8ae4d70e6e
 	github.com/konveyor/tackle2-addon v0.1.2-0.20230510185644-c600b133619a
 	github.com/konveyor/tackle2-hub v0.2.0-alpha.2.0.20230601170349-69ffe6db0868
 	go.lsp.dev/uri v0.3.0
