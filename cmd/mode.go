@@ -31,7 +31,7 @@ type Mode struct {
 // Build assets.
 func (r *Mode) Build(application *api.Application) (err error) {
 	if !r.Binary {
-		err = r.getRepository(application)
+		err = r.fetchRepository(application)
 		if err != nil {
 			return
 		}
@@ -70,8 +70,8 @@ func (r *Mode) AddOptions(settings *Settings) (err error) {
 }
 
 //
-// getRepository get SCM repository.
-func (r *Mode) getRepository(application *api.Application) (err error) {
+// fetchRepository get SCM repository.
+func (r *Mode) fetchRepository(application *api.Application) (err error) {
 	if application.Repository == nil {
 		err = &SoftError{Reason: "Application repository not defined."}
 		return
@@ -134,12 +134,13 @@ func (r *Mode) mavenArtifact(application *api.Application) (err error) {
 //
 // mavenSettings writes maven settings.
 func (r *Mode) mavenSettings(application *api.Application) (err error) {
-	id, found, nErr := addon.Application.FindIdentity(application.ID, "maven")
-	if nErr != nil {
-		err = nErr
-		return
+	maven := repository.Maven{
+		Remote: repository.Remote{
+			Identities: application.Identities,
+		},
 	}
-	if !found {
+	settings, err := maven.Settings()
+	if settings == "" || err != nil {
 		return
 	}
 	p := path.Join(
@@ -157,7 +158,7 @@ func (r *Mode) mavenSettings(application *api.Application) (err error) {
 	defer func() {
 		_ = f.Close()
 	}()
-	_, err = f.WriteString(id.Settings)
+	_, err = f.WriteString(settings)
 	if err != nil {
 		return
 	}
