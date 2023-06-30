@@ -35,7 +35,7 @@ func (r *Mode) Build(application *api.Application) (err error) {
 		if err != nil {
 			return
 		}
-		err = r.mavenSettings(application)
+		err = r.buildMavenSettings(application)
 		if err != nil {
 			return
 		}
@@ -132,8 +132,8 @@ func (r *Mode) mavenArtifact(application *api.Application) (err error) {
 }
 
 //
-// mavenSettings writes maven settings.
-func (r *Mode) mavenSettings(application *api.Application) (err error) {
+// buildMavenSettings creates maven settings.
+func (r *Mode) buildMavenSettings(application *api.Application) (err error) {
 	maven := repository.Maven{
 		Remote: repository.Remote{
 			Identities: application.Identities,
