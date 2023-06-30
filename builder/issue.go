@@ -124,7 +124,8 @@ func (b *Issues) Tags() (tags []string) {
 
 //
 // Facts builds facts.
-func (b *Issues) Facts() (facts []api.Fact) {
+func (b *Issues) Facts() (facts api.FactMap) {
+	facts = api.FactMap{}
 	input, err := b.read()
 	if err != nil {
 		return
@@ -134,12 +135,7 @@ func (b *Issues) Facts() (facts []api.Fact) {
 			mp := make(map[string]interface{})
 			_ = json.Unmarshal(v.Extras, &mp)
 			for k, v := range mp {
-				facts = append(
-					facts,
-					api.Fact{
-						Key:   k,
-						Value: v,
-					})
+				facts[k] = v
 			}
 		}
 	}
