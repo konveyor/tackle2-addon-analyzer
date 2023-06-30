@@ -11,9 +11,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-// TODO REMOVE THIS
-replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20230630160532-8686d654c3a6
-
 require (
 	github.com/Nerzal/gocloak/v10 v10.0.1 // indirect
 	github.com/andygrunwald/go-jira v1.16.0 // indirect

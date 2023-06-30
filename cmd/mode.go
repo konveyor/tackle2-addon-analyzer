@@ -134,13 +134,14 @@ func (r *Mode) mavenArtifact(application *api.Application) (err error) {
 //
 // buildMavenSettings creates maven settings.
 func (r *Mode) buildMavenSettings(application *api.Application) (err error) {
-	maven := repository.Maven{
-		Remote: repository.Remote{
-			Identities: application.Identities,
-		},
+	id, found, nErr := addon.Application.FindIdentity(
+		application.ID,
+		"maven")
+	if nErr != nil {
+		err = nErr
+		return
 	}
-	settings, err := maven.Settings()
-	if settings == "" || err != nil {
+	if !found {
 		return
 	}
 	p := path.Join(
@@ -158,7 +159,7 @@ func (r *Mode) buildMavenSettings(application *api.Application) (err error) {
 	defer func() {
 		_ = f.Close()
 	}()
-	_, err = f.WriteString(settings)
+	_, err = f.WriteString(id.Settings)
 	if err != nil {
 		return
 	}
