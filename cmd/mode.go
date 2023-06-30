@@ -141,7 +141,12 @@ func (r *Mode) buildMavenSettings(application *api.Application) (err error) {
 		err = nErr
 		return
 	}
-	if !found {
+	if found {
+		addon.Activity(
+			"[MVN] Using credentials (id=%d) %s.",
+			id.ID,
+			id.Name)
+	} else {
 		return
 	}
 	p := path.Join(
