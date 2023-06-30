@@ -78,21 +78,34 @@ func (r *Rules) addFiles() (err error) {
 //
 // addRuleSets adds rulesets.
 func (r *Rules) addRuleSets() (err error) {
-	for _, ref := range r.RuleSets {
-		var ruleset *api.RuleSet
-		ruleset, err = addon.RuleSet.Get(ref.ID)
-		if err != nil {
-			return
-		}
-		err = r.addRules(ruleset)
-		if err != nil {
-			return
-		}
-		err = r.addRuleSetRepository(ruleset)
-		if err != nil {
-			return
+	var add func(refs []api.Ref, dep bool)
+	add = func(refs []api.Ref, dep bool) {
+		for _, ref := range refs {
+			var ruleset *api.RuleSet
+			ruleset, err = addon.RuleSet.Get(ref.ID)
+			if err != nil {
+				return
+			}
+			err = r.addRules(ruleset)
+			if err != nil {
+				return
+			}
+			err = r.addRuleSetRepository(ruleset)
+			if err != nil {
+				return
+			}
+			if dep {
+				for _, rule := range ruleset.Rules {
+					r.Labels.Included = append(r.Labels.Included, rule.Labels...)
+				}
+			}
+			add(ruleset.DependsOn, true)
+			if err != nil {
+				return
+			}
 		}
 	}
+	add(r.RuleSets, false)
 	return
 }
 
