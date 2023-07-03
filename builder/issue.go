@@ -174,6 +174,11 @@ func (e *RuleError) Error() (s string) {
 	return
 }
 
+func (e *RuleError) Is(err error) (matched bool) {
+	_, matched = err.(*RuleError)
+	return
+}
+
 func (e *RuleError) Append(ruleset output.RuleSet) {
 	for s, _ := range ruleset.Errors {
 		e.items = append(e.items, s)
