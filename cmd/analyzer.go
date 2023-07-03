@@ -1,10 +1,13 @@
 package main
 
 import (
+	"errors"
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
 	"github.com/konveyor/tackle2-addon/command"
 	"path"
 )
+
+type RuleError = builder.RuleError
 
 //
 // Analyzer application analyzer.
@@ -24,6 +27,9 @@ func (r *Analyzer) Run() (b *builder.Issues, err error) {
 	b = &builder.Issues{Path: output}
 	err = cmd.Run()
 	if err != nil {
+		if errors.Is(err, &RuleError{}) {
+			err.(*RuleError).Report()
+		}
 		return
 	}
 	return
@@ -63,7 +69,7 @@ func (r *Analyzer) options(output string) (options command.Options, err error) {
 	if err != nil {
 		return
 	}
-	settings.Log()
+	settings.Report()
 	return
 }
 

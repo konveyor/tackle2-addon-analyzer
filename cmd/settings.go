@@ -84,8 +84,8 @@ func (r *Settings) MavenSettings(path string) {
 }
 
 //
-// Log self to activity.
-func (r *Settings) Log() {
+// Report self as activity.
+func (r *Settings) Report() {
 	b, _ := yaml.Marshal(r)
 	addon.Activity("Settings: %s", r.path())
 	reader := strings.NewReader(string(b))
