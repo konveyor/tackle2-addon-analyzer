@@ -105,6 +105,7 @@ func (r *Rules) addRuleSets() (err error) {
 			}
 		}
 	}
+	r.Labels.Included = r.unique(r.Labels.Included)
 	add(r.RuleSets, false)
 	return
 }
@@ -220,10 +221,11 @@ func (r *Rules) addRepository() (err error) {
 // addSelector adds label selector.
 func (r *Rules) addSelector(options *command.Options) (err error) {
 	var clauses []string
-	var sources, targets []string
+	var other, sources, targets []string
 	for _, s := range r.Labels.Included {
 		label := Label(s)
 		if label.Namespace() != "konveyor.io" {
+			other = append(other, s)
 			continue
 		}
 		switch label.Name() {
@@ -231,7 +233,14 @@ func (r *Rules) addSelector(options *command.Options) (err error) {
 			sources = append(sources, s)
 		case "target":
 			targets = append(targets, s)
+		default:
+			other = append(other, s)
 		}
+	}
+	if len(other) > 0 {
+		clauses = append(
+			clauses,
+			"("+strings.Join(other, "||")+")")
 	}
 	if len(sources) > 0 {
 		clauses = append(
@@ -247,6 +256,17 @@ func (r *Rules) addSelector(options *command.Options) (err error) {
 		options.Add(
 			"--label-selector",
 			strings.Join(clauses, "&&"))
+	}
+	return
+}
+
+func (r *Rules) unique(in []string) (out []string) {
+	mp := make(map[string]int)
+	for i := range in {
+		mp[in[i]] = 0
+	}
+	for s, _ := range mp {
+		out = append(out, s)
 	}
 	return
 }
