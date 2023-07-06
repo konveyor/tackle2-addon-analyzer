@@ -39,6 +39,8 @@ func (r *Rules) Build() (err error) {
 	if err != nil {
 		return
 	}
+	r.Labels.Included = r.unique(r.Labels.Included)
+	r.Labels.Excluded = r.unique(r.Labels.Excluded)
 	return
 }
 
@@ -105,7 +107,6 @@ func (r *Rules) addRuleSets() (err error) {
 			}
 		}
 	}
-	r.Labels.Included = r.unique(r.Labels.Included)
 	add(r.RuleSets, false)
 	return
 }
