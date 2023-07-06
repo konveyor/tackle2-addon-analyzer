@@ -7,6 +7,7 @@ require (
 	github.com/konveyor/analyzer-lsp v0.0.0-20230627143304-7d8ae4d70e6e
 	github.com/konveyor/tackle2-addon v0.1.2-0.20230510185644-c600b133619a
 	github.com/konveyor/tackle2-hub v0.2.1-0.20230703140704-8e7520555b96
+	github.com/onsi/gomega v1.27.6
 	go.lsp.dev/uri v0.3.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -41,6 +42,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect

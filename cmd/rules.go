@@ -221,7 +221,7 @@ func (r *Rules) addRepository() (err error) {
 //
 // addSelector adds label selector.
 func (r *Rules) addSelector(options *command.Options) (err error) {
-	var clauses []string
+	var ands []string
 	var other, sources, targets []string
 	for _, s := range r.Labels.Included {
 		label := Label(s)
@@ -238,25 +238,31 @@ func (r *Rules) addSelector(options *command.Options) (err error) {
 			other = append(other, s)
 		}
 	}
-	if len(other) > 0 {
-		clauses = append(
-			clauses,
-			"("+strings.Join(other, "||")+")")
-	}
 	if len(sources) > 0 {
-		clauses = append(
-			clauses,
+		ands = append(
+			ands,
 			"("+strings.Join(sources, "||")+")")
 	}
 	if len(targets) > 0 {
-		clauses = append(
-			clauses,
+		ands = append(
+			ands,
 			"("+strings.Join(targets, "||")+")")
 	}
-	if len(clauses) > 0 {
-		options.Add(
-			"--label-selector",
-			strings.Join(clauses, "&&"))
+	selector := ""
+	if len(other) > 0 {
+		selector += "(" + strings.Join(other, "||") + ")"
+	}
+	if len(ands) > 0 {
+		if len(selector) > 0 {
+			selector += "||("
+			selector += strings.Join(ands, "&&")
+			selector += ")"
+		} else {
+			selector += strings.Join(ands, "&&")
+		}
+	}
+	if selector != "" {
+		options.Add("--label-selector", selector)
 	}
 	return
 }
