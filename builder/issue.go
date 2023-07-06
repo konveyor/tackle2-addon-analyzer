@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"encoding/json"
 	"fmt"
 	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	hub "github.com/konveyor/tackle2-hub/addon"
@@ -143,20 +142,6 @@ func (b *Issues) Tags() (tags []string) {
 //
 // Facts builds facts.
 func (b *Issues) Facts() (facts api.FactMap) {
-	facts = api.FactMap{}
-	input, err := b.read()
-	if err != nil {
-		return
-	}
-	for _, r := range input {
-		for _, v := range r.Violations {
-			mp := make(map[string]interface{})
-			_ = json.Unmarshal(v.Extras, &mp)
-			for k, v := range mp {
-				facts[k] = v
-			}
-		}
-	}
 	return
 }
 
