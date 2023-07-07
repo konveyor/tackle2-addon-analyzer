@@ -175,7 +175,7 @@ func (e *RuleError) NotEmpty() (b bool) {
 }
 
 func (e *RuleError) Report() {
-	if len(e.items) > 0 {
+	if len(e.items) == 0 {
 		return
 	}
 	addon.Activity("Analyzer reported:")
