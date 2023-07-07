@@ -127,12 +127,7 @@ func (r *Rules) addRules(ruleset *api.RuleSet) (err error) {
 		if fileRef == nil {
 			continue
 		}
-		name := strings.Join(
-			[]string{
-				strconv.Itoa(int(ruleset.ID)),
-				fileRef.Name},
-			"-")
-		path := path.Join(ruleDir, name)
+		path := path.Join(ruleDir, fileRef.Name)
 		addon.Activity("[FILE] Get rule: %s", path)
 		err = addon.File.Get(ruleset.File.ID, path)
 		if err != nil {
