@@ -39,8 +39,6 @@ func (r *Rules) Build() (err error) {
 	if err != nil {
 		return
 	}
-	r.Labels.Included = r.unique(r.Labels.Included)
-	r.Labels.Excluded = r.unique(r.Labels.Excluded)
 	return
 }
 
@@ -221,59 +219,10 @@ func (r *Rules) addRepository() (err error) {
 //
 // addSelector adds label selector.
 func (r *Rules) addSelector(options *command.Options) (err error) {
-	var ands []string
-	var other, sources, targets []string
-	for _, s := range r.Labels.Included {
-		label := Label(s)
-		if label.Namespace() != "konveyor.io" {
-			other = append(other, s)
-			continue
-		}
-		switch label.Name() {
-		case "source":
-			sources = append(sources, s)
-		case "target":
-			targets = append(targets, s)
-		default:
-			other = append(other, s)
-		}
-	}
-	if len(sources) > 0 {
-		ands = append(
-			ands,
-			"("+strings.Join(sources, "||")+")")
-	}
-	if len(targets) > 0 {
-		ands = append(
-			ands,
-			"("+strings.Join(targets, "||")+")")
-	}
-	selector := ""
-	if len(other) > 0 {
-		selector += "(" + strings.Join(other, "||") + ")"
-	}
-	if len(ands) > 0 {
-		if len(selector) > 0 {
-			selector += "||("
-			selector += strings.Join(ands, "&&")
-			selector += ")"
-		} else {
-			selector += strings.Join(ands, "&&")
-		}
-	}
+	ruleSelector := RuleSelector{Included: r.Labels.Included}
+	selector := ruleSelector.String()
 	if selector != "" {
 		options.Add("--label-selector", selector)
-	}
-	return
-}
-
-func (r *Rules) unique(in []string) (out []string) {
-	mp := make(map[string]int)
-	for i := range in {
-		mp[in[i]] = 0
-	}
-	for s, _ := range mp {
-		out = append(out, s)
 	}
 	return
 }
@@ -314,6 +263,75 @@ func (r *Label) Value() (s string) {
 	part := strings.SplitN(s, "=", 2)
 	if len(part) == 2 {
 		s = part[1]
+	}
+	return
+}
+
+//
+// RuleSelector - Label-based rule selector.
+type RuleSelector struct {
+	Included []string
+	Excluded []string
+}
+
+//
+// String returns string representation.
+func (r *RuleSelector) String() (selector string) {
+	var other, sources, targets []string
+	for _, s := range r.unique(r.Included) {
+		label := Label(s)
+		if label.Namespace() != "konveyor.io" {
+			other = append(other, s)
+			continue
+		}
+		switch label.Name() {
+		case "source":
+			sources = append(sources, s)
+		case "target":
+			targets = append(targets, s)
+		default:
+			other = append(other, s)
+		}
+	}
+	var ands []string
+	ands = append(ands, r.join("||", sources...))
+	ands = append(ands, r.join("||", targets...))
+	selector = r.join("||", other...)
+	selector = r.join("||", selector, r.join("&&", ands...))
+	if strings.HasPrefix(selector, "((") {
+		selector = selector[1 : len(selector)-1]
+	}
+	return
+}
+
+//
+// join clauses.
+func (r *RuleSelector) join(operator string, operands ...string) (joined string) {
+	var packed []string
+	for _, s := range operands {
+		if len(s) > 0 {
+			packed = append(packed, s)
+		}
+	}
+	switch len(packed) {
+	case 0:
+	case 1:
+		joined = strings.Join(packed, operator)
+	default:
+		joined = "(" + strings.Join(packed, operator) + ")"
+	}
+	return
+}
+
+//
+// unique returns unique strings.
+func (r *RuleSelector) unique(in []string) (out []string) {
+	mp := make(map[string]int)
+	for _, s := range in {
+		if _, found := mp[s]; !found {
+			out = append(out, s)
+			mp[s] = 0
+		}
 	}
 	return
 }

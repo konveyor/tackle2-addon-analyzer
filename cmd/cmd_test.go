@@ -76,4 +76,18 @@ func TestRuleSelector(t *testing.T) {
 	g.Expect(err).To(gomega.BeNil())
 	g.Expect(len(options)).To(gomega.Equal(2))
 	g.Expect(options[1]).To(gomega.Equal(selector))
+	// other and targets
+	rules = Rules{}
+	rules.Labels.Included = []string{
+		"p1",
+		"p2",
+		"konveyor.io/target=t1",
+		"konveyor.io/target=t2",
+	}
+	options = command.Options{}
+	err = rules.addSelector(&options)
+	selector = "(p1||p2)||(konveyor.io/target=t1||konveyor.io/target=t2)"
+	g.Expect(err).To(gomega.BeNil())
+	g.Expect(len(options)).To(gomega.Equal(2))
+	g.Expect(options[1]).To(gomega.Equal(selector))
 }
