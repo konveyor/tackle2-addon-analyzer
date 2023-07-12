@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.9.0
-	github.com/konveyor/analyzer-lsp v0.0.0-20230627143304-7d8ae4d70e6e
+	github.com/konveyor/analyzer-lsp v0.0.0-20230712145100-60dc2048444c
 	github.com/konveyor/tackle2-addon v0.1.2-0.20230510185644-c600b133619a
 	github.com/konveyor/tackle2-hub v0.2.1-0.20230703140704-8e7520555b96
 	github.com/onsi/gomega v1.27.6
@@ -14,6 +14,7 @@ require (
 
 require (
 	github.com/Nerzal/gocloak/v10 v10.0.1 // indirect
+	github.com/PaesslerAG/gval v1.2.2 // indirect
 	github.com/andygrunwald/go-jira v1.16.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.8.0 // indirect
@@ -71,6 +72,7 @@ require (
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
+	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/trivago/tgo v1.0.7 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
