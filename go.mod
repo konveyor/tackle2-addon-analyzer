@@ -12,6 +12,8 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
+replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20230713230228-f8a3643dc5db
+
 require (
 	github.com/Nerzal/gocloak/v10 v10.0.1 // indirect
 	github.com/PaesslerAG/gval v1.2.2 // indirect

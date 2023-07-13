@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
 	"github.com/konveyor/tackle2-addon/command"
 	"path"
@@ -26,12 +25,6 @@ func (r *Analyzer) Run() (b *builder.Issues, err error) {
 	}
 	b = &builder.Issues{Path: output}
 	err = cmd.Run()
-	if err != nil {
-		if errors.Is(err, &RuleError{}) {
-			err.(*RuleError).Report()
-		}
-		return
-	}
 	return
 }
 
