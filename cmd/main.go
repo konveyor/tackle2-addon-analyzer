@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/konveyor/tackle2-addon/ssh"
 	hub "github.com/konveyor/tackle2-hub/addon"
@@ -117,6 +118,11 @@ func main() {
 		if err == nil {
 			addon.Activity("Analysis reported. duration: %s", time.Since(mark))
 		} else {
+			ruleErr := &RuleError{}
+			if errors.As(err, &ruleErr) {
+				ruleErr.Report()
+				err = nil
+			}
 			return
 		}
 		//
