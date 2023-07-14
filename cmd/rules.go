@@ -76,11 +76,16 @@ func (r *Rules) addFiles() (err error) {
 }
 
 //
-// addRuleSets adds rulesets.
+// addRuleSets adds rulesets and their dependencies.
 func (r *Rules) addRuleSets() (err error) {
+	history := make(map[uint]byte)
 	var add func(refs []api.Ref, dep bool)
 	add = func(refs []api.Ref, dep bool) {
 		for _, ref := range refs {
+			if _, found := history[ref.ID]; found {
+				continue
+			}
+			history[ref.ID] = 0
 			var ruleset *api.RuleSet
 			ruleset, err = addon.RuleSet.Get(ref.ID)
 			if err != nil {

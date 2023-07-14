@@ -149,7 +149,7 @@ func (b *Issues) Facts() (facts api.FactMap) {
 // RuleError reported by the analyzer.
 type RuleError struct {
 	hub.SoftError
-	items []string
+	items map[string]string
 }
 
 func (e *RuleError) Error() (s string) {
@@ -165,8 +165,12 @@ func (e *RuleError) Is(err error) (matched bool) {
 }
 
 func (e *RuleError) Append(ruleset output.RuleSet) {
-	for s, _ := range ruleset.Errors {
-		e.items = append(e.items, s)
+	if e.items == nil {
+		e.items = make(map[string]string)
+	}
+	for ruleid, err := range ruleset.Errors {
+		ruleid := ruleset.Name + "." + ruleid
+		e.items[ruleid] = err
 	}
 }
 
@@ -175,12 +179,7 @@ func (e *RuleError) NotEmpty() (b bool) {
 }
 
 func (e *RuleError) Report() {
-	if len(e.items) == 0 {
-		return
-	}
-	addon.Activity("Analyzer reported:")
-	for _, s := range e.items {
-		addon.Activity("> [ERROR] %s.", s)
-		addon.Error("Error", s)
+	for ruleid, err := range e.items {
+		addon.Error("Error", "[Analyzer] %s: %s", ruleid, err)
 	}
 }
