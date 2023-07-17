@@ -12,11 +12,8 @@ curl -X POST ${host}/tasks \
 state: ${state}
 addon: analyzer
 application:
-  id: 1
+  id: 1014
 data:
   tagger:
     enabled: "true"
-  rules:
-    rulesets:
-    - id: 12
 "

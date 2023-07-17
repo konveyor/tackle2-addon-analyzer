@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"github.com/konveyor/analyzer-lsp/provider"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 	"io"
 	"os"
 	"path"
