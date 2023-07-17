@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+image=${IMAGE-quay.io/konveyor/analyzer-lsp}
+
+if [ -z "${image}" ]
+then
+  exit
+fi
+
+addon=/tmp/addon
+
+params=()
+for p in "$@"
+do
+  params+=("$p")
+done
+docker run \
+  -v ${addon}:${addon} \
+  --entrypoint /usr/bin/konveyor-analyzer-dep \
+  ${image} \
+  "${params[@]}"
+

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+addon=/tmp/addon
+opt=${addon}/opt
+
+rm -rf ${addon}
+mkdir -p ${opt}
+cp $(dirname $0)/../settings.json ${opt}
+
