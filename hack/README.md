@@ -20,8 +20,9 @@ The `reset` script should be invoked before each run:
 
 Example:
 ```
-sudo ln -s hack/konveyor-analyzer /usr/bin
-sudo ln -s hack/konveyor-analyzer-dep /usr/bin
+sudo ln -s $(pwd)/hack/windup-shim /usr/bin
+sudo ln -s $(pwd)/hack/konveyor-analyzer /usr/bin
+sudo ln -s $(pwd)/hack/konveyor-analyzer-dep /usr/bin
 ```
 
 Example: with Hub running in minikube.
