@@ -5,6 +5,7 @@ import (
 	"github.com/konveyor/tackle2-addon/repository"
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -36,6 +37,10 @@ func (r *Rules) Build() (err error) {
 		return
 	}
 	err = r.addRuleSets()
+	if err != nil {
+		return
+	}
+	err = r.convert()
 	if err != nil {
 		return
 	}
@@ -223,6 +228,28 @@ func (r *Rules) addSelector(options *command.Options) (err error) {
 	selector := ruleSelector.String()
 	if selector != "" {
 		options.Add("--label-selector", selector)
+	}
+	return
+}
+
+//
+// convert windup rules.
+func (r *Rules) convert() (err error) {
+	output := path.Join(RuleDir, "converted")
+	cmd := command.Command{Path: "/usr/bin/windup-shim"}
+	cmd.Options.Add("convert")
+	cmd.Options.Add("--outputdir", output)
+	cmd.Options.Add(RuleDir)
+	err = cmd.Run()
+	if err != nil {
+		return
+	}
+	converted, err := os.ReadDir(output)
+	if err != nil {
+		return
+	}
+	if len(converted) > 0 {
+		r.rules = append(r.rules, output)
 	}
 	return
 }
