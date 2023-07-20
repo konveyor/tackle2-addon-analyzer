@@ -2,28 +2,32 @@
     {
         "name": "go",
         "binaryPath": "/usr/bin/golang-external-provider",
-        "initConfig": [{
-            "lspServerPath": "/root/go/bin/gopls",
-            "analysisMode": "full"
-        }]
+        "initConfig": [
+            {
+               "analysisMode": "full",
+                "providerSpecificConfig": {
+                    "lspServerPath": "/root/go/bin/gopls"
+                }
+            }
+        ]
     },
     {
         "name": "java",
         "binaryPath": "/jdtls/bin/jdtls",
         "initConfig": [
             {
-                "lspServerPath": "/jdtls/bin/jdtls",
+                "analysisMode": "source-only",
                 "providerSpecificConfig": {
-                    "bundles": "/jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar"
-                },
-                "analysisMode": "source-only"
-            },
+                    "bundles": "/jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar",
+                    "lspServerPath": "/jdtls/bin/jdtls"
+                }
+            }
         ]
     },
     {
         "name": "builtin",
         "initConfig": [
-            {},
+            {}
         ]
     }
 ]
