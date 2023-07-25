@@ -179,7 +179,14 @@ func (e *RuleError) NotEmpty() (b bool) {
 }
 
 func (e *RuleError) Report() {
+	var errors []api.TaskError
 	for ruleid, err := range e.items {
-		addon.Error("Error", "[Analyzer] %s: %s", ruleid, err)
+		errors = append(
+			errors,
+			api.TaskError{
+				Severity:    "Error",
+				Description: fmt.Sprintf("[Analyzer] %s: %s", ruleid, err),
+			})
+		addon.Error(errors...)
 	}
 }

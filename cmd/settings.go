@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"github.com/konveyor/analyzer-lsp/provider"
 	"gopkg.in/yaml.v2"
 	"io"
 	"os"
 	"path"
-	"strings"
 )
 
 //
@@ -87,12 +85,7 @@ func (r *Settings) MavenSettings(path string) {
 // Report self as activity.
 func (r *Settings) Report() {
 	b, _ := yaml.Marshal(r)
-	addon.Activity("Settings: %s", r.path())
-	reader := strings.NewReader(string(b))
-	scanner := bufio.NewScanner(reader)
-	for scanner.Scan() {
-		addon.Activity("> %s", scanner.Text())
-	}
+	addon.Activity("Settings: %s\n%s", r.path(), string(b))
 }
 
 //
