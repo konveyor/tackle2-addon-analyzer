@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"github.com/konveyor/analyzer-lsp/provider"
 	"github.com/konveyor/tackle2-addon/repository"
 	"github.com/konveyor/tackle2-hub/api"
@@ -73,7 +74,7 @@ func (r *Mode) AddOptions(settings *Settings) (err error) {
 // fetchRepository get SCM repository.
 func (r *Mode) fetchRepository(application *api.Application) (err error) {
 	if application.Repository == nil {
-		err = &SoftError{Reason: "Application repository not defined."}
+		err = errors.New("Application repository not defined.")
 		return
 	}
 	SourceDir = path.Join(

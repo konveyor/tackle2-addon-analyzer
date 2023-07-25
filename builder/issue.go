@@ -148,7 +148,6 @@ func (b *Issues) Facts() (facts api.FactMap) {
 //
 // RuleError reported by the analyzer.
 type RuleError struct {
-	hub.SoftError
 	items map[string]string
 }
 

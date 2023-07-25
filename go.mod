@@ -12,9 +12,9 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20230725190514-bcbaf7c6d408
+replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20230725214853-c6e56f404307
 
-replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20230725212753-08b4774480dd
+replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20230725220335-48e77d5857f7
 
 require (
 	github.com/Nerzal/gocloak/v10 v10.0.1 // indirect

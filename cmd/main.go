@@ -32,8 +32,6 @@ func init() {
 	M2Dir = "/cache/m2"
 }
 
-type SoftError = hub.SoftError
-
 //
 // Data Addon data passed in the secret.
 type Data struct {
@@ -56,7 +54,6 @@ func main() {
 		d := &Data{}
 		err = addon.DataWith(d)
 		if err != nil {
-			err = &SoftError{Reason: err.Error()}
 			return
 		}
 		//
