@@ -92,29 +92,31 @@ func (r *Settings) ProxySettings() (err error) {
 	var http, https string
 	var excluded, noproxy []string
 	http, excluded, err = r.getProxy("http")
-	if err != nil {
-		if errors.Is(err, &hub.NotFound{}) {
-			noproxy = append(noproxy, excluded...)
-		} else {
-			return
-		}
+	if err == nil {
+		noproxy = append(noproxy, excluded...)
+	} else {
+		return
 	}
 	https, excluded, err = r.getProxy("https")
-	if err != nil {
-		if errors.Is(err, &hub.NotFound{}) {
-			noproxy = append(noproxy, excluded...)
-		} else {
-			return
-		}
+	if err == nil {
+		noproxy = append(noproxy, excluded...)
+	} else {
+		return
 	}
 	for i := range *r {
 		p := &(*r)[i]
 		switch p.Name {
 		case "java":
 			d := p.InitConfig[0].ProviderSpecificConfig
-			d["httpproxy"] = http
-			d["httpsproxy"] = https
-			d["noproxy"] = strings.Join(noproxy, ",")
+			if http != "" {
+				d["httpproxy"] = http
+			}
+			if https != "" {
+				d["httpsproxy"] = https
+			}
+			if len(noproxy) > 0 {
+				d["noproxy"] = strings.Join(noproxy, ",")
+			}
 		}
 	}
 	return
@@ -125,25 +127,36 @@ func (r *Settings) ProxySettings() (err error) {
 func (r *Settings) getProxy(kind string) (url string, excluded []string, err error) {
 	var p *api.Proxy
 	var id *api.Identity
+	var user, password string
 	p, err = addon.Proxy.Find(kind)
 	if err != nil {
+		if errors.Is(err, &hub.Conflict{}) {
+			err = nil
+			return
+		}
+	}
+	if p.Host == "" {
 		return
 	}
 	if p.Identity != nil {
 		id, err = addon.Identity.Get(p.Identity.ID)
-		if err == nil {
-			p.Host = id.User + ":" + id.Password + "@" + p.Host
-		} else {
+		if err != nil {
 			return
 		}
+		user = id.User
+		password = id.Password
 		excluded = append(
 			excluded,
 			p.Excluded...)
 	}
-	url = "http://" + p.Host
-	if p.Port > 0 {
-		url = url + ":" + strconv.Itoa(p.Port)
+	host := p.Host
+	if user != "" && password != "" {
+		host = user + ":" + password + "@" + host
 	}
+	if p.Port > 0 {
+		host += ":" + strconv.Itoa(p.Port)
+	}
+	url = "http://" + host
 	return
 }
 
