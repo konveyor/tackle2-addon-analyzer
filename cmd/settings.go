@@ -148,6 +148,7 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 		}
 	}
 	host := p.Host
+	excluded = p.Excluded
 	if user != "" && password != "" {
 		host = user + ":" + password + "@" + host
 	}
@@ -155,7 +156,6 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 		host += ":" + strconv.Itoa(p.Port)
 	}
 	url = "http://" + host
-	excluded = p.Excluded
 	return
 }
 
