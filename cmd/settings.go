@@ -138,7 +138,6 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 	if p.Host == "" {
 		return
 	}
-	excluded = p.Excluded
 	if p.Identity != nil {
 		id, err = addon.Identity.Get(p.Identity.ID)
 		if err == nil {
@@ -156,6 +155,7 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 		host += ":" + strconv.Itoa(p.Port)
 	}
 	url = "http://" + host
+	excluded = p.Excluded
 	return
 }
 
