@@ -58,6 +58,10 @@ func (r *Analyzer) options(output string) (options command.Options, err error) {
 	if err != nil {
 		return
 	}
+	err = settings.ProxySettings()
+	if err != nil {
+		return
+	}
 	err = settings.Write()
 	if err != nil {
 		return
