@@ -93,13 +93,17 @@ func (r *Settings) ProxySettings() (err error) {
 	var excluded, noproxy []string
 	http, excluded, err = r.getProxy("http")
 	if err == nil {
-		noproxy = append(noproxy, excluded...)
+		noproxy = append(
+			noproxy,
+			excluded...)
 	} else {
 		return
 	}
 	https, excluded, err = r.getProxy("https")
 	if err == nil {
-		noproxy = append(noproxy, excluded...)
+		noproxy = append(
+			noproxy,
+			excluded...)
 	} else {
 		return
 	}
