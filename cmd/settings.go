@@ -138,16 +138,15 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 	if p.Host == "" {
 		return
 	}
+	excluded = p.Excluded
 	if p.Identity != nil {
 		id, err = addon.Identity.Get(p.Identity.ID)
-		if err != nil {
+		if err == nil {
+			user = id.User
+			password = id.Password
+		} else {
 			return
 		}
-		user = id.User
-		password = id.Password
-		excluded = append(
-			excluded,
-			p.Excluded...)
 	}
 	host := p.Host
 	if user != "" && password != "" {
