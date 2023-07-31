@@ -159,7 +159,7 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 	if p.Port > 0 {
 		host += ":" + strconv.Itoa(p.Port)
 	}
-	url = "http://" + host
+	url = kind + "://" + host
 	return
 }
 
