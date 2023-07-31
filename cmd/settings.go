@@ -134,7 +134,7 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 	var user, password string
 	p, err = addon.Proxy.Find(kind)
 	if err != nil {
-		if errors.Is(err, &hub.Conflict{}) {
+		if errors.Is(err, &hub.NotFound{}) {
 			err = nil
 			return
 		}
