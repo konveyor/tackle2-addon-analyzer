@@ -236,7 +236,7 @@ func (r *Rules) addSelector(options *command.Options) (err error) {
 // convert windup rules.
 func (r *Rules) convert() (err error) {
 	output := path.Join(RuleDir, "converted")
-	cmd := command.Command{Path: "/usr/bin/windup-shim"}
+	cmd := command.Command{Path: "windup-shim"}
 	cmd.Options.Add("convert")
 	cmd.Options.Add("--outputdir", output)
 	cmd.Options.Add(RuleDir)
