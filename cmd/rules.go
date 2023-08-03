@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/konveyor/tackle2-addon/command"
 	"github.com/konveyor/tackle2-addon/repository"
+	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
 	"os"
@@ -15,14 +16,10 @@ import (
 // Rules settings.
 type Rules struct {
 	Path       string          `json:"path"`
-	RuleSets   []api.Ref       `json:"rulesets"`
 	Repository *api.Repository `json:"repository"`
 	Identity   *api.Ref        `json:"identity"`
-	Labels     struct {
-		Included []string `json:"included,omitempty"`
-		Excluded []string `json:"excluded,omitempty"`
-	} `json:"labels"`
-	rules []string
+	Labels     Labels          `json:"labels"`
+	rules      []string
 }
 
 //
@@ -84,38 +81,62 @@ func (r *Rules) addFiles() (err error) {
 // addRuleSets adds rulesets and their dependencies.
 func (r *Rules) addRuleSets() (err error) {
 	history := make(map[uint]byte)
-	var add func(refs []api.Ref, dep bool)
-	add = func(refs []api.Ref, dep bool) {
+	var addDep func(refs []api.Ref)
+	addDep = func(refs []api.Ref) {
 		for _, ref := range refs {
 			if _, found := history[ref.ID]; found {
 				continue
 			}
 			history[ref.ID] = 0
-			var ruleset *api.RuleSet
-			ruleset, err = addon.RuleSet.Get(ref.ID)
+			var ruleSet *api.RuleSet
+			ruleSet, err = addon.RuleSet.Get(ref.ID)
 			if err != nil {
 				return
 			}
-			err = r.addRules(ruleset)
+			addon.Activity(
+				"[RULESET] fetching (dep): %d/%s",
+				ruleSet.ID,
+				ruleSet.Name)
+			err = r.addRules(ruleSet)
 			if err != nil {
 				return
 			}
-			err = r.addRuleSetRepository(ruleset)
+			err = r.addRuleSetRepository(ruleSet)
 			if err != nil {
 				return
 			}
-			if dep {
-				for _, rule := range ruleset.Rules {
-					r.Labels.Included = append(r.Labels.Included, rule.Labels...)
-				}
+			for _, rule := range ruleSet.Rules {
+				r.Labels.Included = append(r.Labels.Included, rule.Labels...)
 			}
-			add(ruleset.DependsOn, true)
+			addDep(ruleSet.DependsOn)
 			if err != nil {
 				return
 			}
 		}
 	}
-	add(r.RuleSets, false)
+	ruleSets, err := r.Labels.ruleSets()
+	if err != nil {
+		return
+	}
+	for _, ruleSet := range ruleSets {
+		if _, found := history[ruleSet.ID]; found {
+			continue
+		}
+		addon.Activity(
+			"[RULESET] fetching: %d/%s",
+			ruleSet.ID,
+			ruleSet.Name)
+		history[ruleSet.ID] = 0
+		err = r.addRules(&ruleSet)
+		if err != nil {
+			return
+		}
+		err = r.addRuleSetRepository(&ruleSet)
+		if err != nil {
+			return
+		}
+		addDep(ruleSet.DependsOn)
+	}
 	return
 }
 
@@ -138,7 +159,6 @@ func (r *Rules) addRules(ruleset *api.RuleSet) (err error) {
 			continue
 		}
 		path := path.Join(ruleDir, fileRef.Name)
-		addon.Activity("[FILE] Get rule: %s", path)
 		err = addon.File.Get(ruleset.File.ID, path)
 		if err != nil {
 			break
@@ -250,6 +270,30 @@ func (r *Rules) convert() (err error) {
 	}
 	if len(converted) > 0 {
 		r.rules = append(r.rules, output)
+	}
+	return
+}
+
+//
+// Labels collection.
+type Labels struct {
+	Included []string `json:"included,omitempty"`
+	Excluded []string `json:"excluded,omitempty"`
+}
+
+//
+// ruleSets returns list of ruleSets with these labels.
+func (r *Labels) ruleSets() (list []api.RuleSet, err error) {
+	var found []api.RuleSet
+	for _, name := range r.Included {
+		f := hub.Filter{}
+		f.And("Labels").Eq(name)
+		found, err = addon.RuleSet.Find(f)
+		if err == nil {
+			list = append(list, found...)
+		} else {
+			return
+		}
 	}
 	return
 }
