@@ -291,14 +291,14 @@ type Labels struct {
 
 //
 // ruleSets returns list of ruleSets with these labels.
-func (r *Labels) ruleSets() (list []api.RuleSet, err error) {
+func (r *Labels) ruleSets() (matched []api.RuleSet, err error) {
 	var found []api.RuleSet
 	for _, name := range r.Included {
 		f := hub.Filter{}
 		f.And("Labels").Eq(name)
 		found, err = addon.RuleSet.Find(f)
 		if err == nil {
-			list = append(list, found...)
+			matched = append(matched, found...)
 		} else {
 			return
 		}
