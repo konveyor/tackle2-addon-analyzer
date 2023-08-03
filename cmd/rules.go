@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+type History = map[uint]byte
+
 //
 // Rules settings.
 type Rules struct {
@@ -80,40 +82,7 @@ func (r *Rules) addFiles() (err error) {
 //
 // addRuleSets adds rulesets and their dependencies.
 func (r *Rules) addRuleSets() (err error) {
-	history := make(map[uint]byte)
-	var addDep func(refs []api.Ref)
-	addDep = func(refs []api.Ref) {
-		for _, ref := range refs {
-			if _, found := history[ref.ID]; found {
-				continue
-			}
-			history[ref.ID] = 0
-			var ruleSet *api.RuleSet
-			ruleSet, err = addon.RuleSet.Get(ref.ID)
-			if err != nil {
-				return
-			}
-			addon.Activity(
-				"[RULESET] fetching (dep): %d/%s",
-				ruleSet.ID,
-				ruleSet.Name)
-			err = r.addRules(ruleSet)
-			if err != nil {
-				return
-			}
-			err = r.addRuleSetRepository(ruleSet)
-			if err != nil {
-				return
-			}
-			for _, rule := range ruleSet.Rules {
-				r.Labels.Included = append(r.Labels.Included, rule.Labels...)
-			}
-			addDep(ruleSet.DependsOn)
-			if err != nil {
-				return
-			}
-		}
-	}
+	history := make(History)
 	ruleSets, err := r.Labels.ruleSets()
 	if err != nil {
 		return
@@ -135,7 +104,46 @@ func (r *Rules) addRuleSets() (err error) {
 		if err != nil {
 			return
 		}
-		addDep(ruleSet.DependsOn)
+		err = r.addDeps(&ruleSet, history)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+//
+// addDeps adds ruleSet dependencies.
+func (r *Rules) addDeps(ruleSet *api.RuleSet, history History) (err error) {
+	for _, ref := range ruleSet.DependsOn {
+		if _, found := history[ref.ID]; found {
+			continue
+		}
+		history[ref.ID] = 0
+		var ruleSet *api.RuleSet
+		ruleSet, err = addon.RuleSet.Get(ref.ID)
+		if err != nil {
+			return
+		}
+		addon.Activity(
+			"[RULESET] fetching (dep): %d/%s",
+			ruleSet.ID,
+			ruleSet.Name)
+		err = r.addRules(ruleSet)
+		if err != nil {
+			return
+		}
+		err = r.addRuleSetRepository(ruleSet)
+		if err != nil {
+			return
+		}
+		for _, rule := range ruleSet.Rules {
+			r.Labels.Included = append(r.Labels.Included, rule.Labels...)
+		}
+		err = r.addDeps(ruleSet, history)
+		if err != nil {
+			return
+		}
 	}
 	return
 }
