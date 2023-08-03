@@ -92,7 +92,7 @@ func (r *Rules) addRuleSets() (err error) {
 			continue
 		}
 		addon.Activity(
-			"[RULESET] fetching: %d/%s",
+			"[RULESET] fetching: id=%d (%s)",
 			ruleSet.ID,
 			ruleSet.Name)
 		history[ruleSet.ID] = 0
@@ -126,7 +126,7 @@ func (r *Rules) addDeps(ruleSet *api.RuleSet, history History) (err error) {
 			return
 		}
 		addon.Activity(
-			"[RULESET] fetching (dep): %d/%s",
+			"[RULESET] fetching (dep): id=%d (%s)",
 			ruleSet.ID,
 			ruleSet.Name)
 		err = r.addRules(ruleSet)

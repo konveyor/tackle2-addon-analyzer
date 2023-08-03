@@ -17,6 +17,7 @@ data:
   tagger:
     enabled: "true"
   rules:
-    rulesets:
-    - id: 12
+    labels:
+      included:
+      - konveyor.io/target=cloud-readiness
 "
