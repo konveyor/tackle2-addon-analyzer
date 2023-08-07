@@ -6,7 +6,6 @@
             {
                 "analysisMode": "full",
                 "providerSpecificConfig": {
-                    "name": "go",
                     "lspServerPath": "/root/go/bin/gopls",
                     "dependencyProviderPath": "/usr/bin/golang-dependency-provider"
             }
