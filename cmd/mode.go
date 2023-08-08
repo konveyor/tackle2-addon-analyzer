@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"github.com/konveyor/analyzer-lsp/provider"
+	"github.com/konveyor/tackle2-addon/command"
 	"github.com/konveyor/tackle2-addon/repository"
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
@@ -55,12 +56,13 @@ func (r *Mode) Build(application *api.Application) (err error) {
 
 //
 // AddOptions adds analyzer options.
-func (r *Mode) AddOptions(settings *Settings) (err error) {
+func (r *Mode) AddOptions(options command.Options, settings *Settings) (err error) {
 	if r.WithDeps {
 		settings.MavenSettings(r.path.maven.settings)
 		settings.Mode(provider.FullAnalysisMode)
 	} else {
 		settings.Mode(provider.SourceOnlyAnalysisMode)
+		options.Add("--no-dependency-rules")
 	}
 	if r.Binary {
 		settings.Location(r.path.binary)
