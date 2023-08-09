@@ -46,7 +46,7 @@ func (r *Analyzer) options(output string) (options command.Options, err error) {
 	if err != nil {
 		return
 	}
-	err = r.Mode.AddOptions(options, settings)
+	err = r.Mode.AddOptions(&options, settings)
 	if err != nil {
 		return
 	}
@@ -107,7 +107,7 @@ func (r *DepAnalyzer) options(output string) (options command.Options, err error
 		"--output-file",
 		output,
 	}
-	err = r.Mode.AddOptions(options, settings)
+	err = r.Mode.AddDepOptions(&options, settings)
 	if err != nil {
 		return
 	}
