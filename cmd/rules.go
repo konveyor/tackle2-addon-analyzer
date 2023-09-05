@@ -137,9 +137,6 @@ func (r *Rules) addDeps(ruleSet *api.RuleSet, history History) (err error) {
 		if err != nil {
 			return
 		}
-		for _, rule := range ruleSet.Rules {
-			r.Labels.Included = append(r.Labels.Included, rule.Labels...)
-		}
 		err = r.addDeps(ruleSet, history)
 		if err != nil {
 			return
@@ -317,31 +314,32 @@ type Label string
 
 //
 // Namespace returns the (optional) namespace.
-func (r *Label) Namespace() (s string) {
-	s = string(*r)
+func (r *Label) Namespace() (ns string) {
+	s := string(*r)
 	part := strings.Split(s, "/")
 	if len(part) > 1 {
-		s = part[0]
+		ns = part[0]
 	}
 	return
 }
 
 //
 // Name returns the name.
-func (r *Label) Name() (s string) {
-	s = string(*r)
+func (r *Label) Name() (n string) {
+	s := string(*r)
 	_, s = path.Split(s)
-	s = strings.Split(s, "=")[0]
+	n = strings.Split(s, "=")[0]
 	return
 }
 
 //
 // Value returns the (optional) value.
-func (r *Label) Value() (s string) {
-	s = r.Name()
+func (r *Label) Value() (v string) {
+	s := string(*r)
+	_, s = path.Split(s)
 	part := strings.SplitN(s, "=", 2)
 	if len(part) == 2 {
-		s = part[1]
+		v = part[1]
 	}
 	return
 }
