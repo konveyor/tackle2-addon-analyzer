@@ -8,6 +8,7 @@ import (
 	"go.lsp.dev/uri"
 	"gopkg.in/yaml.v2"
 	"io"
+	"net/url"
 	"os"
 )
 
@@ -119,11 +120,13 @@ func (b *Issues) read() (input []output.RuleSet, err error) {
 
 //
 // uniStr (safely) returns URI filename.
-func (b *Issues) uriStr(in uri.URI) string {
-	defer func() {
-		recover()
-	}()
-	return in.Filename()
+func (b *Issues) uriStr(in uri.URI) (s string) {
+	s = string(in)
+	u, err := url.Parse(s)
+	if err == nil {
+		s = u.Path
+	}
+	return
 }
 
 //
