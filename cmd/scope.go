@@ -5,8 +5,8 @@ import "github.com/konveyor/tackle2-addon/command"
 //
 // Scope settings.
 type Scope struct {
-	WithKnown bool `json:"withKnown"`
-	Packages  struct {
+	WithKnownLibs bool `json:"withKnownLibs"`
+	Packages      struct {
 		Included []string `json:"included,omitempty"`
 		Excluded []string `json:"excluded,omitempty"`
 	} `json:"packages"`
@@ -15,8 +15,10 @@ type Scope struct {
 //
 // AddOptions adds analyzer options.
 func (r *Scope) AddOptions(options *command.Options) (err error) {
-	if r.WithKnown {
-		options.Add("--analyzeKnownLibraries")
+	if !r.WithKnownLibs {
+		options.Add(
+			"--dep-label-selector",
+			"!konveyor.io/dep-source=open-source")
 	}
 	if len(r.Packages.Included) > 0 {
 		options.Add("--packages", r.Packages.Included...)

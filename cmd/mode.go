@@ -15,11 +15,10 @@ import (
 //
 // Mode settings.
 type Mode struct {
-	Binary        bool   `json:"binary"`
-	Artifact      string `json:"artifact"`
-	WithDeps      bool   `json:"withDeps"`
-	WithKnownLibs bool   `json:"withKnownLibs"`
-	Repository    repository.SCM
+	Binary     bool   `json:"binary"`
+	Artifact   string `json:"artifact"`
+	WithDeps   bool   `json:"withDeps"`
+	Repository repository.SCM
 	//
 	path struct {
 		appDir string
@@ -64,11 +63,6 @@ func (r *Mode) AddOptions(options *command.Options, settings *Settings) (err err
 	} else {
 		settings.Mode(provider.SourceOnlyAnalysisMode)
 		options.Add("--no-dependency-rules")
-	}
-	if !r.WithKnownLibs {
-		options.Add(
-			"--dep-label-selector",
-			"!konveyor.io/dep-source=open-source")
 	}
 	if r.Binary {
 		settings.Location(r.path.binary)
