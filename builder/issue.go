@@ -8,6 +8,7 @@ import (
 	"go.lsp.dev/uri"
 	"gopkg.in/yaml.v2"
 	"io"
+	"k8s.io/utils/pointer"
 	"net/url"
 	"os"
 )
@@ -81,6 +82,7 @@ func (b *Issues) Write(writer io.Writer) (err error) {
 			for _, i := range v.Incidents {
 				incident := api.Incident{
 					File:     b.uriStr(i.URI),
+					Line:     pointer.IntDeref(i.LineNumber, 0),
 					Message:  i.Message,
 					CodeSnip: i.CodeSnip,
 					Facts:    i.Variables,
