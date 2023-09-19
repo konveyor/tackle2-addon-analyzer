@@ -24,7 +24,6 @@ func (r *Analyzer) Run() (b *builder.Issues, err error) {
 		return
 	}
 	b = &builder.Issues{Path: output}
-	b.SourceDir = SourceDir
 	err = cmd.Run()
 	return
 }
