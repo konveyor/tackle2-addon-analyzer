@@ -124,8 +124,8 @@ func (b *Issues) read() (input []output.RuleSet, err error) {
 }
 
 //
-// fileRef returns the file path.
-// Strip the repository checkout directory.
+// fileRef returns the file (relative) path.
+// Strip leading repository clone directory.
 // Returns the URI when URL cannot be parsed.
 func (b *Issues) fileRef(in uri.URI) (s string) {
 	s = string(in)
