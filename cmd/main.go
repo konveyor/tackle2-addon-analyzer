@@ -143,9 +143,6 @@ func main() {
 
 		addon.Activity("Done.")
 
-		addon.Activity("SLEEP")
-		time.Sleep(time.Hour)
-
 		return
 	})
 }
