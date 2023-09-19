@@ -20,8 +20,9 @@ var (
 //
 // Issues builds issues and facts.
 type Issues struct {
-	Path    string
 	ruleErr RuleError
+	facts   []api.Fact
+	Path    string
 }
 
 //
