@@ -11,6 +11,8 @@ import (
 	"k8s.io/utils/pointer"
 	"net/url"
 	"os"
+	"path"
+	"strings"
 )
 
 var (
@@ -20,9 +22,10 @@ var (
 //
 // Issues builds issues and facts.
 type Issues struct {
+	Path      string
+	SourceDir string
+	//
 	ruleErr RuleError
-	facts   []api.Fact
-	Path    string
 }
 
 //
@@ -121,12 +124,22 @@ func (b *Issues) read() (input []output.RuleSet, err error) {
 }
 
 //
-// fileRef returns URI file path.
+// fileRef returns the file path.
+// Strip the repository checkout directory.
+// Returns the URI when URL cannot be parsed.
 func (b *Issues) fileRef(in uri.URI) (s string) {
 	s = string(in)
 	u, err := url.Parse(s)
-	if err == nil {
-		s = u.Path
+	if err != nil {
+		return
+	}
+	s = strings.Replace(
+		u.Path,
+		b.SourceDir,
+		"",
+		1)
+	if path.IsAbs(s) {
+		s = s[1:]
 	}
 	return
 }
