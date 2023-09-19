@@ -81,7 +81,7 @@ func (b *Issues) Write(writer io.Writer) (err error) {
 			issue.Incidents = []api.Incident{}
 			for _, i := range v.Incidents {
 				incident := api.Incident{
-					File:     b.uriStr(i.URI),
+					File:     b.fileRef(i.URI),
 					Line:     pointer.IntDeref(i.LineNumber, 0),
 					Message:  i.Message,
 					CodeSnip: i.CodeSnip,
@@ -121,8 +121,8 @@ func (b *Issues) read() (input []output.RuleSet, err error) {
 }
 
 //
-// uniStr (safely) returns URI filename.
-func (b *Issues) uriStr(in uri.URI) (s string) {
+// fileRef returns URI file path.
+func (b *Issues) fileRef(in uri.URI) (s string) {
 	s = string(in)
 	u, err := url.Parse(s)
 	if err == nil {
