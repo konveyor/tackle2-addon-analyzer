@@ -12,6 +12,12 @@ import (
 	"strings"
 )
 
+const (
+	LabelKonveyor = "konveyor.io"
+	LabelSource   = "source"
+	LabelTarget   = "target"
+)
+
 type History = map[uint]byte
 
 //
@@ -137,7 +143,7 @@ func (r *Rules) addDeps(ruleSet *api.RuleSet, history History) (err error) {
 		if err != nil {
 			return
 		}
-		r.addFilteredLabels(ruleSet)
+		r.includeLabels(ruleSet)
 		err = r.addDeps(ruleSet, history)
 		if err != nil {
 			return
@@ -147,14 +153,20 @@ func (r *Rules) addDeps(ruleSet *api.RuleSet, history History) (err error) {
 }
 
 //
-// addFilteredLabels filters out target/source wildcard labels and adds
-// the rest to the set of included labels.
-func (r *Rules) addFilteredLabels(ruleset *api.RuleSet) {
+// includeLabels appends (dep) ruleset labels to Rule.Labels.Included.
+// Source and target wildcards must not be added.
+func (r *Rules) includeLabels(ruleset *api.RuleSet) {
 	for _, rule := range ruleset.Rules {
-		for _, label := range rule.Labels {
-			if label != "konveyor.io/target" && label != "konveyor.io/source" {
-				r.Labels.Included = append(r.Labels.Included, label)
+		for i := range rule.Labels {
+			label := Label(rule.Labels[i])
+			if label.Namespace() == LabelKonveyor &&
+				(label.Name() == LabelSource || label.Name() == LabelTarget) &&
+				label.Value() == "" {
+				continue
 			}
+			r.Labels.Included = append(
+				r.Labels.Included,
+				string(label))
 		}
 	}
 }
@@ -371,14 +383,14 @@ func (r *RuleSelector) String() (selector string) {
 	var other, sources, targets []string
 	for _, s := range r.unique(r.Included) {
 		label := Label(s)
-		if label.Namespace() != "konveyor.io" {
+		if label.Namespace() != LabelKonveyor {
 			other = append(other, s)
 			continue
 		}
 		switch label.Name() {
-		case "source":
+		case LabelSource:
 			sources = append(sources, s)
-		case "target":
+		case LabelTarget:
 			targets = append(targets, s)
 		default:
 			other = append(other, s)
