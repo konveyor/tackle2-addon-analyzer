@@ -1,0 +1,30 @@
+name: tackle2-addon-analyzer CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-upload-for-global-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: save tackle2-addon-analyzer image
+        run: |
+          IMG=quay.io/konveyor/tackle2-addon-analyzer:latest make image-docker
+          docker save -o /tmp/tackle2-addon-analyzer.tar quay.io/konveyor/tackle2-addon-analyzer:latest
+
+      - name: Upload tackle2-addon-analyzer image as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: tackle2-addon-analyzer
+          path: /tmp/tackle2-addon-analyzer.tar
+          retention-days: 1
+
+  test-integration:
+    needs: build-and-upload-for-global-ci
+    uses: konveyor/ci/.github/workflows/global-ci.yml@main
+    with:
+      component_name: tackle2-addon-analyzer
