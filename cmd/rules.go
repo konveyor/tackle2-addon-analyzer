@@ -137,26 +137,12 @@ func (r *Rules) addDeps(ruleSet *api.RuleSet, history History) (err error) {
 		if err != nil {
 			return
 		}
-		r.addFilteredLabels(ruleSet)
 		err = r.addDeps(ruleSet, history)
 		if err != nil {
 			return
 		}
 	}
 	return
-}
-
-//
-// addFilteredLabels filters out target/source wildcard labels and adds
-// the rest to the set of included labels.
-func (r *Rules) addFilteredLabels(ruleset *api.RuleSet) {
-	for _, rule := range ruleset.Rules {
-		for _, label := range rule.Labels {
-			if label != "konveyor.io/target" && label != "konveyor.io/source" {
-				r.Labels.Included = append(r.Labels.Included, label)
-			}
-		}
-	}
 }
 
 //
