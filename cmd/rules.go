@@ -3,16 +3,21 @@ package main
 import (
 	"github.com/konveyor/tackle2-addon/command"
 	"github.com/konveyor/tackle2-addon/repository"
-	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
+	"github.com/rogpeppe/go-internal/semver"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 )
 
 type History = map[uint]byte
+
+//
+// LvRegex - Label value regex.
+var LvRegex = regexp.MustCompile(`(\D+)(\d(?:[\d\.]*\d)?)([\+-])?$`)
 
 //
 // Rules settings.
@@ -83,7 +88,7 @@ func (r *Rules) addFiles() (err error) {
 // addRuleSets adds rulesets and their dependencies.
 func (r *Rules) addRuleSets() (err error) {
 	history := make(History)
-	ruleSets, err := r.Labels.ruleSets()
+	ruleSets, err := r.Labels.RuleSets()
 	if err != nil {
 		return
 	}
@@ -287,21 +292,47 @@ type Labels struct {
 }
 
 //
-// ruleSets returns list of ruleSets with these labels.
-func (r *Labels) ruleSets() (matched []api.RuleSet, err error) {
-	var found []api.RuleSet
-	for _, name := range r.Included {
-		f := hub.Filter{}
-		f.And("Labels").Eq(name)
-		found, err = addon.RuleSet.Find(f)
-		if err == nil {
-			matched = append(matched, found...)
-		} else {
-			return
+// RuleSets returns a list of ruleSets matching the 'included' labels.
+func (r *Labels) RuleSets() (matched []api.RuleSet, err error) {
+	mapped, err := r.ruleSetMap()
+	if err != nil {
+		return
+	}
+	for _, included := range r.Included {
+		for rule, ruleSets := range mapped {
+			if Label(rule).Match(Label(included)) {
+				matched = append(
+					matched,
+					ruleSets...)
+			}
 		}
 	}
 	return
 }
+
+//
+// ruleSetMap returns a populated RuleSetMap.
+func (r *Labels) ruleSetMap() (mp RuleSetMap, err error) {
+	mp = make(RuleSetMap)
+	ruleSets, err := addon.RuleSet.List()
+	if err != nil {
+		return
+	}
+	for _, ruleSet := range ruleSets {
+		for _, rule := range ruleSet.Rules {
+			for i := range rule.Labels {
+				mp[rule.Labels[i]] = append(
+					mp[rule.Labels[i]],
+					ruleSet)
+			}
+		}
+	}
+	return
+}
+
+//
+// RuleSetMap is a map of labels mapped to ruleSets with those labels.
+type RuleSetMap map[string][]api.RuleSet
 
 //
 // Label formatted labels.
@@ -314,8 +345,8 @@ type Label string
 
 //
 // Namespace returns the (optional) namespace.
-func (r *Label) Namespace() (ns string) {
-	s := string(*r)
+func (r Label) Namespace() (ns string) {
+	s := string(r)
 	part := strings.Split(s, "/")
 	if len(part) > 1 {
 		ns = part[0]
@@ -325,8 +356,8 @@ func (r *Label) Namespace() (ns string) {
 
 //
 // Name returns the name.
-func (r *Label) Name() (n string) {
-	s := string(*r)
+func (r Label) Name() (n string) {
+	s := string(r)
 	_, s = path.Split(s)
 	n = strings.Split(s, "=")[0]
 	return
@@ -334,13 +365,55 @@ func (r *Label) Name() (n string) {
 
 //
 // Value returns the (optional) value.
-func (r *Label) Value() (v string) {
-	s := string(*r)
+func (r Label) Value() (v string) {
+	s := string(r)
 	_, s = path.Split(s)
 	part := strings.SplitN(s, "=", 2)
 	if len(part) == 2 {
 		v = part[1]
 	}
+	return
+}
+
+//
+// Match returns true when matched.
+// Values may contain version expressions.
+func (r Label) Match(other Label) (matched bool) {
+	if r.Namespace() != other.Namespace() ||
+		r.Name() != other.Name() {
+		return
+	}
+	selfMatch := LvRegex.FindStringSubmatch(r.Value())
+	otherMatch := LvRegex.FindStringSubmatch(other.Value())
+	if len(selfMatch) != 4 {
+		matched = r.Value() == other.Value()
+		return
+	}
+	if len(otherMatch) != 4 {
+		matched = selfMatch[1] == other.Value()
+		return
+	}
+	if selfMatch[1] != otherMatch[1] {
+		return
+	}
+	n := semver.Compare(selfMatch[2], otherMatch[2])
+	switch selfMatch[3] {
+	case "+":
+		matched = n == 0 || n == 1
+	case "-":
+		matched = n == 0 || n == -1
+	default:
+		matched = n == 0
+	}
+	return
+}
+
+//
+// Eq returns true when equal.
+func (r Label) Eq(other Label) (matched bool) {
+	matched = r.Namespace() != other.Namespace() ||
+		r.Name() != other.Name() ||
+		r.Value() != other.Value()
 	return
 }
 
