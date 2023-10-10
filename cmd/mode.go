@@ -75,7 +75,11 @@ func (r *Mode) AddOptions(options *command.Options, settings *Settings) (err err
 //
 // AddDepOptions adds analyzer-dep options.
 func (r *Mode) AddDepOptions(options *command.Options, settings *Settings) (err error) {
-	settings.Location(r.path.appDir)
+	if r.Binary {
+		settings.Location(r.path.binary)
+	} else {
+		settings.Location(r.path.appDir)
+	}
 	return
 }
 
