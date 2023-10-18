@@ -21,6 +21,10 @@ jobs:
       image_name: "tackle2-addon-analyzer"
       containerfile: "./Dockerfile"
       architectures: '[ "amd64", "arm64", "ppc64le", "s390x" ]'
+      pre_build_cmd: |
+        TAG=${GITHUB_REF_NAME/main/latest}
+        sed -i "s,FROM quay.io/konveyor/windup-shim\:latest,FROM quay.io/konveyor/windup-shim:${TAG}," Dockerfile
+        sed -i "s,FROM quay.io/konveyor/analyzer-lsp\:latest,FROM quay.io/konveyor/analyzer-lsp:${TAG}," Dockerfile
     secrets:
       registry_username: ${{ secrets.QUAY_PUBLISH_ROBOT }}
       registry_password: ${{ secrets.QUAY_PUBLISH_TOKEN }}
