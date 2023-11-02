@@ -98,14 +98,22 @@ echo "Application: ${appId} created."
 #
 # Create task.
 #
+mode=""
+if [ ! -z ${binary} ]
+then
+mode="
+  mode:
+    binary: true
+    artifact: $(basename "${binary}")
+"
+fi
 d="
 ---
 addon: analyzer
 application:
   id: ${appId}
 data:
-  artifact: ${artifact}
-  binary: $(basename "${binary}")
+  ${mode}
   rules:
     labels:
       included:
