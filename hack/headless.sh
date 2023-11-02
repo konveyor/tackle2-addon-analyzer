@@ -10,10 +10,12 @@ gitURL=""
 gitUser=""
 gitPassword=""
 gitKey=""
+mavenSettings=""
 
 
 appId=""
 taskId=""
+identities=()
 
 
 usage() {
@@ -26,9 +28,10 @@ usage() {
   echo "  -U Git user."
   echo "  -P Git password."
   echo "  -K Git SSH key path."
+  echo "  -S Maven settings path."
 }
 
-while getopts "u:b:a:r:U:P:K:h" arg; do
+while getopts "u:b:a:r:U:P:K:S:h" arg; do
   case $arg in
     h)
       usage
@@ -57,6 +60,9 @@ while getopts "u:b:a:r:U:P:K:h" arg; do
       ;;
     K)
       gitKey=$OPTARG
+      ;;
+    S)
+      mavenSettings=$OPTARG
       ;;
   esac
 done
