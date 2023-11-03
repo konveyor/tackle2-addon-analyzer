@@ -266,6 +266,10 @@ func (r *Rules) addSelector(options *command.Options) (err error) {
 // convert windup rules.
 func (r *Rules) convert() (err error) {
 	output := path.Join(RuleDir, "converted")
+	err = nas.MkDir(output, 0755)
+	if err != nil {
+		return
+	}
 	cmd := command.Command{Path: "/usr/bin/windup-shim"}
 	cmd.Options.Add("convert")
 	cmd.Options.Add("--outputdir", output)
