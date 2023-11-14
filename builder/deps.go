@@ -45,6 +45,7 @@ func (b *Deps) Write(writer io.Writer) (err error) {
 					Name:     d.Name,
 					Version:  d.Version,
 					SHA:      d.ResolvedIdentifier,
+					Labels:   d.Labels,
 				})
 		}
 	}
