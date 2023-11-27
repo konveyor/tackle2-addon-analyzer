@@ -61,14 +61,14 @@ The above JSON creates a Source Analysis task for Application 1 that uses both a
 
 * `name`: A name for the task
 * `addon`: The name of the addon to run. This must match the name of the analysis addon CR. In this case it should be `windup`.
-* `application`: This is an object with an `id` key where the value is the ID of the Application to analyse.
+* `application`: This is an object with an `id` key where the value is the ID of the Application to analyze.
 * `state`: This must be set to `Created` or `Ready` when creating the Task. The task will start as soon as possible if this is set to `Ready`. If the task is created with the state set to `Created`, a follow up `PUT` to `/tasks/:id/` will be necessary to change the state to `Ready` to start the task. Once the task is started, the Hub will automatically update the state to `Running`, `Succeeded` or `Failed` as appropriate.
 * `data`: A structure containing parameters for the analysis.
     - `output`: The path in the application bucket where the analysis report should be generated. This should be `/windup/report` to be consistent with analysis run from the UI. This directory is cleared when starting a new analysis.
     - `mode`:
         - `binary`: Boolean. If true this is a binary analysis, else a source analysis.
-        - `artifact`: Path in the application bucket to a previously uploaded binary artifact to analyse instead of the one specified on the Application object. Binary analysis only.
-        - `withDeps`: Boolean. Analyse dependencies. Source analysis only.
+        - `artifact`: Path in the application bucket to a previously uploaded binary artifact to analyze instead of the one specified on the Application object. Binary analysis only.
+        - `withDeps`: Boolean. analyze dependencies. Source analysis only.
         - `diva`: Boolean. Enables transaction analysis
         - `csv`: Boolean. Generate the report data in CSV format, in addition to HTML.
     - `rules`:
@@ -87,7 +87,7 @@ The above JSON creates a Source Analysis task for Application 1 that uses both a
         - `packages`:
             - `excluded`: List of packages to exclude
             - `included`: List of packages to include. If this is empty, every package in the application is scanned.
-        - `withKnown` - Boolean. Analyse known libraries embedded in your application. By default only application code is analysed.
+        - `withKnown` - Boolean. Analyze known libraries embedded in your application. By default only application code is analyzed.
     - `sources`: List of source technologies to migrate from. In conjunction with the targets this helps to determine what rulesets are used. The list of builtin sources can be found in the UI.
     - `targets`: List of target technologies to migrate to. In conjunction with the sources this helps to determine what rulesets are used. The list of builtin targets can be found in the UI.
 
