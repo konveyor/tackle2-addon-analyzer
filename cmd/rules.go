@@ -70,11 +70,22 @@ func (r *Rules) addFiles() (err error) {
 	if err != nil {
 		return
 	}
-	r.rules = append(r.rules, ruleDir)
+	addon.Activity(
+		"[RULESET] fetching: %s",
+		r.Path)
 	bucket := addon.Bucket()
 	err = bucket.Get(r.Path, ruleDir)
 	if err != nil {
 		return
+	}
+	entries, err := os.ReadDir(ruleDir)
+	if err != nil {
+		return
+	}
+	for _, ent := range entries {
+		r.rules = append(
+			r.rules,
+			path.Join(ruleDir, ent.Name()))
 	}
 	return
 }
