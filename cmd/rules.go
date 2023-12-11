@@ -275,7 +275,7 @@ func (r *Rules) convert() (err error) {
 	if err != nil {
 		return
 	}
-	cmd := command.Command{Path: "/usr/bin/windup-shim"}
+	cmd := command.New("/usr/bin/windup-shim")
 	cmd.Options.Add("convert")
 	cmd.Options.Add("--outputdir", output)
 	cmd.Options.Add(RuleDir)

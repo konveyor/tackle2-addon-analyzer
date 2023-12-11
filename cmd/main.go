@@ -2,14 +2,15 @@ package main
 
 import (
 	"errors"
+	"os"
+	"path"
+	"time"
+
 	"github.com/gin-gonic/gin/binding"
 	"github.com/konveyor/tackle2-addon/ssh"
 	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
-	"os"
-	"path"
-	"time"
 )
 
 var (
@@ -21,6 +22,7 @@ var (
 	RuleDir   = ""
 	OptDir    = ""
 	Source    = "Analysis"
+	Verbosity = 0
 )
 
 func init() {
@@ -34,6 +36,8 @@ func init() {
 
 // Data Addon data passed in the secret.
 type Data struct {
+	// Verbosity level.
+	Verbosity int `json:"verbosity"`
 	// Mode options.
 	Mode Mode `json:"mode"`
 	// Scope options.
@@ -51,7 +55,9 @@ func main() {
 		// Get the addon data associated with the task.
 		d := &Data{}
 		err = addon.DataWith(d)
-		if err != nil {
+		if err == nil {
+			Verbosity = d.Verbosity
+		} else {
 			return
 		}
 		//

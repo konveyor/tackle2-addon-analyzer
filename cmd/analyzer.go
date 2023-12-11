@@ -16,10 +16,13 @@ type Analyzer struct {
 // Run analyzer.
 func (r *Analyzer) Run() (b *builder.Issues, err error) {
 	output := path.Join(Dir, "report.yaml")
-	cmd := command.Command{Path: "/usr/bin/konveyor-analyzer"}
+	cmd := command.New("/usr/bin/konveyor-analyzer")
 	cmd.Options, err = r.options(output)
 	if err != nil {
 		return
+	}
+	if Verbosity > 0 {
+		cmd.Reporter.Verbosity = command.LiveOutput
 	}
 	b = &builder.Issues{Path: output}
 	err = cmd.Run()
@@ -75,10 +78,13 @@ type DepAnalyzer struct {
 // Run analyzer.
 func (r *DepAnalyzer) Run() (b *builder.Deps, err error) {
 	output := path.Join(Dir, "deps.yaml")
-	cmd := command.Command{Path: "/usr/bin/konveyor-analyzer-dep"}
+	cmd := command.New("/usr/bin/konveyor-analyzer-dep")
 	cmd.Options, err = r.options(output)
 	if err != nil {
 		return
+	}
+	if Verbosity > 0 {
+		cmd.Reporter.Verbosity = command.LiveOutput
 	}
 	b = &builder.Deps{Path: output}
 	err = cmd.Run()
