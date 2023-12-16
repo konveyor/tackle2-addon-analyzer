@@ -14,9 +14,9 @@ require (
 	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed
 )
 
-replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20231214203021-d5b21e1a1421
+replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20231216153744-74550a371c6c
 
-replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20231214202827-edb699d547a3
+replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20231216153645-0500f20f2fbe
 
 require (
 	github.com/Nerzal/gocloak/v10 v10.0.1 // indirect
