@@ -30,6 +30,7 @@ func (r *Scope) AddOptions(options *command.Options) (err error) {
 
 //
 // incidentSelector returns an incident selector.
+// The `!package` matches rules without a package specification.
 func (r *Scope) incidentSelector() (selector string) {
 	predicate := func(in []string) (p string) {
 		var refs []string
