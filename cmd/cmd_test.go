@@ -101,3 +101,27 @@ func TestLabelMatch(t *testing.T) {
 	rule = "konveyor.io/target=thing4-"
 	g.Expect(rule.Match(included)).To(gomega.BeTrue())
 }
+
+func TestIncidentSelector(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	// Empty.
+	scope := Scope{}
+	selector := scope.incidentSelector()
+	g.Expect("").To(gomega.Equal(selector))
+	// Included.
+	scope = Scope{}
+	scope.Packages.Included = []string{"a", "b"}
+	selector = scope.incidentSelector()
+	g.Expect("(!package||package=a||package=b)").To(gomega.Equal(selector))
+	// Excluded.
+	scope = Scope{}
+	scope.Packages.Excluded = []string{"C", "D"}
+	selector = scope.incidentSelector()
+	g.Expect("!(package||package=C||package=D)").To(gomega.Equal(selector))
+	// Included and Excluded.
+	scope = Scope{}
+	scope.Packages.Included = []string{"a", "b"}
+	scope.Packages.Excluded = []string{"C", "D"}
+	selector = scope.incidentSelector()
+	g.Expect("(!package||package=a||package=b)&&!(package||package=C||package=D)").To(gomega.Equal(selector))
+}

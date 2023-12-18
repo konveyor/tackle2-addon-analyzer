@@ -1,6 +1,9 @@
 package main
 
-import "github.com/konveyor/tackle2-addon/command"
+import (
+	"github.com/konveyor/tackle2-addon/command"
+	"strings"
+)
 
 // Scope settings.
 type Scope struct {
@@ -18,11 +21,35 @@ func (r *Scope) AddOptions(options *command.Options) (err error) {
 			"--dep-label-selector",
 			"!konveyor.io/dep-source=open-source")
 	}
-	if len(r.Packages.Included) > 0 {
-		options.Add("--packages", r.Packages.Included...)
+	selector := r.incidentSelector()
+	if selector != "" {
+		options.Add("--incidentSelector", selector)
 	}
-	if len(r.Packages.Excluded) > 0 {
-		options.Add("--excludePackages", r.Packages.Excluded...)
+	return
+}
+
+//
+// incidentSelector returns an incident selector.
+func (r *Scope) incidentSelector() (selector string) {
+	predicate := func(in []string) (p string) {
+		var refs []string
+		for _, s := range in {
+			refs = append(refs, "package="+s)
+		}
+		p = strings.Join(refs, "||")
+		return
 	}
+	var predicates []string
+	p := predicate(r.Packages.Included)
+	if len(p) > 0 {
+		p = "(!package||" + p + ")"
+		predicates = append(predicates, p)
+	}
+	p = predicate(r.Packages.Excluded)
+	if len(p) > 0 {
+		p = "!(package||" + p + ")"
+		predicates = append(predicates, p)
+	}
+	selector = strings.Join(predicates, "&&")
 	return
 }
