@@ -48,9 +48,13 @@ func (r *Scope) incidentSelector() (selector string) {
 	}
 	p = predicate(r.Packages.Excluded)
 	if len(p) > 0 {
-		p = "!(package||" + p + ")"
+		if len(predicates) == 0 {
+			p = "!(package||" + p + ")"
+		} else {
+			p = "!(" + p + ")"
+		}
 		predicates = append(predicates, p)
 	}
-	selector = strings.Join(predicates, "&&")
+	selector = strings.Join(predicates, " && ")
 	return
 }

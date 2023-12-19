@@ -123,5 +123,5 @@ func TestIncidentSelector(t *testing.T) {
 	scope.Packages.Included = []string{"a", "b"}
 	scope.Packages.Excluded = []string{"C", "D"}
 	selector = scope.incidentSelector()
-	g.Expect("(!package||package=a||package=b)&&!(package||package=C||package=D)").To(gomega.Equal(selector))
+	g.Expect("(!package||package=a||package=b) && !(package=C||package=D)").To(gomega.Equal(selector))
 }
