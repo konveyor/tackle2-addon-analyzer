@@ -23,7 +23,7 @@ func (r *Scope) AddOptions(options *command.Options) (err error) {
 	}
 	selector := r.incidentSelector()
 	if selector != "" {
-		options.Add("--incidentSelector", selector)
+		options.Add("--incident-selector", selector)
 	}
 	return
 }
