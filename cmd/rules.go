@@ -85,13 +85,13 @@ func (r *Rules) addFiles() (err error) {
 	}
 	for _, ent := range entries {
 		if ent.Name() == parser.RULE_SET_GOLDEN_FILE_NAME {
-			r.rules = append(r.rules, ruleDir)
+			r.append(ruleDir)
 			return
 		}
 	}
 	for _, ent := range entries {
 		p := path.Join(ruleDir, ent.Name())
-		r.rules = append(r.rules, p)
+		r.append(p)
 	}
 	return
 }
@@ -183,11 +183,11 @@ func (r *Rules) addRules(ruleset *api.RuleSet) (err error) {
 			break
 		}
 		if n == 1 {
-			r.rules = append(r.rules, path)
+			r.append(path)
 		}
 	}
 	if n > 1 {
-		r.rules = append(r.rules, ruleDir)
+		r.append(ruleDir)
 	}
 	return
 }
@@ -222,7 +222,7 @@ func (r *Rules) addRuleSetRepository(ruleset *api.RuleSet) (err error) {
 		return
 	}
 	ruleDir := path.Join(rootDir, ruleset.Repository.Path)
-	r.rules = append(r.rules, ruleDir)
+	r.append(ruleDir)
 	return
 }
 
@@ -254,7 +254,7 @@ func (r *Rules) addRepository() (err error) {
 		return
 	}
 	ruleDir := path.Join(rootDir, r.Repository.Path)
-	r.rules = append(r.rules, ruleDir)
+	r.append(ruleDir)
 	return
 }
 
@@ -288,9 +288,24 @@ func (r *Rules) convert() (err error) {
 		return
 	}
 	if len(converted) > 0 {
-		r.rules = append(r.rules, output)
+		r.append(output)
 	}
 	return
+}
+
+// append path.
+func (r *Rules) append(p string) {
+	for i := range r.rules {
+		if r.rules[i] == p {
+			return
+		}
+	}
+	switch strings.ToUpper(path.Ext(p)) {
+	case "",
+		".YAML",
+		".YML":
+		r.rules = append(r.rules, p)
+	}
 }
 
 // Labels collection.
