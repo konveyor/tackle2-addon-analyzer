@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/konveyor/analyzer-lsp v0.0.0-20230712145100-60dc2048444c
-	github.com/konveyor/tackle2-addon v0.3.0-rc.3.0.20240108180210-3de14a352bb8
+	github.com/konveyor/tackle2-addon v0.3.0-rc.3.0.20240110200734-c6a793e8ee2c
 	github.com/konveyor/tackle2-hub v0.3.0-rc.2.0.20231219211826-f09d0b24c0e6
 	github.com/onsi/gomega v1.27.6
 	github.com/rogpeppe/go-internal v1.10.0
