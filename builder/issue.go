@@ -2,15 +2,16 @@ package builder
 
 import (
 	"fmt"
+	"io"
+	"net/url"
+	"os"
+
 	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
 	"go.lsp.dev/uri"
 	"gopkg.in/yaml.v2"
-	"io"
 	"k8s.io/utils/pointer"
-	"net/url"
-	"os"
 )
 
 var (

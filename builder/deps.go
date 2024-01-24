@@ -1,11 +1,12 @@
 package builder
 
 import (
+	"io"
+	"os"
+
 	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	"github.com/konveyor/tackle2-hub/api"
 	"gopkg.in/yaml.v2"
-	"io"
-	"os"
 )
 
 // Deps builds dependencies.

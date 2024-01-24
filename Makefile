@@ -5,6 +5,12 @@ CMD       ?= bin/addon
 AddonDir  ?= /tmp/addon
 GOIMPORTS = $(GOBIN)/goimports
 
+PKG = ./cmd/... \
+      ./builder/...
+
+PKGDIR = $(subst /...,,$(PKG))
+
+
 cmd: fmt vet
 	go build -ldflags="-w -s" -o ${CMD} github.com/konveyor/tackle2-addon-analyzer/cmd
 
@@ -20,10 +26,10 @@ run: cmd
 	cd ${AddonDir};${cmd}
 
 fmt: $(GOIMPORTS)
-	$(GOIMPORTS) -w ./cmd
+	$(GOIMPORTS) -w $(PKGDIR)
 
 vet:
-	go vet ./cmd/...
+	go vet $(PKG)
 
 # Ensure goimports installed.
 $(GOIMPORTS):
