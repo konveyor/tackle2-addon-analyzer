@@ -1,9 +1,10 @@
 package main
 
 import (
+	"path"
+
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
 	"github.com/konveyor/tackle2-addon/command"
-	"path"
 )
 
 type RuleError = builder.RuleError

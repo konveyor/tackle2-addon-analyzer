@@ -1,7 +1,9 @@
-GOBIN    ?= ${GOPATH}/bin
-IMG      ?= quay.io/konveyor/tackle2-addon-analyzer:latest
-CMD      ?= bin/addon
-AddonDir ?= /tmp/addon
+GOPATH    ?= $(HOME)/go
+GOBIN     ?= $(GOPATH)/bin
+IMG       ?= quay.io/konveyor/tackle2-addon-analyzer:latest
+CMD       ?= bin/addon
+AddonDir  ?= /tmp/addon
+GOIMPORTS = $(GOBIN)/goimports
 
 cmd: fmt vet
 	go build -ldflags="-w -s" -o ${CMD} github.com/konveyor/tackle2-addon-analyzer/cmd
@@ -17,9 +19,12 @@ run: cmd
 	$(eval cmd := $(abspath ${CMD}))
 	cd ${AddonDir};${cmd}
 
-fmt:
-	go fmt ./...
+fmt: $(GOIMPORTS)
+	$(GOIMPORTS) -w ./cmd
 
 vet:
-	go vet ./...
+	go vet ./cmd/...
 
+# Ensure goimports installed.
+$(GOIMPORTS):
+	go install golang.org/x/tools/cmd/goimports@latest

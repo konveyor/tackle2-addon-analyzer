@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/konveyor/tackle2-addon/command"
 	"strings"
+
+	"github.com/konveyor/tackle2-addon/command"
 )
 
 // Scope settings.
@@ -28,7 +29,6 @@ func (r *Scope) AddOptions(options *command.Options) (err error) {
 	return
 }
 
-//
 // incidentSelector returns an incident selector.
 // The injected `!package` matches incidents without a package variable.
 func (r *Scope) incidentSelector() (selector string) {

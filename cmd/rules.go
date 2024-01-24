@@ -1,17 +1,18 @@
 package main
 
 import (
+	"os"
+	"path"
+	"regexp"
+	"strconv"
+	"strings"
+
 	"github.com/konveyor/analyzer-lsp/parser"
 	"github.com/konveyor/tackle2-addon/command"
 	"github.com/konveyor/tackle2-addon/repository"
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
 	"github.com/rogpeppe/go-internal/semver"
-	"os"
-	"path"
-	"regexp"
-	"strconv"
-	"strings"
 )
 
 type History = map[uint]byte

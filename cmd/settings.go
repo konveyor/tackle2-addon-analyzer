@@ -2,15 +2,16 @@ package main
 
 import (
 	"errors"
-	"github.com/konveyor/analyzer-lsp/provider"
-	hub "github.com/konveyor/tackle2-hub/addon"
-	"github.com/konveyor/tackle2-hub/api"
-	"gopkg.in/yaml.v2"
 	"io"
 	"os"
 	"path"
 	"strconv"
 	"strings"
+
+	"github.com/konveyor/analyzer-lsp/provider"
+	hub "github.com/konveyor/tackle2-hub/addon"
+	"github.com/konveyor/tackle2-hub/api"
+	"gopkg.in/yaml.v2"
 )
 
 // Settings - provider settings file.

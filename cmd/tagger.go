@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/konveyor/tackle2-addon/command"
-	"github.com/konveyor/tackle2-hub/api"
 	"math/rand"
 	"regexp"
+
+	"github.com/konveyor/tackle2-addon/command"
+	"github.com/konveyor/tackle2-hub/api"
 )
 
 var TagExp = regexp.MustCompile("(.+)(=)(.+)")
