@@ -11,13 +11,31 @@ curl -X POST ${host}/tasks \
 ---
 state: ${state}
 addon: analyzer
+components:
+- provider-java
 application:
   id: 1
 data:
-  tagger:
-    enabled: "true"
+  mode:
+    artifact: ""
+    binary: false
+    withDeps: false
   rules:
     labels:
+      excluded: []
       included:
-      - konveyor.io/target=cloud-readiness
+        - konveyor.io/target=cloud-readiness
+    path: ""
+    tags:
+      excluded: []
+  scope:
+    packages:
+      excluded: []
+      included: []
+    withKnownLibs: false
+  sources: []
+  tagger:
+    enabled: true
+  targets: []
+  verbosity: 0
 "

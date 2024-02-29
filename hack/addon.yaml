@@ -5,5 +5,34 @@ metadata:
   namespace: konveyor-tackle
   name: analyzer
 spec:
-  image: quay.io/jortel/tackle2-addon-analyzer
-  imagePullPolicy: Always
+  capability: analysis
+  container:
+    name: addon
+    imagePullPolicy: Always
+    image: quay.io/jortel/sleeper
+    command: ["/usr/bin/sleep"]
+    args: ["10"]
+
+---
+kind: Component
+apiVersion: tackle.konveyor.io/v1alpha1
+metadata:
+  namespace: konveyor-tackle
+  name: provider-java
+spec:
+  addon: analyzer
+  capability: provider-java
+  container:
+    name: provider-java
+    imagePullPolicy: Always
+    image: quay.io/jortel/sleeper
+    command: ["/usr/bin/sleep"]
+    args: ["90"]
+    env:
+    - name: PORT
+      value: "8080"
+  config:
+    provider:
+      initConfig:
+        port: "8080"
+
