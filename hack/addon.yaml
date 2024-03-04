@@ -36,3 +36,15 @@ spec:
       initConfig:
         port: "8080"
 
+---
+kind: TaskProfile
+apiVersion: tackle.konveyor.io/v1alpha1
+metadata:
+  namespace: konveyor-tackle
+  name: analyzer
+spec:
+  addon:
+    name: analyzer
+  component:
+    match: tag:language=
+    name:  provider-$*
