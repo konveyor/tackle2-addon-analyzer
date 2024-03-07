@@ -8,23 +8,26 @@ declare -A applications
 
 
 usage() {
-  echo "Usage: ${self}"
-  echo "  -u URL"
-  echo "  -d directory of binaries"
-  echo "  -c credentials id"
-  echo "  -r report status"
-  echo "  -l report status with listing"
-  echo "  -C cancel"
-  echo "  -f forced"
-  echo "  -o output"
+  echo "Usage: ${self} <required> <action> <options>"
   echo "  -h help"
+  echo "Required"
+  echo "  -u URL."
+  echo "  -d directory of binaries."
+  echo "Actions:"
+  echo "  -s show summary."
+  echo "  -r run analysis."
+  echo "  -x cancel tasks."
+  echo "  -l list applications with status."
+  echo "Options:"
+  echo "  -c credentials id."
+  echo "  -f forced. used with -r"
+  echo "  -o output"
 }
 
-while getopts "u:d:c:o:hlfrC" arg; do
+while getopts "u:d:c:osrxlfh" arg; do
   case $arg in
-    h)
-      usage
-      exit 1
+    u)
+      host=$OPTARG/hub
       ;;
     d)
       dirPath=$OPTARG
@@ -32,25 +35,30 @@ while getopts "u:d:c:o:hlfrC" arg; do
     c)
       credId=$OPTARG
       ;;
-    u)
-      host=$OPTARG/hub
-      ;;
-    r)
-      report=1
-      ;;
-    f)
-      forced=1
-      ;;
-    C)
-      cancelled=1
-      ;;
-    l)
-      reportList=1
-      ;;
     o)
       output=$OPTARG
       echo $0 > ${output}
       ;;
+    s)
+      actionSummary=1
+      ;;
+    l)
+      actionList=1
+      ;;
+    r)
+      actionRun=1
+      unset actionCanceled
+      ;;
+    x)
+      actionCanceled=1
+      unset actionRun
+      ;;
+    f)
+      optForced=1
+      ;;
+    h)
+      usage
+      exit 1
   esac
 done
 
@@ -275,7 +283,7 @@ analyzeApps() {
     state=${t[1]}
     case ${state} in
       "Pending"|"Postponed"|"Running"|"Succeeded")
-        if [ -n "${forced}" ]
+        if [ -n "${optForced}" ]
         then
           createTask ${appId} ${p}
         fi
@@ -367,14 +375,6 @@ report() {
       exit 1
   esac
   declare -A task
-  count=0
-  created=0
-  pending=0
-  postponed=0
-  running=0
-  succeeded=0
-  canceled=0
-  failed=0
   readarray report <<< $(jq -c '.[]|"\(.id) \(.state) \(.name)"' ${tmp})
   for r in "${report[@]}"
   do
@@ -392,85 +392,106 @@ report() {
     name=${p}
     apps+=(${name})
   done
-  for name in "${apps[@]}"
-  do
-    ((count++))
-    r="${task[${name}]}"
-    t=($r)
-    state=${t[1]}
-    case $state in
-      "Created")
-        ((created++))
-        ;;
-      "Pending")
-        ((pending++))
-        ;;
-      "Postponed")
-        ((postponed++))
-        ;;
-      "Running")
-        ((running++))
-        ;;
-      "Succeeded")
-        ((succeeded++))
-        ;;
-      "Failed")
-        ((failed++))
-        ;;
-      "Canceled")
-        ((canceled++))
-        ;;
-    esac
-    done
-    print ""
-    print "    Count: ${count}"
-    print "  Created: ${created}"
-    print "  Pending: ${pending}"
-    print "Postponed: ${postponed}"
-    print "  Running: ${running}"
-    print "Succeeded: ${succeeded}"
-    print " Canceled: ${canceled}"
-    print "   Failed: ${failed}"
-    if [ -z "${reportList}" ]
-    then
-      return
-    fi
-    print ""
-    print "ID  | State     | Application"
-    print "--- | ----------|------------------"
-    for key in "${apps[@]}"
+  #
+  if [ -n "${actionSummary}" ]
+  then
+    count=0
+    created=0
+    pending=0
+    postponed=0
+    running=0
+    succeeded=0
+    canceled=0
+    failed=0
+    for name in "${apps[@]}"
     do
-      id="--"
-      state="---"
-      name=${key}
-      r="${task[${key}]}"
+      ((count++))
+      r="${task[${name}]}"
       t=($r)
-    if [ ${#t[@]} -eq 3 ]
-    then
-      id=${t[0]}
       state=${t[1]}
-      name=${t[2]}
+      case $state in
+        "Created")
+          ((created++))
+          ;;
+        "Pending")
+          ((pending++))
+          ;;
+        "Postponed")
+          ((postponed++))
+          ;;
+        "Running")
+          ((running++))
+          ;;
+        "Succeeded")
+          ((succeeded++))
+          ;;
+        "Failed")
+          ((failed++))
+          ;;
+        "Canceled")
+          ((canceled++))
+          ;;
+      esac
+      done
+      print ""
+      print "    Count: ${count}"
+      print "  Created: ${created}"
+      print "  Pending: ${pending}"
+      print "Postponed: ${postponed}"
+      print "  Running: ${running}"
+      print "Succeeded: ${succeeded}"
+      print " Canceled: ${canceled}"
+      print "   Failed: ${failed}"
     fi
-    status="$(printf "%-6s%-12s%s\n" ${id} ${state} ${name})"
-    print "${status}"
-  done
+    #
+    if [ -n "${actionList}" ]
+    then
+      print ""
+      print "ID  | State     | Application"
+      print "--- | ----------|------------------"
+      for key in "${apps[@]}"
+      do
+        id="--"
+        state="---"
+        name=${key}
+        r="${task[${key}]}"
+        t=($r)
+      if [ ${#t[@]} -eq 3 ]
+      then
+        id=${t[0]}
+        state=${t[1]}
+        name=${t[2]}
+      fi
+      status="$(printf "%-6s%-12s%s\n" ${id} ${state} ${name})"
+      print "${status}"
+    done
+  fi
 }
 
 
 main() {
-  if [ -n "${cancelled}"  ]
+  n=0
+  if [ -n "${actionRun}"  ]
+  then
+    ensureAppsCreated
+    findApps
+    analyzeApps
+    ((n++))
+  fi
+  if [ -n "${actionCanceled}"  ]
   then
     cancelTasks
-    return
+    ((n++))
   fi
-  if [ -n "${report}"  ]
+  if [[ -n "${actionSummary}" || -n "${actionList}" ]]
   then
     report
-    return
+    ((n++))
   fi
-  ensureAppsCreated
-  findApps
-  analyzeApps
+  if [ ${n} -eq 0 ]
+  then
+    usage
+  fi
 }
 
 main
