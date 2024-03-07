@@ -210,7 +210,11 @@ data:
   rules:
     labels:
       included:
+      - konveyor.io/source=javaee
       - konveyor.io/target=cloud-readiness
+      - konveyor.io/target=openjdk17
+      - konveyor.io/target=openliberty
+      - konveyor.io/target=quarkus
 "
   code=$(curl -kSs -o ${tmp} -w "%{http_code}" -X POST ${host}/tasks -H 'Content-Type:application/x-yaml' -d "${d}")
   if [ ! $? -eq 0 ]
