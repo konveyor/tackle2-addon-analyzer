@@ -392,7 +392,6 @@ report() {
     name=${p}
     apps+=(${name})
   done
-  #
   if [ -n "${actionSummary}" ]
   then
     count=0
@@ -443,7 +442,6 @@ report() {
       print " Canceled: ${canceled}"
       print "   Failed: ${failed}"
     fi
-    #
     if [ -n "${actionList}" ]
     then
       print ""
