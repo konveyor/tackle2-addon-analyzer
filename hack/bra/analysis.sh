@@ -15,11 +15,12 @@ usage() {
   echo "  -r report status"
   echo "  -l report status with listing"
   echo "  -f forced"
+  echo "  -C tasks canceled"
   echo "  -o output"
   echo "  -h help"
 }
 
-while getopts "u:d:c:o:hlfr" arg; do
+while getopts "u:d:c:o:hlfrC" arg; do
   case $arg in
     h)
       usage
@@ -39,6 +40,9 @@ while getopts "u:d:c:o:hlfr" arg; do
       ;;
     f)
       forced=1
+      ;;
+    C)
+      cancelled=1
       ;;
     l)
       reportList=1
@@ -270,7 +274,7 @@ analyzeApps() {
     appId=${applications[${name}]}
     state=${t[1]}
     case ${state} in
-      "Created"|"Pending"|"Postponed"|"Running"|"Succeeded")
+      "Pending"|"Postponed"|"Running"|"Succeeded")
         if [ -n "${forced}" ]
         then
           createTask ${appId} ${p}
@@ -278,6 +282,70 @@ analyzeApps() {
         ;;
       *)
         createTask ${appId} ${p}
+        ;;
+    esac
+  done
+}
+
+cancelTask() {
+  id=$1
+  name=$2
+  code=$(curl -kSs -o ${tmp} -w "%{http_code}" -X PUT ${host}/tasks/${id}/cancel)
+  if [ ! $? -eq 0 ]
+  then
+    exit $?
+  fi
+  case ${code} in
+    204)
+     print "Task ${id} for: ${name} - CANCELED"
+     ;;
+   *)
+     print "get fetch - FAILED: ${code}."
+     cat ${tmp}
+     exit 1
+  esac
+}
+
+
+cancelTasks() {
+  code=$(curl -kSs -o ${tmp} -w "%{http_code}" ${host}/tasks)
+  if [ ! $? -eq 0 ]
+  then
+    exit $?
+  fi
+  case ${code} in
+    200)
+     ;;
+   *)
+     print "get fetch - FAILED: ${code}."
+     cat ${tmp}
+     exit 1
+  esac
+  declare -A task
+  readarray report <<< $(jq -c '.[]|"\(.id) \(.state) \(.name)"' ${tmp})
+  for r in "${report[@]}"
+  do
+    r=${r//\"/}
+    t=($r)
+    name=${t[2]}
+    if [ -n "${name}" ]
+    then
+      task[${name}]="${r}"
+    fi
+  done
+  for p in $(find ${dirPath} -type f)
+  do
+    name=${p}
+    r=${task[${name}]}
+    t=($r)
+    appId=${applications[${name}]}
+    id=${t[0]}
+    state=${t[1]}
+    case ${state} in
+      "Created"|"Pending"|"Postponed"|"Running")
+	cancelTask ${id} ${name}
+        ;;
+      *)
         ;;
     esac
   done
@@ -305,6 +373,7 @@ report() {
   postponed=0
   running=0
   succeeded=0
+  canceled=0
   failed=0
   readarray report <<< $(jq -c '.[]|"\(.id) \(.state) \(.name)"' ${tmp})
   for r in "${report[@]}"
@@ -348,6 +417,9 @@ report() {
       "Failed")
         ((failed++))
         ;;
+      "Canceled")
+        ((canceled++))
+        ;;
     esac
     done
     print ""
@@ -357,6 +429,7 @@ report() {
     print "Postponed: ${postponed}"
     print "  Running: ${running}"
     print "Succeeded: ${succeeded}"
+    print " Canceled: ${canceled}"
     print "   Failed: ${failed}"
     if [ -z "${reportList}" ]
     then
@@ -385,14 +458,19 @@ report() {
 
 
 main() {
+  if [ -n "${cancelled}"  ]
+  then
+    cancelTasks
+    return
+  fi
   if [ -n "${report}"  ]
   then
     report
-  else
-    ensureAppsCreated
-    findApps
-    analyzeApps
+    return
   fi
+  ensureAppsCreated
+  findApps
+  analyzeApps
 }
 
 main
