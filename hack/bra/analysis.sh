@@ -14,8 +14,8 @@ usage() {
   echo "  -c credentials id"
   echo "  -r report status"
   echo "  -l report status with listing"
+  echo "  -C cancel"
   echo "  -f forced"
-  echo "  -C tasks canceled"
   echo "  -o output"
   echo "  -h help"
 }
