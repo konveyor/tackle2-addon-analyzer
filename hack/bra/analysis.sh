@@ -216,6 +216,8 @@ addon: analyzer
 application:
   id: ${appId}
 data:
+  tagger:
+    enabled: "true"
   mode:
     binary: true
     artifact: ${artifact}
