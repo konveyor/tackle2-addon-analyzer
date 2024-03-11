@@ -225,6 +225,7 @@ data:
     labels:
       included:
       - konveyor.io/source=javaee
+      - konveyor.io/source=java-ee
       - konveyor.io/target=cloud-readiness
       - konveyor.io/target=openjdk17
       - konveyor.io/target=openliberty
@@ -331,29 +332,25 @@ cancelTasks() {
      cat ${tmp}
      exit 1
   esac
-  declare -A task
   readarray report <<< $(jq -c '.[]|"\(.id) \(.state) \(.name)"' ${tmp})
   for r in "${report[@]}"
   do
     r=${r//\"/}
     t=($r)
+    id=${t[0]}
+    state=${t[1]}
     name=${t[2]}
     if [ -n "${name}" ]
     then
-      task[${name}]="${r}"
+      appId=${applications[${name}]}
+      if [ -z "${appId}" ]
+      then
+        continue
+      fi
     fi
-  done
-  for p in $(find ${dirPath} -type f)
-  do
-    name=${p}
-    r=${task[${name}]}
-    t=($r)
-    appId=${applications[${name}]}
-    id=${t[0]}
-    state=${t[1]}
     case ${state} in
       "Created"|"Pending"|"Postponed"|"Running")
-	cancelTask ${id} ${name}
+        cancelTask ${id} ${name}
         ;;
       *)
         ;;
@@ -480,6 +477,7 @@ main() {
   fi
   if [ -n "${actionCanceled}"  ]
   then
+    findApps
     cancelTasks
     ((n++))
   fi
