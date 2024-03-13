@@ -31,14 +31,15 @@ usage() {
   echo "  -u URL."
   echo "  -d directory of binaries."
   echo "Actions:"
-  echo "  -a assign application to wave. (default)"
+  echo "  -a assign applications to waves."
+  echo "  -x DELETE waves."
   echo "Options:"
   echo "  -s start date. Eg: 2024-03-13T09:01:24-07:00"
   echo "  -e end date.   Eg: 2024-03-14T09:01:24-07:00"
   echo "  -o output"
 }
 
-while getopts "u:d:s:e:ha" arg; do
+while getopts "u:d:s:e:xha" arg; do
   case $arg in
     u)
       host=$OPTARG/hub
@@ -48,6 +49,11 @@ while getopts "u:d:s:e:ha" arg; do
       ;;
     a)
       actionAssign=true
+      unset actionDelete
+      ;;
+    x)
+      actionDelete=true
+      unset actionAssign
       ;;
     s)
       startDate=$OPTARG
@@ -186,10 +192,10 @@ endDate: ${endDate}
     201)
       waveId=$(cat ${tmp}|jq .id)
       waves["${name}"]=${waveId}
-      print "wave for: ${name} created. id=${waveId}"
+      print "wave: ${name} created. id=${waveId}"
       ;;
     409)
-      print "wave for: ${name} found."
+      print "wave: ${name} found."
       ;;
     *)
       print "create wave - FAILED: ${code}."
@@ -208,6 +214,38 @@ ensureWavesCreated() {
   done
 }
 
+deleteWave() {
+  name=$1
+  waveId=${waves["${name}"]}
+  if [ -z "${waveId}" ]
+  then
+    print "wave - not-found: ${name}."
+    return
+  fi
+  code=$(curl -kSs -o ${tmp} -w "%{http_code}" -X DELETE ${host}/migrationwaves/${waveId})
+  if [ ! $? -eq 0 ]
+  then
+    exit $?
+  fi
+  case ${code} in
+    204)
+      print "wave: ${name} DELETED. id=${waveId}"
+      ;;
+    *)
+      print "create wave - FAILED: ${code}."
+      cat ${tmp}
+      exit 1
+  esac
+}
+
+deleteWaves() {
+  for p in $(find ${dirPath} -type f)
+  do
+    p=$(basename ${p})
+    name="${p%.*}"
+    deleteWave ${name}
+  done
+}
 
 updateWave() {
   waveName=$1
@@ -278,6 +316,12 @@ then
   findWaves
   ensureWavesCreated
   updateWaves
+  exit 0
+fi
+if [ -n "${actionDelete}" ]
+then
+  findWaves
+  deleteWaves
   exit 0
 fi
 
