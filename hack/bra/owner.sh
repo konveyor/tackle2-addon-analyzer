@@ -30,17 +30,22 @@ usage() {
   echo "Required"
   echo "  -u URL."
   echo "  -d directory of binaries."
+  echo "Actions:"
+  echo "  -a assign owner. (default)"
   echo "Options:"
   echo "  -o output"
 }
 
-while getopts "u:d:h" arg; do
+while getopts "u:d:ha" arg; do
   case $arg in
     u)
       host=$OPTARG/hub
       ;;
     d)
       dirPath=$OPTARG
+      ;;
+    a)
+      actionAssign=true
       ;;
     h)
       usage
@@ -239,11 +244,16 @@ assignOwners() {
   done
 }
 
-findApps
-findOwners
-ensureOwnersCreated
-assignOwners
 
+if [ -n "${actionAssign}" ]
+then
+  findApps
+  findOwners
+  ensureOwnersCreated
+  assignOwners
+  exit 0
+fi
 
-
+echo -e "\nNo action selected."
+usage
 
