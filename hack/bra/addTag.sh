@@ -31,13 +31,14 @@ usage() {
   echo "Required"
   echo "  -u URL."
   echo "  -d directory of binaries."
-  echo "  -c category."
-  echo "  -x DELETE tag category."
+  echo "Actions:"
+  echo "  -c create category and tags assigned to applications."
+  echo "  -x DELETE category and tags."
   echo "Options:"
   echo "  -o output"
 }
 
-while getopts "u:d:c:xh" arg; do
+while getopts "u:d:c:x:h" arg; do
   case $arg in
     u)
       host=$OPTARG/hub
@@ -47,9 +48,11 @@ while getopts "u:d:c:xh" arg; do
       ;;
     c)
       category=$OPTARG
+      unset actionDelete
       ;;
     x)
-      delete=true
+      category=$OPTARG
+      actionDelete=true
       ;;
     h)
       usage
@@ -57,7 +60,7 @@ while getopts "u:d:c:xh" arg; do
   esac
 done
 
-if [ -z "${delete}" ]
+if [ -z "${actionDelete}" ]
 then
   if [ -z "${dirPath}"  ]
   then
@@ -340,7 +343,7 @@ addTags() {
 }
 
 findCategories
-if [ -n "${delete}" ]
+if [ -n "${actionDelete}" ]
 then
   deleteCategory
   exit
