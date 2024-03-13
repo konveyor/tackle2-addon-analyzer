@@ -31,12 +31,13 @@ usage() {
   echo "Required"
   echo "  -u URL."
   echo "  -d directory of binaries."
-  echo "  -c tag category."
+  echo "  -c category."
+  echo "  -x DELETE tag category."
   echo "Options:"
   echo "  -o output"
 }
 
-while getopts "u:d:c:h" arg; do
+while getopts "u:d:c:xh" arg; do
   case $arg in
     u)
       host=$OPTARG/hub
@@ -46,6 +47,9 @@ while getopts "u:d:c:h" arg; do
       ;;
     c)
       category=$OPTARG
+      ;;
+    x)
+      delete=true
       ;;
     h)
       usage
@@ -74,7 +78,7 @@ fi
 
 if [ -z "${category}"  ]
 then
-  echo "-u required."
+  echo "-c required."
   usage
   exit 0
 fi
@@ -214,6 +218,31 @@ name: ${name}
   esac
 }
 
+
+deleteCategory() {
+  catId=${categories["${category}"]}
+  if [ -z "${catId}" ]
+  then
+    print "category ${category} not-found."
+    return
+  fi
+  code=$(curl -kSs -o ${tmp} -w "%{http_code}" -X DELETE ${host}/tagcategories/${catId})
+  if [ ! $? -eq 0 ]
+  then
+    exit $?
+  fi
+  case ${code} in
+    204)
+      print "tag category: ${category} DELETED. (id=${catId})"
+      ;;
+    *)
+      print "DELETE category (id=${catId}) - FAILED: ${code}."
+      cat ${tmp}
+      exit 1
+  esac
+}
+
+
 ensureTag() {
   name=$1
   key="${category}=${name}"
@@ -307,11 +336,15 @@ addTags() {
   done
 }
 
-
-findApps
 findCategories
+if [ -n "${delete}" ]
+then
+  deleteCategory
+  exit
+fi
 ensureCategory
 findTags
+findApps
 addTags
 
 
