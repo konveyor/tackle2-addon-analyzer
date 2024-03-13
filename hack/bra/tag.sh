@@ -322,8 +322,8 @@ id: ${tagId}
 addTags() {
   for p in $(find ${dirPath} -type f)
   do
-    tag="${p#.*}"
-    tag=$(basename ${tag})
+    f=$(basename ${p})
+    tag="${f%.*}"
     ensureTag ${tag}
     key="${category}=${tag}"
     tagId=${tags["${key}"]}
