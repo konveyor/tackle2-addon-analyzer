@@ -288,8 +288,8 @@ applications: [${refs[@]}]
 updateWaves() {
   for p in $(find ${dirPath} -type f)
   do
-    wave="${p#.*}"
-    wave=$(basename ${wave})
+    f=$(basename ${p})
+    wave="${f%.*}"
     waveId=${waves["${wave}"]}
     n=0
     ids=()
