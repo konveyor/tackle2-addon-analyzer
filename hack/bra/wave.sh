@@ -39,7 +39,7 @@ usage() {
   echo "  -o output"
 }
 
-while getopts "u:d:s:e:xha" arg; do
+while getopts "u:d:s:e:hax" arg; do
   case $arg in
     u)
       host=$OPTARG/hub
