@@ -328,8 +328,8 @@ addTags() {
     do
       ((n++))
       entry=$(basename ${entry})
-      appIds=${applications[${entry}]}
-      if [ -z "${appIds}" ]
+      appIds=(${applications[${entry}]})
+      if [ "${#appIds[@]}" -eq 0 ]
       then
         print "application for: ${p}:${n} \"${entry}\" - NOT FOUND"
         continue

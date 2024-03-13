@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-# Assign application owner (stakeholder).
-# The stakeholder is created (as needed).
+# Assign applications to a migration wave.
+# The wave is created (as needed).
 # Processes a directory of text files containing a list of binaries.
-# The file name (suffix ignored) is used as the name of the stakeholder.
+# The file name (suffix ignored) is used as the name of the wave.
 # Example:
 # $ ls -Fal streams
-# ownerA.txt
-# ownerB.txt
-# ownerC.txt
+# waveA.txt
+# waveB.txt
+# waveC.txt
 # 
-# $ cat streams/ownerA.txt
+# $ cat streams/waveA.txt
 # dog.war
 # cat.war
 # tiger.war
@@ -21,7 +21,7 @@ self=$(basename $0)
 tmp=/tmp/${self}-${pid}
 
 declare -A applications
-declare -A stakeholders
+declare -A waves
 
 
 usage() {
@@ -31,12 +31,14 @@ usage() {
   echo "  -u URL."
   echo "  -d directory of binaries."
   echo "Actions:"
-  echo "  -a assign owner. (default)"
+  echo "  -a assign application to wave. (default)"
   echo "Options:"
+  echo "  -s start date. Eg: 2024-03-13T09:01:24-07:00"
+  echo "  -e end date.   Eg: 2024-03-14T09:01:24-07:00"
   echo "  -o output"
 }
 
-while getopts "u:d:ha" arg; do
+while getopts "u:d:s:e:ha" arg; do
   case $arg in
     u)
       host=$OPTARG/hub
@@ -46,6 +48,12 @@ while getopts "u:d:ha" arg; do
       ;;
     a)
       actionAssign=true
+      ;;
+    s)
+      startDate=$OPTARG
+      ;;
+    e)
+      endDate=$OPTARG
       ;;
     h)
       usage
@@ -72,6 +80,14 @@ then
   exit 0
 fi
 
+if [ -z "${startDate}"  ]
+then
+  startDate="2025-01-01T09:01:00-00:00"
+fi
+if [ -z "${endDate}"  ]
+then
+  endDate="2025-03-01T09:01:00-00:00"
+fi
 
 print() {
   if [ -n "${output}"  ]
@@ -119,8 +135,8 @@ findApps() {
   esac
 }
 
-findOwners() {
-  code=$(curl -kSs -o ${tmp} -w "%{http_code}" ${host}/stakeholders)
+findWaves() {
+  code=$(curl -kSs -o ${tmp} -w "%{http_code}" ${host}/migrationwaves)
   if [ ! $? -eq 0 ]
   then
     exit $?
@@ -136,110 +152,122 @@ findOwners() {
         name=${a[1]}
         if [ -n "${name}" ]
         then
-          stakeholders["${name}"]=${id}
+          waves["${name}"]=${id}
         fi
       done
       ;;
     *)
-      print "find stakeholders - FAILED: ${code}."
+      print "find waves - FAILED: ${code}."
       cat ${tmp}
       exit 1
   esac
 }
 
 
-ensureOwnerCreated() {
+ensureWaveCreated() {
   name=$1
-  if [ -n "${stakeholders[${name}]}" ]
+  if [ -n "${waves[${name}]}" ]
   then
-    print "stakeholder for: ${name} found."
+    print "wave: ${name} found."
     return
   fi
   d="
 ---
 name: ${name}
-email: "${name}@redhat.com"
+startDate: ${startDate}
+endDate: ${endDate}
 "
-  code=$(curl -kSs -o ${tmp} -w "%{http_code}" -X POST ${host}/stakeholders -H 'Content-Type:application/x-yaml' -d "${d}")
+  code=$(curl -kSs -o ${tmp} -w "%{http_code}" -X POST ${host}/migrationwaves -H 'Content-Type:application/x-yaml' -d "${d}")
   if [ ! $? -eq 0 ]
   then
     exit $?
   fi
   case ${code} in
     201)
-      ownerId=$(cat ${tmp}|jq .id)
-      stakeholders["${name}"]=${ownerId}
-      print "stakeholder for: ${name} created. id=${ownerId}"
+      waveId=$(cat ${tmp}|jq .id)
+      waves["${name}"]=${waveId}
+      print "wave for: ${name} created. id=${waveId}"
       ;;
     409)
-      print "stakeholder for: ${name} found."
+      print "wave for: ${name} found."
       ;;
     *)
-      print "create skakeholder - FAILED: ${code}."
+      print "create wave - FAILED: ${code}."
       cat ${tmp}
       exit 1
   esac
 }
 
 
-ensureOwnersCreated() {
+ensureWavesCreated() {
   for p in $(find ${dirPath} -type f)
   do
     p=$(basename ${p})
     name="${p%.*}"
-    ensureOwnerCreated ${name}
+    ensureWaveCreated ${name}
   done
 }
 
-assignOwner() {
-  ownerName=$1
-  ownerId=$2
-  appName=$3
-  appId=$4
+
+updateWave() {
+  waveName=$1
+  waveId=$2
+  shift
+  shift
+  appIds=("$@")
+  refs=()
+  for id in "${appIds[@]}"
+  do
+    refs+=("\"id\":${id}")
+  done
+  refs=($(IFS=, ;echo "${refs[*]}"))
   d="
 ---
-owner:
-  id: ${ownerId}
-" 
-  code=$(curl -kSs -o ${tmp} -w "%{http_code}" -X PUT ${host}/applications/${appId}/stakeholders -H 'Content-Type:application/x-yaml' -d "${d}")
+id: ${waveId}
+name: ${waveName}
+startDate: ${startDate}
+endDate: ${endDate}
+applications: [${refs[@]}]
+"
+  code=$(curl -kSs -o ${tmp} -w "%{http_code}" -X PUT ${host}/migrationwaves/${waveId} -H 'Content-Type:application/x-yaml' -d "${d}")
   if [ ! $? -eq 0 ]
   then
     exit $?
   fi
   case ${code} in
     204)
-      print "${appName} (id=${appId}) assigned owner ${ownerName} (id=${ownerId})"
+      print "wave ${waveName} updated. (id=${waveId})"
       ;;
     *)
-      print "assign owner - FAILED: ${code}."
+      print "assign wave - FAILED: ${code}."
       cat ${tmp}
       exit 1
   esac
 
 }
 
-assignOwners() {
+
+updateWaves() {
   for p in $(find ${dirPath} -type f)
   do
-    owner="${p#.*}"
-    owner=$(basename ${owner})
-    ownerId=${stakeholders["${owner}"]}
+    wave="${p#.*}"
+    wave=$(basename ${wave})
+    waveId=${waves["${wave}"]}
     n=0
+    ids=()
     while read -r entry
     do
       ((n++))
       entry=$(basename ${entry})
       appIds=(${applications[${entry}]})
-      if [ "${#appIds[@]}" -eq 0 ]
+      if [ -z "${appIds}" ]
       then
         print "application for: ${p}:${n} \"${entry}\" - NOT FOUND"
         continue
       fi
-      for appId in "${appIds[@]}"
-      do
-        assignOwner ${owner} ${ownerId} "*/${entry}" ${appId}
-      done
+      ids+=(${appIds[@]})
     done < ${p}
+    updateWave ${wave} ${waveId} "${ids[@]}"
   done
 }
 
@@ -247,9 +275,9 @@ assignOwners() {
 if [ -n "${actionAssign}" ]
 then
   findApps
-  findOwners
-  ensureOwnersCreated
-  assignOwners
+  findWaves
+  ensureWavesCreated
+  updateWaves
   exit 0
 fi
 
