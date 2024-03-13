@@ -236,7 +236,7 @@ applications: [${refs[@]}]
   fi
   case ${code} in
     204)
-      print "wave ${waveName} updated. (id=${waveId})"
+      print "wave ${waveName} updated. (id=${waveId}) with ${#appIds[@]} applications."
       ;;
     *)
       print "assign wave - FAILED: ${code}."
