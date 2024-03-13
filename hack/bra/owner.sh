@@ -167,7 +167,7 @@ email: "${name}@redhat.com"
   fi
   case ${code} in
     201)
-      ownerId=$(cat ${tmp}|jq .id)
+      ownerId=$(jq .id ${tmp})
       stakeholders["${name}"]=${ownerId}
       print "stakeholder for: ${name} created. id=${ownerId}"
       ;;
