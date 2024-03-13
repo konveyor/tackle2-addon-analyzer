@@ -114,7 +114,7 @@ ${cred}
   fi
   case ${code} in
     201)
-      appId=$(cat ${tmp}|jq .id)
+      appId=$(jq .id ${tmp})
       print "Application for: ${path} created. id=${appId}"
       ;;
     409)
@@ -238,7 +238,7 @@ data:
   fi
   case ${code} in
     201)
-      taskId=$(cat ${tmp}|jq .id)
+      taskId=$(jq .id ${tmp})
       print "\nTask for: ${path} created. id=${taskId}"
       uploadArtifact ${taskId} ${path}
       submitTask ${taskId} ${path}

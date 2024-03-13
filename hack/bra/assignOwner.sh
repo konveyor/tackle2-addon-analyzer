@@ -146,6 +146,11 @@ findOwners() {
 ensureOwnerCreated() {
   path=$1
   name=${path}
+  if [ -n "${stakeholders[${name}]}" ]
+  then
+    print "stakeholder for: ${path} found."
+    return
+  fi
   d="
 ---
 name: ${name}
@@ -159,6 +164,7 @@ email: "${name}@redhat.com"
   case ${code} in
     201)
       ownerId=$(cat ${tmp}|jq .id)
+      stakeholders["${name}"]=${ownerId}
       print "stakeholder for: ${path} created. id=${ownerId}"
       ;;
     409)
@@ -234,8 +240,8 @@ assignOwners() {
 }
 
 findApps
-ensureOwnersCreated
 findOwners
+ensureOwnersCreated
 assignOwners
 
 
