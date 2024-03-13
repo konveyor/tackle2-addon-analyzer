@@ -57,16 +57,19 @@ while getopts "u:d:c:xh" arg; do
   esac
 done
 
-if [ -z "${dirPath}"  ]
+if [ -z "${delete}" ]
 then
-  echo "-d required."
-  usage
-  exit 1
-fi
-if ! test -d "${dirPath}"
-then
-  echo "${dirPath} not a directory." 
-  exit 1
+  if [ -z "${dirPath}"  ]
+  then
+    echo "-d required."
+    usage
+    exit 1
+  fi
+  if ! test -d "${dirPath}"
+  then
+    echo "${dirPath} not a directory." 
+    exit 1
+  fi
 fi
 
 if [ -z "${host}"  ]
