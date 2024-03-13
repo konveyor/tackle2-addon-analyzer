@@ -186,7 +186,7 @@ name: ${name}
     201)
       catId=$(jq .id ${tmp})
       categories["${name}"]=${catId}
-      print "tag category: ${name} created. id=${catId}"
+      print "tag category: ${name} created. (id=${catId})"
       ;;
     409)
       print "tag category: ${name} found."
@@ -222,7 +222,7 @@ category:
     201)
       tagId=$(jq .id ${tmp})
       tags["${key}"]=${tagId}
-      print "tag: ${key} created. id=${tagId}"
+      print "tag: ${key} created. (id=${tagId})"
       ;;
     409)
       print "tag: ${key} found."
@@ -251,10 +251,10 @@ id: ${tagId}
   fi
   case ${code} in
     201)
-      print "tag ${category}=${tag} id=${tagId} added to application ${appName} id=${appId}"
+      print "tag ${category}=${tag} (id=${tagId}) added to application ${appName} (id=${appId})"
       ;;
     409)
-      print "tag ${category}=${tag} id=${tagId} found on application ${appName} id=${appId}"
+      print "tag ${category}=${tag} (id=${tagId}) found on application ${appName} (id=${appId})"
       ;;
     *)
       print "assign tag - FAILED: ${code}."
