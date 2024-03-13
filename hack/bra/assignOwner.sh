@@ -1,4 +1,20 @@
 #!/bin/bash
+#
+# Assign application owner (stakeholder).
+# The stakeholder is created (as needed).
+# Processes a directory of text files containing a list of binaries.
+# The file name (suffix ignored) is used as the name of the stakeholder.
+# Example:
+# $ ls -Fal streams
+# ownerA.txt
+# ownerB.txt
+# ownerC.txt
+# 
+# $ cat streams/ownerA.txt
+# dog.war
+# cat.war
+# tiger.war
+#
 
 pid=$$
 self=$(basename $0)
@@ -81,7 +97,7 @@ findApps() {
         then
           name=$(basename ${name})
           ids=${applications["${name}"]}
-          if [ -z ${ids} ]
+          if [ -z "${ids}" ]
           then
             ids=(${id})
           else
@@ -204,7 +220,7 @@ assignOwners() {
       ((n++))
       entry=$(basename ${entry})
       appIds=${applications[${entry}]}
-      if [ -z ${appIds} ]
+      if [ -z "${appIds}" ]
       then
         print "application for: ${p}:${n} \"${entry}\" - NOT FOUND"
         continue
