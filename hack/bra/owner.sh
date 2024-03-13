@@ -23,7 +23,6 @@ tmp=/tmp/${self}-${pid}
 declare -A applications
 declare -A stakeholders
 
-
 usage() {
   echo "Usage: ${self} <required> <options>"
   echo "  -h help"
@@ -36,7 +35,7 @@ usage() {
   echo "  -o output"
 }
 
-while getopts "u:d:ha" arg; do
+while getopts "u:d:o:ha" arg; do
   case $arg in
     u)
       host=$OPTARG/hub
@@ -46,6 +45,10 @@ while getopts "u:d:ha" arg; do
       ;;
     a)
       actionAssign=true
+      ;;
+    o)
+      output=$OPTARG
+      echo $0 > ${output}
       ;;
     h)
       usage
@@ -200,7 +203,7 @@ assignOwner() {
 ---
 owner:
   id: ${ownerId}
-" 
+"
   code=$(curl -kSs -o ${tmp} -w "%{http_code}" -X PUT ${host}/applications/${appId}/stakeholders -H 'Content-Type:application/x-yaml' -d "${d}")
   if [ ! $? -eq 0 ]
   then
@@ -221,8 +224,8 @@ owner:
 assignOwners() {
   for p in $(find ${dirPath} -type f)
   do
-    owner="${p#.*}"
-    owner=$(basename ${owner})
+    f=$(basename ${p})
+    owner="${f%.*}"
     ownerId=${stakeholders["${owner}"]}
     n=0
     while read -r entry

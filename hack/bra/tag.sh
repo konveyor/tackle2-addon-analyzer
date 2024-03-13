@@ -38,7 +38,7 @@ usage() {
   echo "  -o output"
 }
 
-while getopts "u:d:c:x:h" arg; do
+while getopts "u:d:c:x:o:h" arg; do
   case $arg in
     u)
       host=$OPTARG/hub
@@ -53,6 +53,10 @@ while getopts "u:d:c:x:h" arg; do
     x)
       category=$OPTARG
       actionDelete=true
+      ;;
+    o)
+      output=$OPTARG
+      echo $0 > ${output}
       ;;
     h)
       usage
