@@ -79,8 +79,15 @@ findApps() {
         name=${a[1]}
         if [ -n "${name}" ]
         then
-	  name=$(basename ${name})
-          applications["${name}"]=${id}
+          name=$(basename ${name})
+          ids=${applications["${name}"]}
+          if [ -z ${ids} ]
+          then
+            ids=(${id})
+          else
+            ids+=(${id})
+          fi
+          applications["${name}"]=${ids[@]}
         fi
       done
       ;;
@@ -191,12 +198,21 @@ assignOwners() {
     owner="${p#.*}"
     owner=$(basename ${owner})
     ownerId=${stakeholders["${owner}"]}
+    n=0
     while read -r entry
     do
-      echo "ENTRY=$entry"
+      ((n++))
       entry=$(basename ${entry})
-      appId=${applications[${entry}]}
-      assignOwner ${owner} ${ownerId} "*/${entry}" ${appId}
+      appIds=${applications[${entry}]}
+      if [ -z ${appIds} ]
+      then
+        print "application for: ${p}:${n} \"${entry}\" - NOT FOUND"
+        continue
+      fi
+      for appId in ${appIds[@]}
+      do
+        assignOwner ${owner} ${ownerId} "*/${entry}" ${appId}
+      done
     done < ${p}
   done
 }
