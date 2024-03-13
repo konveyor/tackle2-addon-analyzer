@@ -1,4 +1,20 @@
 #!/bin/bash
+# Add tag to application.
+# Both the category and tag are created (as needed).
+# Processes a directory of text files containing a list of binaries.
+# The file name (suffix ignored) is used as the name of the tag.
+# Example:
+# $ ls -Fal streams
+# ownerA.txt
+# ownerB.txt
+# ownerC.txt
+#
+# $ cat streams/ownerA.txt
+# dog.war
+# cat.war
+# tiger.war
+#
+
 
 pid=$$
 self=$(basename $0)
