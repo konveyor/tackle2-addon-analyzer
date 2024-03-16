@@ -10,8 +10,9 @@ spec:
     name: addon
     imagePullPolicy: Always
     image: quay.io/jortel/sleeper
-    command: ["/usr/bin/sleep"]
-    args: ["10"]
+    command: 
+    - /usr/bin/sleep
+    - "10"
 
 ---
 kind: Component
@@ -26,12 +27,13 @@ spec:
     name: provider-java
     imagePullPolicy: Always
     image: quay.io/jortel/sleeper
-    command: ["/usr/bin/sleep"]
-    args: ["90"]
+    command: 
+    - /usr/bin/sleep
+    - "90"
     env:
     - name: PORT
       value: "8080"
-  config:
+  extension:
     provider:
       initConfig:
         port: "8080"
@@ -44,7 +46,9 @@ metadata:
   name: analyzer
 spec:
   addon:
-    name: analyzer
+  - name: analyzer
   component:
-    match: tag:language=
+  - match: tag:language=
     name:  provider-$*
+
+
