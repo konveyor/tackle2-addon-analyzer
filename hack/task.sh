@@ -11,7 +11,7 @@ curl -X POST ${host}/tasks \
 ---
 state: ${state}
 addon: analyzer
-components:
+extensions:
 - provider-java
 application:
   id: 1

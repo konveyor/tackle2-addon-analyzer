@@ -11,7 +11,7 @@ curl -X POST ${host}/taskgroups \
 ---
 state: ${state}
 addon: analyzer
-components:
+extensions:
 - provider-java
 tasks:
 - application:
