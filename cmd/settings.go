@@ -163,12 +163,6 @@ func (r *Settings) ProxySettings() (err error) {
 	return
 }
 
-// Report self as activity.
-func (r *Settings) Report() {
-	b, _ := yaml.Marshal(r)
-	addon.Activity("Settings: %s\n%s", r.path(), string(b))
-}
-
 // getProxy set proxy settings.
 func (r *Settings) getProxy(kind string) (url string, excluded []string, err error) {
 	var p *api.Proxy
