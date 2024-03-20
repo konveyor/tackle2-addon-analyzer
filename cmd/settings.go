@@ -28,6 +28,49 @@ func (r *Settings) Read() (err error) {
 	}()
 	b, err := io.ReadAll(f)
 	err = yaml.Unmarshal(b, r)
+	if err != nil {
+		return
+	}
+	err = r.AppendExtensions()
+	return
+}
+
+// HasProvider returns true when the provider found.
+func (r *Settings) HasProvider(name string) (found bool) {
+	for _, p := range *r {
+		if p.Name == name {
+			found = true
+			break
+		}
+	}
+	return
+}
+
+// AppendExtensions adds extension fragments.
+func (r *Settings) AppendExtensions() (err error) {
+	addon, err := addon.Addon()
+	if err != nil {
+		return
+	}
+	for _, extension := range addon.Extensions {
+		mp, cast := extension.Metadata.(map[string]any)
+		if !cast {
+			continue
+		}
+		var b []byte
+		b, err = yaml.Marshal(mp)
+		if err != nil {
+			return
+		}
+		p := provider.Config{}
+		err = yaml.Unmarshal(b, &p)
+		if err != nil {
+			return
+		}
+		if !r.HasProvider(p.Name) {
+			*r = append(*r, p)
+		}
+	}
 	return
 }
 
@@ -120,6 +163,12 @@ func (r *Settings) ProxySettings() (err error) {
 	return
 }
 
+// Report self as activity.
+func (r *Settings) Report() {
+	b, _ := yaml.Marshal(r)
+	addon.Activity("Settings: %s\n%s", r.path(), string(b))
+}
+
 // getProxy set proxy settings.
 func (r *Settings) getProxy(kind string) (url string, excluded []string, err error) {
 	var p *api.Proxy
@@ -154,12 +203,6 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 	}
 	url = kind + "://" + host
 	return
-}
-
-// Report self as activity.
-func (r *Settings) Report() {
-	b, _ := yaml.Marshal(r)
-	addon.Activity("Settings: %s\n%s", r.path(), string(b))
 }
 
 // Path

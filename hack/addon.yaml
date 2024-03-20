@@ -9,10 +9,7 @@ spec:
   container:
     name: addon
     imagePullPolicy: Always
-    image: quay.io/jortel/sleeper
-    command: 
-    - /usr/bin/sleep
-    - "10"
+    image: quay.io/jortel/tackle2-addon-analyzer:provider
 
 ---
 kind: Extension
@@ -29,13 +26,19 @@ spec:
     image: quay.io/jortel/sleeper
     command: 
     - /usr/bin/sleep
-    - "90"
+    - "10"
     env:
     - name: PORT
       value: "8080"
   metadata:
-    provider:
-      initConfig:
+    name: java
+    binaryPath: /jdtls/bin/jdtls
+    initConfig:
+    - analysisMode: source-only
+      providerSpecificConfig:
+        bundles: /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
+        depOpenSourceLabelsFile: /usr/local/etc/maven.default.index
+        lspServerPath: /jdtls/bin/jdtls
         port: "8080"
 
 ---
