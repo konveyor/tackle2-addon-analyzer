@@ -5,11 +5,15 @@ metadata:
   namespace: konveyor-tackle
   name: analyzer
 spec:
-  capability: analysis
+  task: analyzer
+  capability: analyzer
   container:
     name: addon
     imagePullPolicy: Always
     image: quay.io/jortel/tackle2-addon-analyzer:provider
+  extension:
+  - match: tag:Language=
+    capability:  provider-$*
 
 ---
 kind: Extension
@@ -42,7 +46,7 @@ spec:
         port: "8080"
 
 ---
-kind: TaskProfile
+kind: Task
 apiVersion: tackle.konveyor.io/v1alpha1
 metadata:
   namespace: konveyor-tackle
@@ -50,8 +54,4 @@ metadata:
 spec:
   addon:
   - name: analyzer
-  extension:
-  - match: tag:Language=
-    capability:  provider-$*
-
 
