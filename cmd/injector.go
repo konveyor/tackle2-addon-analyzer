@@ -16,18 +16,21 @@ var (
 	DictRegex = regexp.MustCompile(`(\$\()([^)]+)(\))`)
 )
 
+// Field injection specification.
 type Field struct {
 	Name string `json:"name"`
 	Path string `json:"path"`
 	Key  string `json:"key"`
 }
 
+// Injector resource injection specification.
 type Injector struct {
 	Kind   string  `json:"kind"`
 	Fields []Field `json:"fields"`
 }
 
-type ExtensionMetadata struct {
+// Metadata for provider extensions.
+type Metadata struct {
 	Resources []Injector      `json:"resources,omitempty"`
 	Provider  provider.Config `json:"provider"`
 }
@@ -38,7 +41,7 @@ type UnknownInjector struct {
 }
 
 func (e *UnknownInjector) Error() (s string) {
-	return fmt.Sprintf("Injector: %s, unknown.", e.Kind)
+	return fmt.Sprintf("Resource injector: kind=%s, unknown.", e.Kind)
 }
 
 func (e *UnknownInjector) Is(err error) (matched bool) {
@@ -47,29 +50,52 @@ func (e *UnknownInjector) Is(err error) (matched bool) {
 	return
 }
 
-// UnknownField used to report an unknown resource field.
-type UnknownField struct {
+// FieldNotMatched used to report an un-matched resource field.
+type FieldNotMatched struct {
 	Kind  string
 	Field string
 }
 
-func (e *UnknownField) Error() (s string) {
-	return fmt.Sprintf("Field: %s.%s, unknown.", e.Kind, e.Field)
+func (e *FieldNotMatched) Error() (s string) {
+	return fmt.Sprintf("Resource injector: field=%s.%s, not-matched.", e.Kind, e.Field)
 }
 
-func (e *UnknownField) Is(err error) (matched bool) {
-	var inst *UnknownField
+func (e *FieldNotMatched) Is(err error) (matched bool) {
+	var inst *FieldNotMatched
 	matched = errors.As(err, &inst)
 	return
 }
 
-// ResourceBuilder supports hub resource injection.
-type ResourceBuilder struct {
+// ResourceInjector inject resources into extension metadata.
+type ResourceInjector struct {
 	dict map[string]string
 }
 
-// Build returns  the built resource dictionary.
-func (r *ResourceBuilder) Build(md *ExtensionMetadata) (dict map[string]string, err error) {
+// Inject resources into extension metadata.
+// Returns injected provider (settings).
+func (r *ResourceInjector) Inject(extension *api.Extension) (p *provider.Config, err error) {
+	mp := r.asMap(extension.Metadata)
+	md := Metadata{}
+	err = r.object(mp, &md)
+	if err != nil {
+		return
+	}
+	err = r.build(&md)
+	if err != nil {
+		return
+	}
+	mp = r.asMap(&md.Provider)
+	mp = r.inject(mp).(map[string]any)
+	err = r.object(mp, &md.Provider)
+	if err != nil {
+		return
+	}
+	p = &md.Provider
+	return
+}
+
+// build builds resource dictionary.
+func (r *ResourceInjector) build(md *Metadata) (err error) {
 	r.dict = make(map[string]string)
 	application, err := addon.Task.Application()
 	if err != nil {
@@ -99,17 +125,16 @@ func (r *ResourceBuilder) Build(md *ExtensionMetadata) (dict map[string]string, 
 			return
 		}
 	}
-	dict = r.dict
 	return
 }
 
 // add the resource fields specified in the injector.
-func (r *ResourceBuilder) add(injector *Injector, object any) (err error) {
+func (r *ResourceInjector) add(injector *Injector, object any) (err error) {
 	mp := r.asMap(object)
 	for _, f := range injector.Fields {
 		v, found := mp[f.Name]
 		if !found {
-			err = &UnknownField{Kind: injector.Kind, Field: f.Name}
+			err = &FieldNotMatched{Kind: injector.Kind, Field: f.Name}
 			return
 		}
 		fv := r.string(v)
@@ -126,7 +151,7 @@ func (r *ResourceBuilder) add(injector *Injector, object any) (err error) {
 }
 
 // write a resource field value to a file.
-func (r *ResourceBuilder) write(path string, s string) (err error) {
+func (r *ResourceInjector) write(path string, s string) (err error) {
 	f, err := os.Create(path)
 	if err == nil {
 		_, _ = f.Write([]byte(s))
@@ -136,7 +161,7 @@ func (r *ResourceBuilder) write(path string, s string) (err error) {
 }
 
 // string returns a string representation of a field value.
-func (r *ResourceBuilder) string(object any) (s string) {
+func (r *ResourceInjector) string(object any) (s string) {
 	if object != nil {
 		s = fmt.Sprintf("%v", object)
 	}
@@ -144,7 +169,7 @@ func (r *ResourceBuilder) string(object any) (s string) {
 }
 
 // objectMap returns a map for a resource object.
-func (r *ResourceBuilder) asMap(object any) (mp map[string]any) {
+func (r *ResourceInjector) asMap(object any) (mp map[string]any) {
 	b, _ := json.Marshal(object)
 	mp = make(map[string]any)
 	_ = json.Unmarshal(b, &mp)
@@ -152,28 +177,14 @@ func (r *ResourceBuilder) asMap(object any) (mp map[string]any) {
 }
 
 // objectMap returns a map for a resource object.
-func (r *ResourceBuilder) asObject(mp map[string]any, object any) {
+func (r *ResourceInjector) object(mp map[string]any, object any) (err error) {
 	b, _ := json.Marshal(mp)
-	_ = json.Unmarshal(b, object)
+	err = json.Unmarshal(b, object)
 	return
 }
 
-// MetaInjector inject key into extension metadata.
-type MetaInjector struct {
-	dict map[string]string
-}
-
-// Inject inject into extension metadata.
-func (r *MetaInjector) Inject(extension *api.Extension) {
-	mp := make(map[string]any)
-	b, _ := json.Marshal(extension.Metadata)
-	_ = json.Unmarshal(b, &mp)
-	mp = r.inject(mp).(map[string]any)
-	extension.Metadata = mp
-}
-
 // inject replaces `dict` variables referenced in metadata.
-func (r *MetaInjector) inject(in any) (out any) {
+func (r *ResourceInjector) inject(in any) (out any) {
 	switch node := in.(type) {
 	case map[string]any:
 		for k, v := range node {

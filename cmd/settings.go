@@ -53,32 +53,14 @@ func (r *Settings) AppendExtensions() (err error) {
 		return
 	}
 	for _, extension := range addon.Extensions {
-		mp, cast := extension.Metadata.(map[string]any)
-		if !cast {
-			continue
-		}
-		var b []byte
-		b, err = yaml.Marshal(mp)
+		var p *provider.Config
+		injector := ResourceInjector{}
+		p, err = injector.Inject(&extension)
 		if err != nil {
 			return
 		}
-		md := ExtensionMetadata{}
-		err = yaml.Unmarshal(b, &md)
-		if err != nil {
-			return
-		}
-		builder := ResourceBuilder{}
-		dict, nErr := builder.Build(&md)
-		if nErr != nil {
-			err = nErr
-			return
-		}
-		pMap := builder.asMap(md.Provider)
-		injector := MetaInjector{dict: dict}
-		injector.inject(&pMap)
-		builder.asObject(mp, &md.Provider)
-		if !r.HasProvider(md.Provider.Name) {
-			*r = append(*r, md.Provider)
+		if !r.HasProvider(p.Name) {
+			*r = append(*r, *p)
 		}
 	}
 	return
