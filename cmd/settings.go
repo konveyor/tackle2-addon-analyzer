@@ -48,7 +48,7 @@ func (r *Settings) HasProvider(name string) (found bool) {
 
 // AppendExtensions adds extension fragments.
 func (r *Settings) AppendExtensions() (err error) {
-	addon, err := addon.Addon()
+	addon, err := addon.Addon(true)
 	if err != nil {
 		return
 	}

@@ -33,7 +33,7 @@ spec:
     - "10"
     env:
     - name: PORT
-      value: "8080"
+      value: $(port:8000)
   metadata:
     name: java
     binaryPath: /jdtls/bin/jdtls
@@ -43,7 +43,37 @@ spec:
         bundles: /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
         depOpenSourceLabelsFile: /usr/local/etc/maven.default.index
         lspServerPath: /jdtls/bin/jdtls
-        port: "8080"
+        port: ${PORT}
+
+---
+kind: Extension
+apiVersion: tackle.konveyor.io/v1alpha1
+metadata:
+  namespace: konveyor-tackle
+  name: provider-xml
+spec:
+  addon: analyzer
+  capability: provider-Java
+  container:
+    name: provider-xml
+    imagePullPolicy: Always
+    image: quay.io/jortel/sleeper
+    command:
+    - /usr/bin/sleep
+    - "5"
+    env:
+    - name: PORT
+      value: $(port:8000)
+  metadata:
+    name: java
+    binaryPath: /jdtls/bin/jdtls
+    initConfig:
+    - analysisMode: source-only
+      providerSpecificConfig:
+        bundles: /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
+        depOpenSourceLabelsFile: /usr/local/etc/maven.default.index
+        lspServerPath: /jdtls/bin/jdtls
+        port: ${PORT}
 
 ---
 kind: Task
