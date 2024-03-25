@@ -62,13 +62,23 @@ func (r *Settings) AppendExtensions() (err error) {
 		if err != nil {
 			return
 		}
-		p := provider.Config{}
-		err = yaml.Unmarshal(b, &p)
+		md := ExtensionMetadata{}
+		err = yaml.Unmarshal(b, &md)
 		if err != nil {
 			return
 		}
-		if !r.HasProvider(p.Name) {
-			*r = append(*r, p)
+		builder := ResourceBuilder{}
+		dict, nErr := builder.Build(&md)
+		if nErr != nil {
+			err = nErr
+			return
+		}
+		pMap := builder.asMap(md.Provider)
+		injector := MetaInjector{dict: dict}
+		injector.inject(&pMap)
+		builder.asObject(mp, &md.Provider)
+		if !r.HasProvider(md.Provider.Name) {
+			*r = append(*r, md.Provider)
 		}
 	}
 	return

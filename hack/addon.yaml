@@ -34,23 +34,24 @@ spec:
     env:
     - name: PORT
       value: $(port:8000)
-  resources:
-  - kind: identity=maven
-    fields:
-    - name: settings
-      path: /tmp/settings.xml
-      key: maven.settings.path
   metadata:
-    name: java
-    binaryPath: /jdtls/bin/jdtls
-    initConfig:
-    - analysisMode: source-only
-      providerSpecificConfig:
-        bundles: /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
-        depOpenSourceLabelsFile: /usr/local/etc/maven.default.index
-        lspServerPath: /jdtls/bin/jdtls
-        mavenSettingsFile: $(maven.settings.path)
-        port: ${PORT}
+    resources:
+    - kind: identity=maven
+      fields:
+      - name: settings
+        path: /tmp/settings.xml
+        key: maven.settings.path
+    provider:
+      name: java
+      binaryPath: /jdtls/bin/jdtls
+      initConfig:
+      - analysisMode: source-only
+        providerSpecificConfig:
+          bundles: /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
+          depOpenSourceLabelsFile: /usr/local/etc/maven.default.index
+          lspServerPath: /jdtls/bin/jdtls
+          mavenSettingsFile: $(maven.settings.path)
+          port: ${PORT}
 
 ---
 kind: Task
