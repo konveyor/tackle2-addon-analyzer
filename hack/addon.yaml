@@ -39,7 +39,7 @@ spec:
     fields:
     - name: settings
       path: /tmp/settings.xml
-      key: maven-settings
+      key: maven.settings.path
   metadata:
     name: java
     binaryPath: /jdtls/bin/jdtls
@@ -49,7 +49,7 @@ spec:
         bundles: /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
         depOpenSourceLabelsFile: /usr/local/etc/maven.default.index
         lspServerPath: /jdtls/bin/jdtls
-        mavenSettingsFile: $(maven-settings)
+        mavenSettingsFile: $(maven.settings.path)
         port: ${PORT}
 
 ---
