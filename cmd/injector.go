@@ -13,44 +13,25 @@ import (
 )
 
 var (
-	DictRegex = regexp.MustCompile(`(\$\()([^)]+)(\))`)
+	KeyRegex = regexp.MustCompile(`(\$\()([^)]+)(\))`)
 )
 
-// Field injection specification.
-type Field struct {
-	Name string `json:"name"`
-	Path string `json:"path"`
-	Key  string `json:"key"`
+// SelectorNotSupported used to report not supported.
+type SelectorNotSupported struct {
+	Selector string
 }
 
-// Injector resource injection specification.
-type Injector struct {
-	Kind   string  `json:"kind"`
-	Fields []Field `json:"fields"`
+func (e *SelectorNotSupported) Error() (s string) {
+	return fmt.Sprintf("Resource selector='%s', not-supported.", e.Selector)
 }
 
-// Metadata for provider extensions.
-type Metadata struct {
-	Resources []Injector      `json:"resources,omitempty"`
-	Provider  provider.Config `json:"provider"`
-}
-
-// UnknownInjector used to report an unknown injector.
-type UnknownInjector struct {
-	Kind string
-}
-
-func (e *UnknownInjector) Error() (s string) {
-	return fmt.Sprintf("Resource injector: kind=%s, unknown.", e.Kind)
-}
-
-func (e *UnknownInjector) Is(err error) (matched bool) {
-	var inst *UnknownInjector
+func (e *SelectorNotSupported) Is(err error) (matched bool) {
+	var inst *SelectorNotSupported
 	matched = errors.As(err, &inst)
 	return
 }
 
-// FieldNotMatched used to report an un-matched resource field.
+// FieldNotMatched used to report resource field not matched.
 type FieldNotMatched struct {
 	Kind  string
 	Field string
@@ -64,6 +45,53 @@ func (e *FieldNotMatched) Is(err error) (matched bool) {
 	var inst *FieldNotMatched
 	matched = errors.As(err, &inst)
 	return
+}
+
+// Field injection specification.
+type Field struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+	Key  string `json:"key"`
+}
+
+// Resource injection specification.
+// Format: <kind>:<key>=<value>
+type Resource struct {
+	Selector string  `json:"selector"`
+	Fields   []Field `json:"fields"`
+}
+
+// Metadata for provider extensions.
+type Metadata struct {
+	Resources []Resource      `json:"resources,omitempty"`
+	Provider  provider.Config `json:"provider"`
+}
+
+// ParsedSelector -
+type ParsedSelector struct {
+	ns    string
+	kind  string
+	name  string
+	value string
+}
+
+// With parses and populates the selector.
+func (p *ParsedSelector) With(s string) {
+	part := strings.SplitN(s, "/", 2)
+	if len(part) > 1 {
+		p.ns = part[0]
+		s = part[1]
+	}
+	part = strings.SplitN(s, ":", 2)
+	if len(part) > 1 {
+		p.kind = part[0]
+		s = part[1]
+	}
+	part = strings.SplitN(s, "=", 2)
+	p.name = part[0]
+	if len(part) > 1 {
+		p.value = part[1]
+	}
 }
 
 // ResourceInjector inject resources into extension metadata.
@@ -101,27 +129,24 @@ func (r *ResourceInjector) build(md *Metadata) (err error) {
 	if err != nil {
 		return
 	}
-	for _, injector := range md.Resources {
-		parsed := strings.Split(injector.Kind, "=")
-		switch strings.ToLower(parsed[0]) {
+	for _, resource := range md.Resources {
+		parsed := ParsedSelector{}
+		parsed.With(resource.Selector)
+		switch strings.ToLower(parsed.kind) {
 		case "identity":
-			kind := ""
-			if len(parsed) > 1 {
-				kind = parsed[1]
-			}
-			identity, found, nErr := addon.Application.FindIdentity(application.ID, kind)
+			identity, found, nErr := addon.Application.FindIdentity(application.ID, parsed.value)
 			if nErr != nil {
 				err = nErr
 				return
 			}
 			if found {
-				err = r.add(&injector, identity)
+				err = r.add(&resource, identity)
 				if err != nil {
 					return
 				}
 			}
 		default:
-			err = &UnknownInjector{Kind: parsed[0]}
+			err = &SelectorNotSupported{Selector: resource.Selector}
 			return
 		}
 	}
@@ -129,12 +154,15 @@ func (r *ResourceInjector) build(md *Metadata) (err error) {
 }
 
 // add the resource fields specified in the injector.
-func (r *ResourceInjector) add(injector *Injector, object any) (err error) {
+func (r *ResourceInjector) add(resource *Resource, object any) (err error) {
 	mp := r.asMap(object)
-	for _, f := range injector.Fields {
+	for _, f := range resource.Fields {
 		v, found := mp[f.Name]
 		if !found {
-			err = &FieldNotMatched{Kind: injector.Kind, Field: f.Name}
+			err = &FieldNotMatched{
+				Kind:  resource.Selector,
+				Field: f.Name,
+			}
 			return
 		}
 		fv := r.string(v)
@@ -154,7 +182,7 @@ func (r *ResourceInjector) add(injector *Injector, object any) (err error) {
 func (r *ResourceInjector) write(path string, s string) (err error) {
 	f, err := os.Create(path)
 	if err == nil {
-		_, _ = f.Write([]byte(s))
+		_, err = f.Write([]byte(s))
 		_ = f.Close()
 	}
 	return
@@ -201,7 +229,7 @@ func (r *ResourceInjector) inject(in any) (out any) {
 		out = injected
 	case string:
 		for {
-			match := DictRegex.FindStringSubmatch(node)
+			match := KeyRegex.FindStringSubmatch(node)
 			if len(match) < 3 {
 				break
 			}

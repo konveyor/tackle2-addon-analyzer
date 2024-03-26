@@ -36,7 +36,7 @@ spec:
       value: $(port:8000)
   metadata:
     resources:
-    - kind: identity=maven
+    - kind: identity:kind=maven
       fields:
       - name: settings
         path: /tmp/settings.xml
