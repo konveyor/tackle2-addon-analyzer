@@ -102,20 +102,6 @@ func (r *Settings) Mode(mode provider.AnalysisMode) {
 	}
 }
 
-// MavenSettings set maven settings path.
-func (r *Settings) MavenSettings(path string) {
-	if path == "" {
-		return
-	}
-	for i := range *r {
-		p := &(*r)[i]
-		switch p.Name {
-		case "java":
-			p.InitConfig[0].ProviderSpecificConfig["mavenSettingsFile"] = path
-		}
-	}
-}
-
 // ProxySettings set proxy settings.
 func (r *Settings) ProxySettings() (err error) {
 	var http, https string
@@ -136,20 +122,17 @@ func (r *Settings) ProxySettings() (err error) {
 	} else {
 		return
 	}
+	if len(http)+len(https) == 0 {
+		return
+	}
 	for i := range *r {
 		p := &(*r)[i]
-		switch p.Name {
-		case "java":
-			d := p.InitConfig[0].ProviderSpecificConfig
-			if http != "" {
-				d["httpproxy"] = http
-			}
-			if https != "" {
-				d["httpsproxy"] = https
-			}
-			if len(noproxy) > 0 {
-				d["noproxy"] = strings.Join(noproxy, ",")
-			}
+		p.Proxy = &provider.Proxy{
+			HTTPProxy:  http,
+			HTTPSProxy: https,
+			NoProxy: strings.Join(
+				noproxy,
+				","),
 		}
 	}
 	return
