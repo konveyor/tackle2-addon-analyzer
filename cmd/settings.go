@@ -87,7 +87,9 @@ func (r *Settings) Write() (err error) {
 func (r *Settings) Location(path string) {
 	for i := range *r {
 		p := &(*r)[i]
-		p.InitConfig[0].Location = path
+		for i := range p.InitConfig {
+			p.InitConfig[i].Location = path
+		}
 	}
 }
 
@@ -95,9 +97,8 @@ func (r *Settings) Location(path string) {
 func (r *Settings) Mode(mode provider.AnalysisMode) {
 	for i := range *r {
 		p := &(*r)[i]
-		switch p.Name {
-		case "java":
-			p.InitConfig[0].AnalysisMode = mode
+		for i := range p.InitConfig {
+			p.InitConfig[i].AnalysisMode = mode
 		}
 	}
 }
@@ -174,7 +175,7 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 	return
 }
 
-// Path
+// Path returns the file path.
 func (r *Settings) path() (p string) {
 	return path.Join(OptDir, "settings.json")
 }
