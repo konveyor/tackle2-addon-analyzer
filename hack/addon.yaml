@@ -20,24 +20,6 @@ kind: Extension
 apiVersion: tackle.konveyor.io/v1alpha1
 metadata:
   namespace: konveyor-tackle
-  name: provider-xml
-spec:
-  addon: analyzer
-  capability: provider-Java
-  container:
-    name: other
-    imagePullPolicy: Always
-    image: quay.io/jortel/sleeperX
-    command:
-    - /usr/bin/sleep
-    - "10"
-  metadata:
-
----
-kind: Extension
-apiVersion: tackle.konveyor.io/v1alpha1
-metadata:
-  namespace: konveyor-tackle
   name: provider-java
 spec:
   addon: analyzer
@@ -48,10 +30,12 @@ spec:
     image: quay.io/jortel/sleeper
     command: 
     - /usr/bin/sleep
-    - "10"
+    - $(SECONDS)
     env:
     - name: PORT
-      value: $(port:8000)
+      value: ${seq:8000}
+    - name: SECONDS
+      value: ${seq:90}
   metadata:
     resources:
     - selector: identity:kind=maven
@@ -69,7 +53,7 @@ spec:
           depOpenSourceLabelsFile: /usr/local/etc/maven.default.index
           lspServerPath: /jdtls/bin/jdtls
           mavenSettingsFile: $(maven.settings.path)
-          port: ${PORT}
+          port: $(PORT)
 
 ---
 kind: Task
