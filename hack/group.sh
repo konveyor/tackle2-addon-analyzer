@@ -3,7 +3,7 @@
 host="${HOST:-localhost:8080}"
 state="${1:-Ready}"
 
-curl -X POST ${host}/tasks \
+curl -X POST ${host}/taskgroups \
   -H 'Content-Type:application/x-yaml' \
   -H 'Accept:application/x-yaml' \
  -d \
@@ -13,8 +13,9 @@ state: ${state}
 addon: analyzer
 extensions:
 - provider-java
-application:
-  id: 1
+tasks:
+- application:
+    id: 1
 data:
   mode:
     artifact: ""

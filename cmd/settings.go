@@ -28,6 +28,41 @@ func (r *Settings) Read() (err error) {
 	}()
 	b, err := io.ReadAll(f)
 	err = yaml.Unmarshal(b, r)
+	if err != nil {
+		return
+	}
+	err = r.AppendExtensions()
+	return
+}
+
+// HasProvider returns true when the provider found.
+func (r *Settings) HasProvider(name string) (found bool) {
+	for _, p := range *r {
+		if p.Name == name {
+			found = true
+			break
+		}
+	}
+	return
+}
+
+// AppendExtensions adds extension fragments.
+func (r *Settings) AppendExtensions() (err error) {
+	addon, err := addon.Addon(true)
+	if err != nil {
+		return
+	}
+	for _, extension := range addon.Extensions {
+		var p *provider.Config
+		injector := ResourceInjector{}
+		p, err = injector.Inject(&extension)
+		if err != nil {
+			return
+		}
+		if !r.HasProvider(p.Name) {
+			*r = append(*r, *p)
+		}
+	}
 	return
 }
 
@@ -52,7 +87,9 @@ func (r *Settings) Write() (err error) {
 func (r *Settings) Location(path string) {
 	for i := range *r {
 		p := &(*r)[i]
-		p.InitConfig[0].Location = path
+		for i := range p.InitConfig {
+			p.InitConfig[i].Location = path
+		}
 	}
 }
 
@@ -60,23 +97,8 @@ func (r *Settings) Location(path string) {
 func (r *Settings) Mode(mode provider.AnalysisMode) {
 	for i := range *r {
 		p := &(*r)[i]
-		switch p.Name {
-		case "java":
-			p.InitConfig[0].AnalysisMode = mode
-		}
-	}
-}
-
-// MavenSettings set maven settings path.
-func (r *Settings) MavenSettings(path string) {
-	if path == "" {
-		return
-	}
-	for i := range *r {
-		p := &(*r)[i]
-		switch p.Name {
-		case "java":
-			p.InitConfig[0].ProviderSpecificConfig["mavenSettingsFile"] = path
+		for i := range p.InitConfig {
+			p.InitConfig[i].AnalysisMode = mode
 		}
 	}
 }
@@ -101,20 +123,17 @@ func (r *Settings) ProxySettings() (err error) {
 	} else {
 		return
 	}
+	if len(http)+len(https) == 0 {
+		return
+	}
 	for i := range *r {
 		p := &(*r)[i]
-		switch p.Name {
-		case "java":
-			d := p.InitConfig[0].ProviderSpecificConfig
-			if http != "" {
-				d["httpproxy"] = http
-			}
-			if https != "" {
-				d["httpsproxy"] = https
-			}
-			if len(noproxy) > 0 {
-				d["noproxy"] = strings.Join(noproxy, ",")
-			}
+		p.Proxy = &provider.Proxy{
+			HTTPProxy:  http,
+			HTTPSProxy: https,
+			NoProxy: strings.Join(
+				noproxy,
+				","),
 		}
 	}
 	return
@@ -156,13 +175,7 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 	return
 }
 
-// Report self as activity.
-func (r *Settings) Report() {
-	b, _ := yaml.Marshal(r)
-	addon.Activity("Settings: %s\n%s", r.path(), string(b))
-}
-
-// Path
+// Path returns the file path.
 func (r *Settings) path() (p string) {
 	return path.Join(OptDir, "settings.json")
 }
