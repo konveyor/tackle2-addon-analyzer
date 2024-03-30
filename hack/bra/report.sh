@@ -121,7 +121,7 @@ getReport() {
   done
   path=(${reportPath} "${path[@]}")
   path=$(IFS=/ ; echo "${path[*]}")
-  path+=".tar.gz"
+  path+=".tgz"
   if test -f "${path}" && [ -z "${forced}" ]
   then
     printf "%-6s%-13s%s%s\n" ${appId} "FOUND" ${path}
