@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/konveyor/analyzer-lsp v0.4.0-alpha.1.0.20240419184034-20e63239dd27
 	github.com/konveyor/tackle2-addon v0.3.2-0.20240424160056-2dada61ab632
-	github.com/konveyor/tackle2-hub v0.3.1-0.20240424154529-719a45207efc
+	github.com/konveyor/tackle2-hub v0.3.1-0.20240425180948-ae3cb7d1bdaf
 	github.com/onsi/gomega v1.27.6
 	github.com/rogpeppe/go-internal v1.10.0
 	go.lsp.dev/uri v0.3.0
