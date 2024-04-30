@@ -6,6 +6,9 @@ AddonDir ?= /tmp/addon
 cmd: fmt vet
 	go build -ldflags="-w -s" -o ${CMD} github.com/konveyor/tackle2-addon-analyzer/cmd
 
+build:
+	go build -ldflags="-w -s" -o ${CMD} github.com/konveyor/tackle2-addon-analyzer/cmd
+
 image-docker:
 	docker build -t ${IMG} .
 

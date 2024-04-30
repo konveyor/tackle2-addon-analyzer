@@ -1,11 +1,11 @@
-FROM quay.io/konveyor/windup-shim:latest as shim
+FROM quay.io/konveyor/windup-shim:release-0.3 as shim
 
 FROM registry.access.redhat.com/ubi9/go-toolset:latest as addon
 ENV GOPATH=$APP_ROOT
 COPY --chown=1001:0 . .
-RUN make cmd
+RUN make build
 
-FROM quay.io/konveyor/analyzer-lsp:latest
+FROM quay.io/konveyor/analyzer-lsp:release-0.3
 USER root
 RUN echo -e "[centos9]" \
  "\nname = centos9" \
