@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.9.0
-	github.com/konveyor/analyzer-lsp v0.0.0-20230712145100-60dc2048444c
-	github.com/konveyor/tackle2-addon v0.3.2-0.20240430200610-2380bd9a5370
-	github.com/konveyor/tackle2-hub v0.3.2-0.20240430195213-4507846b676f
+	github.com/konveyor/analyzer-lsp v0.3.2
+	github.com/konveyor/tackle2-addon v0.3.2
+	github.com/konveyor/tackle2-hub v0.3.2
 	github.com/onsi/gomega v1.27.6
 	github.com/rogpeppe/go-internal v1.10.0
 	go.lsp.dev/uri v0.3.0
@@ -94,7 +94,7 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
 	google.golang.org/grpc v1.54.0 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.2.0 // indirect
