@@ -67,7 +67,11 @@ func (r *Analyzer) options(output string) (options command.Options, err error) {
 	if err != nil {
 		return
 	}
-	settings.Report()
+	f, err := addon.File.Post(settings.path())
+	if err != nil {
+		return
+	}
+	addon.Attach(f)
 	return
 }
 

@@ -15,7 +15,10 @@ import (
 )
 
 // Settings - provider settings file.
-type Settings []provider.Config
+type Settings struct {
+	index   int
+	content []provider.Config
+}
 
 // Read file.
 func (r *Settings) Read() (err error) {
@@ -27,7 +30,32 @@ func (r *Settings) Read() (err error) {
 		_ = f.Close()
 	}()
 	b, err := io.ReadAll(f)
-	err = yaml.Unmarshal(b, r)
+	err = yaml.Unmarshal(b, &r.content)
+	if err != nil {
+		return
+	}
+	r.index = len(r.content)
+	err = r.AppendExtensions()
+	return
+}
+
+// AppendExtensions adds extension fragments.
+func (r *Settings) AppendExtensions() (err error) {
+	addon, err := addon.Addon(true)
+	if err != nil {
+		return
+	}
+	for _, extension := range addon.Extensions {
+		var p *provider.Config
+		injector := ResourceInjector{}
+		p, err = injector.Inject(&extension)
+		if err != nil {
+			return
+		}
+		if !r.hasProvider(p.Name) {
+			r.content = append(r.content, *p)
+		}
+	}
 	return
 }
 
@@ -40,7 +68,7 @@ func (r *Settings) Write() (err error) {
 	defer func() {
 		_ = f.Close()
 	}()
-	b, err := yaml.Marshal(r)
+	b, err := yaml.Marshal(r.content)
 	if err != nil {
 		return
 	}
@@ -50,33 +78,25 @@ func (r *Settings) Write() (err error) {
 
 // Location update the location on each provider.
 func (r *Settings) Location(path string) {
-	for i := range *r {
-		p := &(*r)[i]
-		p.InitConfig[0].Location = path
+	for i := range r.content {
+		p := r.content[i]
+		for i := range p.InitConfig {
+			init := &p.InitConfig[i]
+			init.Location = path
+		}
 	}
 }
 
 // Mode update the mode on each provider.
 func (r *Settings) Mode(mode provider.AnalysisMode) {
-	for i := range *r {
-		p := &(*r)[i]
-		switch p.Name {
-		case "java":
-			p.InitConfig[0].AnalysisMode = mode
-		}
-	}
-}
-
-// MavenSettings set maven settings path.
-func (r *Settings) MavenSettings(path string) {
-	if path == "" {
-		return
-	}
-	for i := range *r {
-		p := &(*r)[i]
-		switch p.Name {
-		case "java":
-			p.InitConfig[0].ProviderSpecificConfig["mavenSettingsFile"] = path
+	extensions := r.content[r.index:]
+	for i := range extensions {
+		p := extensions[i]
+		for i := range p.InitConfig {
+			init := &p.InitConfig[i]
+			if init.AnalysisMode == "" {
+				init.AnalysisMode = mode
+			}
 		}
 	}
 }
@@ -101,20 +121,18 @@ func (r *Settings) ProxySettings() (err error) {
 	} else {
 		return
 	}
-	for i := range *r {
-		p := &(*r)[i]
-		switch p.Name {
-		case "java":
-			d := p.InitConfig[0].ProviderSpecificConfig
-			if http != "" {
-				d["httpproxy"] = http
-			}
-			if https != "" {
-				d["httpsproxy"] = https
-			}
-			if len(noproxy) > 0 {
-				d["noproxy"] = strings.Join(noproxy, ",")
-			}
+	if len(http)+len(https) == 0 {
+		return
+	}
+	extensions := r.content[r.index:]
+	for i := range extensions {
+		p := &extensions[i]
+		p.Proxy = &provider.Proxy{
+			HTTPProxy:  http,
+			HTTPSProxy: https,
+			NoProxy: strings.Join(
+				noproxy,
+				","),
 		}
 	}
 	return
@@ -156,13 +174,18 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 	return
 }
 
-// Report self as activity.
-func (r *Settings) Report() {
-	b, _ := yaml.Marshal(r)
-	addon.Activity("Settings: %s\n%s", r.path(), string(b))
+// Path returns the file path.
+func (r *Settings) path() (p string) {
+	return path.Join(OptDir, "settings.yaml")
 }
 
-// Path
-func (r *Settings) path() (p string) {
-	return path.Join(OptDir, "settings.json")
+// hasProvider returns true when the provider found.
+func (r *Settings) hasProvider(name string) (found bool) {
+	for _, p := range r.content {
+		if p.Name == name {
+			found = true
+			break
+		}
+	}
+	return
 }

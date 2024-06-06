@@ -59,6 +59,9 @@ func (b *Deps) read() (input []output.DepsFlatItem, err error) {
 	input = []output.DepsFlatItem{}
 	f, err := os.Open(b.Path)
 	if err != nil {
+		if os.IsNotExist(err) {
+			err = nil
+		}
 		return
 	}
 	defer func() {

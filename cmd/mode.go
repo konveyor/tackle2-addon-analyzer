@@ -23,9 +23,6 @@ type Mode struct {
 	path struct {
 		appDir string
 		binary string
-		maven  struct {
-			settings string
-		}
 	}
 }
 
@@ -39,15 +36,6 @@ func (r *Mode) Build(application *api.Application) (err error) {
 			Identities: application.Identities,
 		},
 	}
-	path, err := maven.CreateSettingsFile()
-	if err != nil {
-		return err
-	}
-	r.path.maven.settings = path
-	addon.Activity(
-		"[MVN] Using settings file(path=%v).",
-		path)
-
 	if !r.Binary {
 		err = r.fetchRepository(application)
 		return
@@ -67,7 +55,6 @@ func (r *Mode) Build(application *api.Application) (err error) {
 
 // AddOptions adds analyzer options.
 func (r *Mode) AddOptions(options *command.Options, settings *Settings) (err error) {
-	settings.MavenSettings(r.path.maven.settings)
 	if r.WithDeps {
 		settings.Mode(provider.FullAnalysisMode)
 	} else {

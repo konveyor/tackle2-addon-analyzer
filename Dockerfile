@@ -21,6 +21,6 @@ ENV HOME=/addon ADDON=/addon
 WORKDIR /addon
 ARG GOPATH=/opt/app-root
 COPY --from=shim /usr/bin/windup-shim /usr/bin
-COPY --from=addon $GOPATH/src/settings.json $ADDON/opt/settings.json
+COPY --from=addon $GOPATH/src/settings.yaml $ADDON/opt/settings.yaml
 COPY --from=addon $GOPATH/src/bin/addon /usr/bin
 ENTRYPOINT ["/usr/bin/addon"]

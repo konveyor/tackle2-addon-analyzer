@@ -5,5 +5,100 @@ metadata:
   namespace: konveyor-tackle
   name: analyzer
 spec:
-  image: quay.io/jortel/tackle2-addon-analyzer
-  imagePullPolicy: Always
+  task: analyzer
+  container:
+    name: addon
+    imagePullPolicy: Always
+    image: quay.io/jortel/tackle2-addon-analyzer:provider
+    resources:
+      limits:
+        cpu: 100m
+        memory: 100Mi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+
+---
+kind: Extension
+apiVersion: tackle.konveyor.io/v1alpha1
+metadata:
+  namespace: konveyor-tackle
+  name: java
+spec:
+  addon: analyzer
+  selector: tag:Language=Java || !tag:Language
+  container:
+    name: java
+    imagePullPolicy: Always
+    image: quay.io/konveyor/java-external-provider
+    args:
+    - --port
+    - $(PORT)
+    env:
+    - name: PORT
+      value: ${seq:8000}
+    resources:
+      limits:
+        cpu: 1
+        memory: 3Gi
+      requests:
+        cpu: 1
+        memory: 3Gi
+  metadata:
+    resources:
+    - selector: identity:kind=maven
+      fields:
+      - name: settings
+        path: /shared/creds/maven/settings.xml
+        key: maven.settings.path
+    provider:
+      name: java
+      address: localhost:$(PORT)
+      initConfig:
+      - providerSpecificConfig:
+          bundles: /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
+          depOpenSourceLabelsFile: /usr/local/etc/maven.default.index
+          lspServerPath: /jdtls/bin/jdtls
+          mavenSettingsFile: $(maven.settings.path)
+
+---
+kind: Extension
+apiVersion: tackle.konveyor.io/v1alpha1
+metadata:
+  namespace: konveyor-tackle
+  name: generic
+spec:
+  addon: analyzer
+  selector: tag:Language=Golang || tag:Language=Python
+  container:
+    name: java
+    imagePullPolicy: Always
+    image: quay.io/konveyor/generic-external-provider
+    args:
+    - --port
+    - $(PORT)
+    env:
+    - name: PORT
+      value: ${seq:8000}
+    resources:
+      limits:
+        cpu: 100m
+        memory: 500Mi
+      requests:
+        cpu: 100m
+        memory: 500Mi
+  metadata:
+    provider:
+      name: generic
+      address: localhost:$(PORT)
+      initConfig:
+
+---
+kind: Task
+apiVersion: tackle.konveyor.io/v1alpha1
+metadata:
+  namespace: konveyor-tackle
+  name: analyzer
+spec:
+  priority: 10
+
