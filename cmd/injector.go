@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	pathlib "path"
 	"regexp"
 	"strings"
 
 	"github.com/konveyor/analyzer-lsp/provider"
 	"github.com/konveyor/tackle2-hub/api"
+	"github.com/konveyor/tackle2-hub/nas"
 )
 
 var (
@@ -180,6 +182,10 @@ func (r *ResourceInjector) add(resource *Resource, object any) (err error) {
 
 // write a resource field value to a file.
 func (r *ResourceInjector) write(path string, s string) (err error) {
+	err = nas.MkDir(pathlib.Dir(path), 0755)
+	if err != nil {
+		return
+	}
 	f, err := os.Create(path)
 	if err == nil {
 		_, err = f.Write([]byte(s))
