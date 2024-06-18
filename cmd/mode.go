@@ -34,9 +34,9 @@ func (r *Mode) Build(application *api.Application) (err error) {
 		err = r.getArtifact()
 		return
 	}
-
-	r.path.binary = application.Binary + "@" + BinDir
-
+	if application.Binary != "" {
+		r.path.binary = application.Binary + "@" + BinDir
+	}
 	return
 }
 
