@@ -108,13 +108,7 @@ func main() {
 		// Run analysis.
 		analyzer := Analyzer{}
 		analyzer.Data = d
-		issues, err := analyzer.Run()
-		if err != nil {
-			return
-		}
-		depAnalyzer := DepAnalyzer{}
-		depAnalyzer.Data = d
-		deps, err := depAnalyzer.Run()
+		issues, deps, err := analyzer.Run()
 		if err != nil {
 			return
 		}
