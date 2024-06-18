@@ -34,11 +34,9 @@ func (r *Mode) Build(application *api.Application) (err error) {
 		err = r.getArtifact()
 		return
 	}
-	if strings.Contains(application.Binary, ":") {
-		r.path.binary = "mvn://" + application.Binary + "@" + BinDir
-	} else {
-		r.path.binary = BinDir
-	}
+
+	r.path.binary = application.Binary + "@" + BinDir
+
 	return
 }
 
