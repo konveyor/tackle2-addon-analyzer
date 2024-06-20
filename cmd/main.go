@@ -105,10 +105,10 @@ func main() {
 			return
 		}
 		//
-		// Run analysis.
+		// Run the analyzer.
 		analyzer := Analyzer{}
 		analyzer.Data = d
-		issues, deps, err := analyzer.Run()
+		issueBuilder, depBuilder, err := analyzer.Run()
 		if err != nil {
 			return
 		}
@@ -120,8 +120,8 @@ func main() {
 		err = appAnalysis.Create(
 			analysis,
 			binding.MIMEYAML,
-			issues.Reader(),
-			deps.Reader())
+			issueBuilder.Reader(),
+			depBuilder.Reader())
 		if err == nil {
 			addon.Activity("Analysis reported. duration: %s", time.Since(mark))
 		} else {
@@ -135,7 +135,7 @@ func main() {
 		//
 		// Tags.
 		if d.Tagger.Enabled {
-			err = d.Tagger.Update(application.ID, issues.Tags())
+			err = d.Tagger.Update(application.ID, issueBuilder.Tags())
 			if err != nil {
 				return
 			}
@@ -144,7 +144,7 @@ func main() {
 		// Facts
 		facts := addon.Application.Facts(application.ID)
 		facts.Source(Source)
-		err = facts.Replace(issues.Facts())
+		err = facts.Replace(issueBuilder.Facts())
 		if err == nil {
 			addon.Activity("Facts updated.")
 		} else {

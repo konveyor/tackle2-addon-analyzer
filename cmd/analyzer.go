@@ -15,8 +15,8 @@ type Analyzer struct {
 }
 
 // Run analyzer.
-func (r *Analyzer) Run() (ir *builder.Issues, dr *builder.Deps, err error) {
-	output := path.Join(Dir, "report.yaml")
+func (r *Analyzer) Run() (issueBuilder *builder.Issues, depBuilder *builder.Deps, err error) {
+	output := path.Join(Dir, "issues.yaml")
 	depOutput := path.Join(Dir, "deps.yaml")
 	cmd := command.New("/usr/local/bin/konveyor-analyzer")
 	cmd.Options, err = r.options(output, depOutput)
@@ -26,8 +26,8 @@ func (r *Analyzer) Run() (ir *builder.Issues, dr *builder.Deps, err error) {
 	if Verbosity > 0 {
 		cmd.Reporter.Verbosity = command.LiveOutput
 	}
-	ir = &builder.Issues{Path: output}
-	dr = &builder.Deps{Path: output}
+	issueBuilder = &builder.Issues{Path: output}
+	depBuilder = &builder.Deps{Path: depOutput}
 	err = cmd.Run()
 	return
 }
@@ -44,7 +44,7 @@ func (r *Analyzer) options(output, depOutput string) (options command.Options, e
 		settings.path(),
 		"--output-file",
 		output,
-		"—dep-output-file",
+		"--dep-output-file",
 		depOutput,
 	}
 	err = r.Tagger.AddOptions(&options)
