@@ -15,23 +15,25 @@ type Analyzer struct {
 }
 
 // Run analyzer.
-func (r *Analyzer) Run() (b *builder.Issues, err error) {
-	output := path.Join(Dir, "report.yaml")
+func (r *Analyzer) Run() (issueBuilder *builder.Issues, depBuilder *builder.Deps, err error) {
+	output := path.Join(Dir, "issues.yaml")
+	depOutput := path.Join(Dir, "deps.yaml")
 	cmd := command.New("/usr/local/bin/konveyor-analyzer")
-	cmd.Options, err = r.options(output)
+	cmd.Options, err = r.options(output, depOutput)
 	if err != nil {
 		return
 	}
 	if Verbosity > 0 {
 		cmd.Reporter.Verbosity = command.LiveOutput
 	}
-	b = &builder.Issues{Path: output}
+	issueBuilder = &builder.Issues{Path: output}
+	depBuilder = &builder.Deps{Path: depOutput}
 	err = cmd.Run()
 	return
 }
 
 // options builds Analyzer options.
-func (r *Analyzer) options(output string) (options command.Options, err error) {
+func (r *Analyzer) options(output, depOutput string) (options command.Options, err error) {
 	settings := &Settings{}
 	err = settings.Read()
 	if err != nil {
@@ -42,6 +44,8 @@ func (r *Analyzer) options(output string) (options command.Options, err error) {
 		settings.path(),
 		"--output-file",
 		output,
+		"--dep-output-file",
+		depOutput,
 	}
 	err = r.Tagger.AddOptions(&options)
 	if err != nil {
@@ -72,53 +76,5 @@ func (r *Analyzer) options(output string) (options command.Options, err error) {
 		return
 	}
 	addon.Attach(f)
-	return
-}
-
-// DepAnalyzer application analyzer.
-type DepAnalyzer struct {
-	*Data
-}
-
-// Run analyzer.
-func (r *DepAnalyzer) Run() (b *builder.Deps, err error) {
-	output := path.Join(Dir, "deps.yaml")
-	cmd := command.New("/usr/local/bin/konveyor-analyzer-dep")
-	cmd.Options, err = r.options(output)
-	if err != nil {
-		return
-	}
-	if Verbosity > 0 {
-		cmd.Reporter.Verbosity = command.LiveOutput
-	}
-	b = &builder.Deps{Path: output}
-	err = cmd.Run()
-	if err != nil {
-		return
-	}
-	return
-}
-
-// options builds Analyzer options.
-func (r *DepAnalyzer) options(output string) (options command.Options, err error) {
-	settings := &Settings{}
-	err = settings.Read()
-	if err != nil {
-		return
-	}
-	options = command.Options{
-		"--provider-settings",
-		settings.path(),
-		"--output-file",
-		output,
-	}
-	err = r.Mode.AddDepOptions(&options, settings)
-	if err != nil {
-		return
-	}
-	err = settings.Write()
-	if err != nil {
-		return
-	}
 	return
 }
