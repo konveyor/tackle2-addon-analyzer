@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+image=${IMAGE-quay.io/konveyor/java-external-provider}
+port=${1-8000}
+
+if [ -z "${image}" ]
+then
+  exit
+fi
+
+shared=/shared
+
+params=()
+for p in "$@"
+do
+  params+=("$p")
+done
+
+set -x
+
+docker run -v ${shared}:${shared} -p ${port}:${port} ${image} --port ${port}
+
