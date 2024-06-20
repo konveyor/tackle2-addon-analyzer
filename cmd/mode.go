@@ -115,7 +115,8 @@ func (r *Mode) getArtifact() (err error) {
 
 // mavenArtifact get maven artifact.
 func (r *Mode) mavenArtifact(application *api.Application, maven *repository.Maven) (err error) {
-	err = maven.FetchArtifact(application.Binary)
+	artifact := strings.TrimPrefix(application.Binary, "mvn://")
+	err = maven.FetchArtifact(artifact)
 	if err != nil {
 		return
 	}
