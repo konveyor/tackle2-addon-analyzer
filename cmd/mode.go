@@ -15,6 +15,7 @@ import (
 
 // Mode settings.
 type Mode struct {
+	Discovery  bool   `json:"discovery"`
 	Binary     bool   `json:"binary"`
 	Artifact   string `json:"artifact"`
 	WithDeps   bool   `json:"withDeps"`

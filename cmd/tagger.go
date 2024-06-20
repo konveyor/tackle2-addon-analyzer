@@ -12,7 +12,8 @@ var TagExp = regexp.MustCompile("(.+)(=)(.+)")
 
 // Tagger tags an application.
 type Tagger struct {
-	Enabled bool `json:"enabled"`
+	Enabled bool   `json:"enabled"`
+	Source  string `json:"source"`
 }
 
 // AddOptions adds analyzer options.
