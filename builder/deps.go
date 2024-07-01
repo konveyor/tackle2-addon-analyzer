@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"bytes"
 	"io"
 	"os"
 
@@ -16,6 +17,9 @@ type Deps struct {
 
 // Reader returns a reader.
 func (b *Deps) Reader() (r io.Reader) {
+	if _, err := os.Stat(b.Path); os.IsNotExist(err) {
+		return bytes.NewReader([]byte{})
+	}
 	r, w := io.Pipe()
 	go func() {
 		var err error
