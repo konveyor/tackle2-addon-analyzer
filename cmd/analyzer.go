@@ -55,7 +55,7 @@ func (r *Analyzer) options(output string) (options command.Options, err error) {
 	if err != nil {
 		return
 	}
-	err = r.Scope.AddOptions(&options)
+	err = r.Scope.AddOptions(&options, r.Mode)
 	if err != nil {
 		return
 	}

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin/binding"
+	"github.com/konveyor/tackle2-addon-analyzer/builder"
 	"github.com/konveyor/tackle2-addon/ssh"
 	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
@@ -104,6 +105,16 @@ func main() {
 		if err != nil {
 			return
 		}
+		// Run deps first, if we should error during deps
+		deps := &builder.Deps{}
+		if !d.Mode.Discovery {
+			depAnalyzer := DepAnalyzer{}
+			depAnalyzer.Data = d
+			deps, err = depAnalyzer.Run()
+			if err != nil && d.Mode.WithDeps {
+				return err
+			}
+		}
 		//
 		// Run analysis.
 		analyzer := Analyzer{}
@@ -112,44 +123,35 @@ func main() {
 		if err != nil {
 			return
 		}
-		if !d.Mode.Discovery {
-			depAnalyzer := DepAnalyzer{}
-			depAnalyzer.Data = d
-			deps, dErr := depAnalyzer.Run()
-			if dErr != nil {
-				err = dErr
-				return
+		//
+		// Post report.
+		appAnalysis := addon.Application.Analysis(application.ID)
+		mark := time.Now()
+		analysis := &api.Analysis{}
+		err = appAnalysis.Create(
+			analysis,
+			binding.MIMEYAML,
+			issues.Reader(),
+			deps.Reader())
+		if err == nil {
+			addon.Activity("Analysis reported. duration: %s", time.Since(mark))
+		} else {
+			ruleErr := &RuleError{}
+			if errors.As(err, &ruleErr) {
+				ruleErr.Report()
+				err = nil
 			}
-			//
-			// Post report.
-			appAnalysis := addon.Application.Analysis(application.ID)
-			mark := time.Now()
-			analysis := &api.Analysis{}
-			err = appAnalysis.Create(
-				analysis,
-				binding.MIMEYAML,
-				issues.Reader(),
-				deps.Reader())
-			if err == nil {
-				addon.Activity("Analysis reported. duration: %s", time.Since(mark))
-			} else {
-				ruleErr := &RuleError{}
-				if errors.As(err, &ruleErr) {
-					ruleErr.Report()
-					err = nil
-				}
-				return
-			}
-			//
-			// Facts
-			facts := addon.Application.Facts(application.ID)
-			facts.Source(Source)
-			err = facts.Replace(issues.Facts())
-			if err == nil {
-				addon.Activity("Facts updated.")
-			} else {
-				return
-			}
+			return
+		}
+		//
+		// Facts
+		facts := addon.Application.Facts(application.ID)
+		facts.Source(Source)
+		err = facts.Replace(issues.Facts())
+		if err == nil {
+			addon.Activity("Facts updated.")
+		} else {
+			return
 		}
 
 		//
