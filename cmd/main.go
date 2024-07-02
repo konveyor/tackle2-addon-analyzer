@@ -137,8 +137,9 @@ func main() {
 				if errors.As(err, &ruleErr) {
 					ruleErr.Report()
 					err = nil
+				} else {
+					return
 				}
-				return
 			}
 			//
 			// Facts
@@ -151,7 +152,6 @@ func main() {
 				return
 			}
 		}
-
 		//
 		// Tags.
 		if d.Tagger.Enabled {
