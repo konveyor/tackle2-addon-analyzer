@@ -15,8 +15,8 @@ type Scope struct {
 }
 
 // AddOptions adds analyzer options.
-func (r *Scope) AddOptions(options *command.Options) (err error) {
-	if !r.WithKnownLibs {
+func (r *Scope) AddOptions(options *command.Options, mode Mode) (err error) {
+	if !r.WithKnownLibs && mode.WithDeps {
 		options.Add(
 			"--dep-label-selector",
 			"!konveyor.io/dep-source=open-source")

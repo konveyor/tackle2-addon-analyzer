@@ -1,11 +1,13 @@
 package builder
 
 import (
+	"bytes"
+	"io"
+	"os"
+
 	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	"github.com/konveyor/tackle2-hub/api"
 	"gopkg.in/yaml.v2"
-	"io"
-	"os"
 )
 
 // Deps builds dependencies.
@@ -15,6 +17,9 @@ type Deps struct {
 
 // Reader returns a reader.
 func (b *Deps) Reader() (r io.Reader) {
+	if _, err := os.Stat(b.Path); os.IsNotExist(err) {
+		return bytes.NewReader([]byte{})
+	}
 	r, w := io.Pipe()
 	go func() {
 		var err error
