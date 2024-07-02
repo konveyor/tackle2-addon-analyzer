@@ -105,6 +105,16 @@ func main() {
 		if err != nil {
 			return
 		}
+		// Run deps first, if we should error during deps
+		deps := &builder.Deps{}
+		if !d.Mode.Discovery {
+			depAnalyzer := DepAnalyzer{}
+			depAnalyzer.Data = d
+			deps, err = depAnalyzer.Run()
+			if err != nil && d.Mode.WithDeps {
+				return err
+			}
+		}
 		//
 		// Run analysis.
 		analyzer := Analyzer{}
@@ -112,15 +122,6 @@ func main() {
 		issues, err := analyzer.Run()
 		if err != nil {
 			return
-		}
-		deps := &builder.Deps{}
-		if !d.Mode.Discovery && d.Mode.WithDeps {
-			depAnalyzer := DepAnalyzer{}
-			depAnalyzer.Data = d
-			deps, err = depAnalyzer.Run()
-			if err != nil {
-				return err
-			}
 		}
 		//
 		// Post report.
