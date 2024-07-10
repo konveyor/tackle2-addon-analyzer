@@ -27,6 +27,17 @@ func (r *Analyzer) Run() (b *builder.Issues, err error) {
 	}
 	b = &builder.Issues{Path: output}
 	err = cmd.Run()
+	if err != nil {
+		return
+	}
+	if Verbosity > 0 {
+		f, pErr := addon.File.Post(output)
+		if pErr != nil {
+			err = pErr
+			return
+		}
+		addon.Attach(f)
+	}
 	return
 }
 
