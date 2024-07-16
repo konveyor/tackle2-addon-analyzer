@@ -40,7 +40,7 @@ func (b *Deps) Write(writer io.Writer) (err error) {
 	encoder := yaml.NewEncoder(writer)
 	for _, p := range input {
 		for _, d := range p.Dependencies {
-			_ = encoder.Encode(
+			err = encoder.Encode(
 				&api.TechDependency{
 					Provider: p.Provider,
 					Indirect: d.Indirect,
@@ -49,6 +49,9 @@ func (b *Deps) Write(writer io.Writer) (err error) {
 					SHA:      d.ResolvedIdentifier,
 					Labels:   d.Labels,
 				})
+			if err != nil {
+				return
+			}
 		}
 	}
 	return

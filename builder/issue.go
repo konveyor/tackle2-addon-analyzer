@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -51,9 +52,6 @@ func (b *Issues) Write(writer io.Writer) (err error) {
 	encoder := yaml.NewEncoder(writer)
 	for _, ruleset := range input {
 		b.ruleErr.Append(ruleset)
-		if b.ruleErr.NotEmpty() {
-			continue
-		}
 		for ruleid, v := range ruleset.Violations {
 			issue := api.Issue{
 				RuleSet:     ruleset.Name,
@@ -89,7 +87,10 @@ func (b *Issues) Write(writer io.Writer) (err error) {
 					issue.Incidents,
 					incident)
 			}
-			_ = encoder.Encode(&issue)
+			err = encoder.Encode(&issue)
+			if err != nil {
+				return
+			}
 		}
 	}
 	if err != nil {
@@ -157,7 +158,8 @@ func (e *RuleError) Error() (s string) {
 }
 
 func (e *RuleError) Is(err error) (matched bool) {
-	_, matched = err.(*RuleError)
+	var ruleError *RuleError
+	matched = errors.As(err, &ruleError)
 	return
 }
 
@@ -184,6 +186,6 @@ func (e *RuleError) Report() {
 				Severity:    "Error",
 				Description: fmt.Sprintf("[Analyzer] %s: %s", ruleid, err),
 			})
-		addon.Error(errors...)
 	}
+	addon.Error(errors...)
 }
