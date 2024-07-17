@@ -133,7 +133,9 @@ func main() {
 				return
 			}
 			addon.Activity("Analysis reported. duration: %s", time.Since(mark))
-			ruleErr := issues.RuleErr()
+			//
+			// RuleError
+			ruleErr := issues.RuleError()
 			ruleErr.Report()
 			//
 			// Facts

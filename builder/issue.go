@@ -26,8 +26,8 @@ type Issues struct {
 	Path    string
 }
 
-// RuleErr returns the rule error.
-func (b *Issues) RuleErr() (r *RuleError) {
+// RuleError returns the rule error.
+func (b *Issues) RuleError() (r *RuleError) {
 	return &b.ruleErr
 }
 
