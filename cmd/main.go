@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"os"
 	"path"
 	"time"
@@ -130,17 +129,12 @@ func main() {
 				binding.MIMEYAML,
 				issues.Reader(),
 				deps.Reader())
-			if err == nil {
-				addon.Activity("Analysis reported. duration: %s", time.Since(mark))
-			} else {
-				ruleErr := &RuleError{}
-				if errors.As(err, &ruleErr) {
-					ruleErr.Report()
-					err = nil
-				} else {
-					return
-				}
+			if err != nil {
+				return
 			}
+			addon.Activity("Analysis reported. duration: %s", time.Since(mark))
+			ruleErr := issues.RuleErr()
+			ruleErr.Report()
 			//
 			// Facts
 			facts := addon.Application.Facts(application.ID)

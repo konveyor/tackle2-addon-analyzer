@@ -26,6 +26,11 @@ type Issues struct {
 	Path    string
 }
 
+// RuleErr returns the rule error.
+func (b *Issues) RuleErr() (r *RuleError) {
+	return &b.ruleErr
+}
+
 // Reader returns a reader.
 func (b *Issues) Reader() (r io.Reader) {
 	r, w := io.Pipe()
@@ -92,13 +97,6 @@ func (b *Issues) Write(writer io.Writer) (err error) {
 				return
 			}
 		}
-	}
-	if err != nil {
-		return
-	}
-	if b.ruleErr.NotEmpty() {
-		err = &b.ruleErr
-		return
 	}
 	return
 }
@@ -178,6 +176,9 @@ func (e *RuleError) NotEmpty() (b bool) {
 }
 
 func (e *RuleError) Report() {
+	if len(e.items) == 0 {
+		return
+	}
 	var errors []api.TaskError
 	for ruleid, err := range e.items {
 		errors = append(
