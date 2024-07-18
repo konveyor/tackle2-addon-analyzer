@@ -104,21 +104,18 @@ func main() {
 			return
 		}
 		//
-		// Run analysis.
+		// Run the analyzer.
 		analyzer := Analyzer{}
 		analyzer.Data = d
-		issues, err := analyzer.Run()
+		issues, deps, err := analyzer.Run()
 		if err != nil {
 			return
 		}
+		//
+		// RuleError
+		ruleErr := issues.RuleError()
+		ruleErr.Report()
 		if !d.Mode.Discovery {
-			depAnalyzer := DepAnalyzer{}
-			depAnalyzer.Data = d
-			deps, dErr := depAnalyzer.Run()
-			if dErr != nil {
-				err = dErr
-				return
-			}
 			//
 			// Post report.
 			appAnalysis := addon.Application.Analysis(application.ID)
@@ -134,10 +131,6 @@ func main() {
 			}
 			addon.Activity("Analysis reported. duration: %s", time.Since(mark))
 			//
-			// RuleError
-			ruleErr := issues.RuleError()
-			ruleErr.Report()
-			//
 			// Facts
 			facts := addon.Application.Facts(application.ID)
 			facts.Source(Source)
@@ -147,16 +140,16 @@ func main() {
 			} else {
 				return
 			}
-		}
-		//
-		// Tags.
-		if d.Tagger.Enabled {
-			if d.Tagger.Source == "" {
-				d.Tagger.Source = Source
-			}
-			err = d.Tagger.Update(application.ID, issues.Tags())
-			if err != nil {
-				return
+			//
+			// Tags.
+			if d.Tagger.Enabled {
+				if d.Tagger.Source == "" {
+					d.Tagger.Source = Source
+				}
+				err = d.Tagger.Update(application.ID, issues.Tags())
+				if err != nil {
+					return
+				}
 			}
 		}
 

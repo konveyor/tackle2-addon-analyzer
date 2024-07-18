@@ -5,7 +5,7 @@ ENV GOPATH=$APP_ROOT
 COPY --chown=1001:0 . .
 RUN make cmd
 
-FROM quay.io/konveyor/analyzer-lsp:latest
+FROM quay.io/pranavgaikwad/analyzer-lsp:latest
 USER root
 RUN echo -e "[centos9]" \
  "\nname = centos9" \
@@ -21,6 +21,5 @@ ENV HOME=/addon ADDON=/addon
 WORKDIR /addon
 ARG GOPATH=/opt/app-root
 COPY --from=shim /usr/bin/windup-shim /usr/bin
-COPY --from=addon $GOPATH/src/settings.yaml $ADDON/opt/settings.yaml
 COPY --from=addon $GOPATH/src/bin/addon /usr/bin
 ENTRYPOINT ["/usr/bin/addon"]
