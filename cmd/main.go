@@ -140,16 +140,16 @@ func main() {
 			} else {
 				return
 			}
-			//
-			// Tags.
-			if d.Tagger.Enabled {
-				if d.Tagger.Source == "" {
-					d.Tagger.Source = Source
-				}
-				err = d.Tagger.Update(application.ID, issues.Tags())
-				if err != nil {
-					return
-				}
+		}
+		//
+		// Tags.
+		if d.Tagger.Enabled {
+			if d.Tagger.Source == "" {
+				d.Tagger.Source = Source
+			}
+			err = d.Tagger.Update(application.ID, issues.Tags())
+			if err != nil {
+				return
 			}
 		}
 
