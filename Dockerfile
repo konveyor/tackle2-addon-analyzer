@@ -5,7 +5,7 @@ ENV GOPATH=$APP_ROOT
 COPY --chown=1001:0 . .
 RUN make cmd
 
-FROM quay.io/pranavgaikwad/analyzer-lsp:latest
+FROM quay.io/konveyor/analyzer-lsp:latest
 USER root
 RUN echo -e "[centos9]" \
  "\nname = centos9" \

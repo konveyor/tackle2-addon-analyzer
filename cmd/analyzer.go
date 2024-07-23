@@ -55,8 +55,9 @@ func (r *Analyzer) options(output, depOutput string) (options command.Options, e
 		settings.path(),
 		"--output-file",
 		output,
-		"--dep-output-file",
-		depOutput,
+	}
+	if !r.Data.Mode.Discovery {
+		options.Add("--dep-output-file", depOutput)
 	}
 	err = r.Tagger.AddOptions(&options)
 	if err != nil {
