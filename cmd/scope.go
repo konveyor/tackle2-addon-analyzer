@@ -16,11 +16,18 @@ type Scope struct {
 }
 
 // AddOptions adds analyzer options.
-func (r *Scope) AddOptions(options *command.Options) (err error) {
-	if !r.WithKnownLibs {
-		options.Add(
-			"--dep-label-selector",
-			"!konveyor.io/dep-source=open-source")
+func (r *Scope) AddOptions(options *command.Options, mode Mode) (err error) {
+	// If withDeps is false, we are only every doing source analysis
+	// adding a dep label selector is strictly wrong in this situation
+	if mode.WithDeps {
+		// We want to filter out open source violations when we are not running
+		// with known libraries.
+		if !r.WithKnownLibs {
+			options.Add(
+				"--dep-label-selector",
+				"!konveyor.io/dep-source=open-source")
+		}
+
 	}
 	selector := r.incidentSelector()
 	if selector != "" {
