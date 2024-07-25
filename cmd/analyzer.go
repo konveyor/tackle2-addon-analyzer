@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"path"
 
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
@@ -39,6 +40,14 @@ func (r *Analyzer) Run() (issueBuilder *builder.Issues, depBuilder *builder.Deps
 			return
 		}
 		addon.Attach(f)
+		if _, stErr := os.Stat(depOutput); stErr == nil {
+			f, pErr = addon.File.Post(depOutput)
+			if pErr != nil {
+				err = pErr
+				return
+			}
+			addon.Attach(f)
+		}
 	}
 	return
 }
