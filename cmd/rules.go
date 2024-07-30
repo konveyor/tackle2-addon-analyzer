@@ -391,6 +391,7 @@ func (r *Labels) extract(paths []string) (err error) {
 	inspect := func(p string, info fs.FileInfo, wErr error) (_ error) {
 		var err error
 		if wErr != nil || info.IsDir() {
+			addon.Log.Error(wErr, p)
 			return
 		}
 		switch strings.ToUpper(path.Ext(p)) {
@@ -469,13 +470,17 @@ func (r *Labels) extract(paths []string) (err error) {
 // addIncluded uniquely adds labels to the included set.
 func (r *Labels) addIncluded(extracted ...string) (added []string) {
 	for _, s := range extracted {
+		found := false
 		for _, included := range r.Included {
 			if included == s {
-				return
+				found = true
+				break
 			}
 		}
-		added = append(added, s)
-		r.Included = append(r.Included, s)
+		if !found {
+			added = append(added, s)
+			r.Included = append(r.Included, s)
+		}
 	}
 	return
 }
