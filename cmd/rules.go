@@ -21,9 +21,6 @@ import (
 const (
 	// KonveyorIO namespace for labels.
 	KonveyorIO = "konveyor.io"
-	// RepositoryRuleSet is a label that matches all rules in a
-	// repository referenced by a ruleset.  The value is the ruleset ID.
-	RepositoryRuleSet = "repository:ruleset"
 )
 
 type History = map[uint]byte
@@ -37,6 +34,7 @@ type Rules struct {
 	Repository   *api.Repository `json:"repository"`
 	Identity     *api.Ref        `json:"identity"`
 	Labels       Labels          `json:"labels"`
+	RuleSets     []api.Ref       `json:"ruleSets"`
 	repositories []string
 	rules        []string
 }
@@ -59,7 +57,7 @@ func (r *Rules) Build() (err error) {
 	if err != nil {
 		return
 	}
-	err = r.Labels.extract(r.repositories)
+	err = r.Labels.injectAlways(r.repositories)
 	if err != nil {
 		return
 	}
@@ -122,10 +120,22 @@ func (r *Rules) addFiles() (err error) {
 // addRuleSets adds rulesets and their dependencies.
 func (r *Rules) addRuleSets() (err error) {
 	history := make(History)
-	ruleSets, err := r.Labels.RuleSets()
+	ruleSets := make([]api.RuleSet, 0)
+	for _, ref := range r.RuleSets {
+		var ruleSet *api.RuleSet
+		ruleSet, err = addon.RuleSet.Get(ref.ID)
+		if err != nil {
+			return
+		}
+		ruleSets = append(
+			ruleSets,
+			*ruleSet)
+	}
+	matched, err := r.Labels.RuleSets()
 	if err != nil {
 		return
 	}
+	ruleSets = append(ruleSets, matched...)
 	for _, ruleSet := range ruleSets {
 		if _, found := history[ruleSet.ID]; found {
 			continue
@@ -352,7 +362,6 @@ func (r *Labels) ruleSetMap() (mp RuleSetMap, err error) {
 	if err != nil {
 		return
 	}
-	r.injectRulesetRepository(ruleSets, mp)
 	for _, ruleSet := range ruleSets {
 		for _, rule := range ruleSet.Rules {
 			for i := range rule.Labels {
@@ -365,29 +374,9 @@ func (r *Labels) ruleSetMap() (mp RuleSetMap, err error) {
 	return
 }
 
-// injectRulesetRepository inject ruleset referenced by:
-// konveyor.io/repository:ruleset=<id>.
-// into the map.
-func (r *Labels) injectRulesetRepository(ruleSets []api.RuleSet, mp RuleSetMap) {
-	root := path.Join(
-		KonveyorIO,
-		RepositoryRuleSet+"=")
-	for _, ruleSet := range ruleSets {
-		id := strconv.Itoa(int(ruleSet.ID))
-		rule := Label(root + id)
-		for _, included := range r.Included {
-			if rule.Match(Label(included)) {
-				mp[included] = append(
-					mp[included],
-					ruleSet)
-			}
-		}
-	}
-}
-
-// extract returns labels extracted from a ruleSets (tree) at path.
-func (r *Labels) extract(paths []string) (err error) {
-	var extracted []string
+// injectAlways - Replaces the labels in every rule file
+// with konveyor.io/include=always.
+func (r *Labels) injectAlways(paths []string) (err error) {
 	inspect := func(p string, info fs.FileInfo, wErr error) (_ error) {
 		var err error
 		if wErr != nil || info.IsDir() {
@@ -401,48 +390,30 @@ func (r *Labels) extract(paths []string) (err error) {
 		default:
 			return
 		}
-		f, err := os.Open(p)
+		reader, err := os.Open(p)
 		if err != nil {
-			addon.Log.Info(
-				err.Error(),
-				"path",
-				p)
+			addon.Log.Info(err.Error(), "path", p)
 			return
 		}
 		defer func() {
-			_ = f.Close()
+			_ = reader.Close()
 		}()
-		type M struct {
-			Labels []string `yaml:"labels"`
+		mp := make(map[any]any)
+		d := yaml.NewDecoder(reader)
+		err = d.Decode(&mp)
+		if err != nil {
+			addon.Log.Info(err.Error(), "path", p)
+			return
 		}
-		switch path.Base(p) {
-		case parser.RULE_SET_GOLDEN_FILE_NAME:
-			ruleSet := &M{}
-			d := yaml.NewDecoder(f)
-			err = d.Decode(ruleSet)
-			if err != nil {
-				addon.Log.Info(
-					err.Error(),
-					"path",
-					p)
-				return
-			}
-			extracted = append(extracted, ruleSet.Labels...)
-		default:
-			rules := []M{}
-			d := yaml.NewDecoder(f)
-			err = d.Decode(&rules)
-			if err != nil {
-				addon.Log.Info(
-					err.Error(),
-					"path",
-					p)
-				return
-			}
-			for _, rule := range rules {
-				extracted = append(extracted, rule.Labels...)
-			}
+		mp["Labels"] = []string{"konveyor.io/include=always"}
+		writer, err := os.Create(p)
+		if err != nil {
+			addon.Log.Info(err.Error(), "path", p)
+			return
 		}
+		defer func() {
+			_ = writer.Close()
+		}()
 		return
 	}
 	ruleSelector := RuleSelector{Included: r.Included}
@@ -451,35 +422,9 @@ func (r *Labels) extract(paths []string) (err error) {
 		return
 	}
 	for _, ruleDir := range paths {
-		addon.Activity("[RULE] Extract labels: %s", ruleDir)
 		err = filepath.Walk(ruleDir, inspect)
 		if err != nil {
 			return
-		}
-		added := r.addIncluded(extracted...)
-		addon.Log.Info(
-			"Extracted labels added.",
-			"ruleDir",
-			ruleDir,
-			"added",
-			added)
-	}
-	return
-}
-
-// addIncluded uniquely adds labels to the included set.
-func (r *Labels) addIncluded(extracted ...string) (added []string) {
-	for _, s := range extracted {
-		found := false
-		for _, included := range r.Included {
-			if included == s {
-				found = true
-				break
-			}
-		}
-		if !found {
-			added = append(added, s)
-			r.Included = append(r.Included, s)
 		}
 	}
 	return
@@ -585,8 +530,6 @@ func (r *RuleSelector) String() (selector string) {
 			sources = append(sources, s)
 		case "target":
 			targets = append(targets, s)
-		case RepositoryRuleSet:
-			// discarded
 		default:
 			other = append(other, s)
 		}
