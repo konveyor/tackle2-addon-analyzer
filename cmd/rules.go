@@ -1,8 +1,10 @@
 package main
 
 import (
+	"io/fs"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -13,6 +15,15 @@ import (
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
 	"github.com/rogpeppe/go-internal/semver"
+	"gopkg.in/yaml.v2"
+)
+
+const (
+	// KonveyorIO namespace for labels.
+	KonveyorIO = "konveyor.io"
+	// RepositoryRuleSet is a label that matches all rules in a
+	// repository referenced by a ruleset.  The value is the ruleset ID.
+	RepositoryRuleSet = "repository:ruleset"
 )
 
 type History = map[uint]byte
@@ -22,11 +33,12 @@ var LvRegex = regexp.MustCompile(`(\D+)(\d(?:[\d\.]*\d)?)([\+-])?$`)
 
 // Rules settings.
 type Rules struct {
-	Path       string          `json:"path"`
-	Repository *api.Repository `json:"repository"`
-	Identity   *api.Ref        `json:"identity"`
-	Labels     Labels          `json:"labels"`
-	rules      []string
+	Path          string          `json:"path"`
+	Repository    *api.Repository `json:"repository"`
+	Identity      *api.Ref        `json:"identity"`
+	Labels        Labels          `json:"labels"`
+	extractLabels []string
+	rules         []string
 }
 
 // Build assets.
@@ -44,6 +56,10 @@ func (r *Rules) Build() (err error) {
 		return
 	}
 	err = r.convert()
+	if err != nil {
+		return
+	}
+	err = r.Labels.extract(r.extractLabels)
 	if err != nil {
 		return
 	}
@@ -90,9 +106,14 @@ func (r *Rules) addFiles() (err error) {
 			return
 		}
 	}
+	n := 0
 	for _, ent := range entries {
 		p := path.Join(ruleDir, ent.Name())
 		r.append(p)
+		n++
+	}
+	if n > 0 {
+		r.extractLabels = append(r.extractLabels, ruleDir)
 	}
 	return
 }
@@ -223,6 +244,7 @@ func (r *Rules) addRuleSetRepository(ruleset *api.RuleSet) (err error) {
 		return
 	}
 	ruleDir := path.Join(rootDir, ruleset.Repository.Path)
+	r.extractLabels = append(r.extractLabels, ruleDir)
 	r.append(ruleDir)
 	return
 }
@@ -255,6 +277,7 @@ func (r *Rules) addRepository() (err error) {
 		return
 	}
 	ruleDir := path.Join(rootDir, r.Repository.Path)
+	r.extractLabels = append(r.extractLabels, ruleDir)
 	r.append(ruleDir)
 	return
 }
@@ -271,25 +294,13 @@ func (r *Rules) addSelector(options *command.Options) (err error) {
 
 // convert windup rules.
 func (r *Rules) convert() (err error) {
-	output := path.Join(RuleDir, "converted")
-	err = nas.MkDir(output, 0755)
-	if err != nil {
-		return
-	}
 	cmd := command.New("/usr/bin/windup-shim")
 	cmd.Options.Add("convert")
-	cmd.Options.Add("--outputdir", output)
+	cmd.Options.Add("--outputdir", RuleDir)
 	cmd.Options.Add(RuleDir)
 	err = cmd.Run()
 	if err != nil {
 		return
-	}
-	converted, err := os.ReadDir(output)
-	if err != nil {
-		return
-	}
-	if len(converted) > 0 {
-		r.append(output)
 	}
 	return
 }
@@ -340,6 +351,7 @@ func (r *Labels) ruleSetMap() (mp RuleSetMap, err error) {
 	if err != nil {
 		return
 	}
+	r.injectRulesetRepository(ruleSets, mp)
 	for _, ruleSet := range ruleSets {
 		for _, rule := range ruleSet.Rules {
 			for i := range rule.Labels {
@@ -348,6 +360,120 @@ func (r *Labels) ruleSetMap() (mp RuleSetMap, err error) {
 					ruleSet)
 			}
 		}
+	}
+	return
+}
+
+// injectRulesetRepository inject ruleset referenced by:
+// konveyor.io/repository:ruleset=<id>.
+// into the map.
+func (r *Labels) injectRulesetRepository(ruleSets []api.RuleSet, mp RuleSetMap) {
+	root := path.Join(
+		KonveyorIO,
+		RepositoryRuleSet+"=")
+	for _, ruleSet := range ruleSets {
+		id := strconv.Itoa(int(ruleSet.ID))
+		rule := Label(root + id)
+		for _, included := range r.Included {
+			if rule.Match(Label(included)) {
+				mp[included] = append(
+					mp[included],
+					ruleSet)
+			}
+		}
+	}
+}
+
+// extract returns labels extracted from a ruleSets (tree) at path.
+func (r *Labels) extract(paths []string) (err error) {
+	var extracted []string
+	inspect := func(p string, info fs.FileInfo, wErr error) (_ error) {
+		var err error
+		if wErr != nil || info.IsDir() {
+			return
+		}
+		switch strings.ToUpper(path.Ext(p)) {
+		case "",
+			".YAML",
+			".YML":
+		default:
+			return
+		}
+		f, err := os.Open(p)
+		if err != nil {
+			addon.Log.Info(
+				err.Error(),
+				"path",
+				p)
+			return
+		}
+		defer func() {
+			_ = f.Close()
+		}()
+		type M struct {
+			Labels []string `yaml:"labels"`
+		}
+		switch path.Base(p) {
+		case parser.RULE_SET_GOLDEN_FILE_NAME:
+			ruleSet := &M{}
+			d := yaml.NewDecoder(f)
+			err = d.Decode(ruleSet)
+			if err != nil {
+				addon.Log.Info(
+					err.Error(),
+					"path",
+					p)
+				return
+			}
+			extracted = append(extracted, ruleSet.Labels...)
+		default:
+			rules := []M{}
+			d := yaml.NewDecoder(f)
+			err = d.Decode(&rules)
+			if err != nil {
+				addon.Log.Info(
+					err.Error(),
+					"path",
+					p)
+				return
+			}
+			for _, rule := range rules {
+				extracted = append(extracted, rule.Labels...)
+			}
+		}
+		return
+	}
+	ruleSelector := RuleSelector{Included: r.Included}
+	selector := ruleSelector.String()
+	if selector == "" {
+		return
+	}
+	for _, ruleDir := range paths {
+		err = filepath.Walk(ruleDir, inspect)
+		if err != nil {
+			return
+		}
+		added := r.addIncluded(extracted...)
+		addon.Log.Info(
+			"Extracted labels added.",
+			"ruleDir",
+			ruleDir,
+			"added",
+			added)
+	}
+	return
+}
+
+// addIncluded uniquely adds labels to the included set.
+func (r *Labels) addIncluded(extracted ...string) (added []string) {
+	for _, s := range extracted {
+		for _, included := range r.Included {
+			if included == s {
+				return
+			}
+		}
+		added = append(added, s)
+		r.Included = append(r.Included, s)
 	}
 	return
 }
@@ -426,9 +552,9 @@ func (r Label) Match(other Label) (matched bool) {
 
 // Eq returns true when equal.
 func (r Label) Eq(other Label) (matched bool) {
-	matched = r.Namespace() != other.Namespace() ||
-		r.Name() != other.Name() ||
-		r.Value() != other.Value()
+	matched = r.Namespace() == other.Namespace() &&
+		r.Name() == other.Name() &&
+		r.Value() == other.Value()
 	return
 }
 
@@ -443,7 +569,7 @@ func (r *RuleSelector) String() (selector string) {
 	var other, sources, targets []string
 	for _, s := range r.unique(r.Included) {
 		label := Label(s)
-		if label.Namespace() != "konveyor.io" {
+		if label.Namespace() != KonveyorIO {
 			other = append(other, s)
 			continue
 		}
@@ -452,6 +578,8 @@ func (r *RuleSelector) String() (selector string) {
 			sources = append(sources, s)
 		case "target":
 			targets = append(targets, s)
+		case RepositoryRuleSet:
+			// discarded
 		default:
 			other = append(other, s)
 		}
