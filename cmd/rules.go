@@ -102,6 +102,7 @@ func (r *Rules) addFiles() (err error) {
 	}
 	for _, ent := range entries {
 		if ent.Name() == parser.RULE_SET_GOLDEN_FILE_NAME {
+			r.repositories = append(r.repositories, ruleDir)
 			r.append(ruleDir)
 			return
 		}
@@ -449,6 +450,7 @@ func (r *Labels) extract(paths []string) (err error) {
 		return
 	}
 	for _, ruleDir := range paths {
+		addon.Activity("Extracting labels: %d", ruleDir)
 		err = filepath.Walk(ruleDir, inspect)
 		if err != nil {
 			return
