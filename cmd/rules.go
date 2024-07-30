@@ -377,6 +377,30 @@ func (r *Labels) ruleSetMap() (mp RuleSetMap, err error) {
 // injectAlways - Replaces the labels in every rule file
 // with konveyor.io/include=always.
 func (r *Labels) injectAlways(paths []string) (err error) {
+	read := func(m any, p string) (err error) {
+		f, err := os.Open(p)
+		if err != nil {
+			return
+		}
+		defer func() {
+			_ = f.Close()
+		}()
+		d := yaml.NewDecoder(f)
+		err = d.Decode(m)
+		return
+	}
+	write := func(m any, p string) (err error) {
+		f, err := os.Create(p)
+		if err != nil {
+			return
+		}
+		defer func() {
+			_ = f.Close()
+		}()
+		en := yaml.NewEncoder(f)
+		err = en.Encode(m)
+		return
+	}
 	inspect := func(p string, info fs.FileInfo, wErr error) (_ error) {
 		var err error
 		if wErr != nil || info.IsDir() {
@@ -390,30 +414,32 @@ func (r *Labels) injectAlways(paths []string) (err error) {
 		default:
 			return
 		}
-		reader, err := os.Open(p)
-		if err != nil {
-			addon.Log.Info(err.Error(), "path", p)
-			return
+		key := "labels"
+		if path.Base(p) == parser.RULE_SET_GOLDEN_FILE_NAME {
+			ruleSet := make(map[any]any)
+			err = read(&ruleSet, p)
+			if err != nil {
+				return
+			}
+			ruleSet[key] = []string{"konveyor.io/include=always"}
+			err = write(&ruleSet, p)
+			if err != nil {
+				return
+			}
+		} else {
+			rules := make([]map[any]any, 0)
+			err = read(&rules, p)
+			if err != nil {
+				return
+			}
+			for _, rule := range rules {
+				rule[key] = []string{"konveyor.io/include=always"}
+			}
+			err = write(&rules, p)
+			if err != nil {
+				return
+			}
 		}
-		defer func() {
-			_ = reader.Close()
-		}()
-		mp := make(map[any]any)
-		d := yaml.NewDecoder(reader)
-		err = d.Decode(&mp)
-		if err != nil {
-			addon.Log.Info(err.Error(), "path", p)
-			return
-		}
-		mp["Labels"] = []string{"konveyor.io/include=always"}
-		writer, err := os.Create(p)
-		if err != nil {
-			addon.Log.Info(err.Error(), "path", p)
-			return
-		}
-		defer func() {
-			_ = writer.Close()
-		}()
 		return
 	}
 	ruleSelector := RuleSelector{Included: r.Included}
