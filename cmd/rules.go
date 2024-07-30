@@ -33,12 +33,12 @@ var LvRegex = regexp.MustCompile(`(\D+)(\d(?:[\d\.]*\d)?)([\+-])?$`)
 
 // Rules settings.
 type Rules struct {
-	Path          string          `json:"path"`
-	Repository    *api.Repository `json:"repository"`
-	Identity      *api.Ref        `json:"identity"`
-	Labels        Labels          `json:"labels"`
-	extractLabels []string
-	rules         []string
+	Path         string          `json:"path"`
+	Repository   *api.Repository `json:"repository"`
+	Identity     *api.Ref        `json:"identity"`
+	Labels       Labels          `json:"labels"`
+	repositories []string
+	rules        []string
 }
 
 // Build assets.
@@ -59,7 +59,7 @@ func (r *Rules) Build() (err error) {
 	if err != nil {
 		return
 	}
-	err = r.Labels.extract(r.extractLabels)
+	err = r.Labels.extract(r.repositories)
 	if err != nil {
 		return
 	}
@@ -113,7 +113,7 @@ func (r *Rules) addFiles() (err error) {
 		n++
 	}
 	if n > 0 {
-		r.extractLabels = append(r.extractLabels, ruleDir)
+		r.repositories = append(r.repositories, ruleDir)
 	}
 	return
 }
@@ -244,7 +244,7 @@ func (r *Rules) addRuleSetRepository(ruleset *api.RuleSet) (err error) {
 		return
 	}
 	ruleDir := path.Join(rootDir, ruleset.Repository.Path)
-	r.extractLabels = append(r.extractLabels, ruleDir)
+	r.repositories = append(r.repositories, ruleDir)
 	r.append(ruleDir)
 	return
 }
@@ -277,7 +277,7 @@ func (r *Rules) addRepository() (err error) {
 		return
 	}
 	ruleDir := path.Join(rootDir, r.Repository.Path)
-	r.extractLabels = append(r.extractLabels, ruleDir)
+	r.repositories = append(r.repositories, ruleDir)
 	r.append(ruleDir)
 	return
 }
