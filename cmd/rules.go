@@ -450,7 +450,7 @@ func (r *Labels) extract(paths []string) (err error) {
 		return
 	}
 	for _, ruleDir := range paths {
-		addon.Activity("Extracting labels: %d", ruleDir)
+		addon.Activity("[RULE] Extract labels: %s", ruleDir)
 		err = filepath.Walk(ruleDir, inspect)
 		if err != nil {
 			return
