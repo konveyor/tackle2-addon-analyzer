@@ -1,8 +1,10 @@
 package main
 
 import (
+	"io/fs"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -13,6 +15,12 @@ import (
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
 	"github.com/rogpeppe/go-internal/semver"
+	"gopkg.in/yaml.v3"
+)
+
+const (
+	// KonveyorIO namespace for labels.
+	KonveyorIO = "konveyor.io"
 )
 
 type History = map[uint]byte
@@ -22,11 +30,13 @@ var LvRegex = regexp.MustCompile(`(\D+)(\d(?:[\d\.]*\d)?)([\+-])?$`)
 
 // Rules settings.
 type Rules struct {
-	Path       string          `json:"path"`
-	Repository *api.Repository `json:"repository"`
-	Identity   *api.Ref        `json:"identity"`
-	Labels     Labels          `json:"labels"`
-	rules      []string
+	Path         string          `json:"path"`
+	Repository   *api.Repository `json:"repository"`
+	Identity     *api.Ref        `json:"identity"`
+	Labels       Labels          `json:"labels"`
+	RuleSets     []api.Ref       `json:"ruleSets"`
+	repositories []string
+	rules        []string
 }
 
 // Build assets.
@@ -44,6 +54,10 @@ func (r *Rules) Build() (err error) {
 		return
 	}
 	err = r.convert()
+	if err != nil {
+		return
+	}
+	err = r.Labels.injectAlways(r.repositories)
 	if err != nil {
 		return
 	}
@@ -86,13 +100,19 @@ func (r *Rules) addFiles() (err error) {
 	}
 	for _, ent := range entries {
 		if ent.Name() == parser.RULE_SET_GOLDEN_FILE_NAME {
+			r.repositories = append(r.repositories, ruleDir)
 			r.append(ruleDir)
 			return
 		}
 	}
+	n := 0
 	for _, ent := range entries {
 		p := path.Join(ruleDir, ent.Name())
 		r.append(p)
+		n++
+	}
+	if n > 0 {
+		r.repositories = append(r.repositories, ruleDir)
 	}
 	return
 }
@@ -100,10 +120,22 @@ func (r *Rules) addFiles() (err error) {
 // addRuleSets adds rulesets and their dependencies.
 func (r *Rules) addRuleSets() (err error) {
 	history := make(History)
-	ruleSets, err := r.Labels.RuleSets()
+	ruleSets := make([]api.RuleSet, 0)
+	for _, ref := range r.RuleSets {
+		var ruleSet *api.RuleSet
+		ruleSet, err = addon.RuleSet.Get(ref.ID)
+		if err != nil {
+			return
+		}
+		ruleSets = append(
+			ruleSets,
+			*ruleSet)
+	}
+	matched, err := r.Labels.RuleSets()
 	if err != nil {
 		return
 	}
+	ruleSets = append(ruleSets, matched...)
 	for _, ruleSet := range ruleSets {
 		if _, found := history[ruleSet.ID]; found {
 			continue
@@ -223,6 +255,7 @@ func (r *Rules) addRuleSetRepository(ruleset *api.RuleSet) (err error) {
 		return
 	}
 	ruleDir := path.Join(rootDir, ruleset.Repository.Path)
+	r.repositories = append(r.repositories, ruleDir)
 	r.append(ruleDir)
 	return
 }
@@ -255,6 +288,7 @@ func (r *Rules) addRepository() (err error) {
 		return
 	}
 	ruleDir := path.Join(rootDir, r.Repository.Path)
+	r.repositories = append(r.repositories, ruleDir)
 	r.append(ruleDir)
 	return
 }
@@ -271,25 +305,13 @@ func (r *Rules) addSelector(options *command.Options) (err error) {
 
 // convert windup rules.
 func (r *Rules) convert() (err error) {
-	output := path.Join(RuleDir, "converted")
-	err = nas.MkDir(output, 0755)
-	if err != nil {
-		return
-	}
 	cmd := command.New("/usr/bin/windup-shim")
 	cmd.Options.Add("convert")
-	cmd.Options.Add("--outputdir", output)
+	cmd.Options.Add("--outputdir", RuleDir)
 	cmd.Options.Add(RuleDir)
 	err = cmd.Run()
 	if err != nil {
 		return
-	}
-	converted, err := os.ReadDir(output)
-	if err != nil {
-		return
-	}
-	if len(converted) > 0 {
-		r.append(output)
 	}
 	return
 }
@@ -347,6 +369,88 @@ func (r *Labels) ruleSetMap() (mp RuleSetMap, err error) {
 					mp[rule.Labels[i]],
 					ruleSet)
 			}
+		}
+	}
+	return
+}
+
+// injectAlways - Replaces the labels in every rule file
+// with konveyor.io/include=always.
+func (r *Labels) injectAlways(paths []string) (err error) {
+	read := func(m any, p string) (err error) {
+		f, err := os.Open(p)
+		if err != nil {
+			return
+		}
+		defer func() {
+			_ = f.Close()
+		}()
+		d := yaml.NewDecoder(f)
+		err = d.Decode(m)
+		return
+	}
+	write := func(m any, p string) (err error) {
+		f, err := os.Create(p)
+		if err != nil {
+			return
+		}
+		defer func() {
+			_ = f.Close()
+		}()
+		en := yaml.NewEncoder(f)
+		err = en.Encode(m)
+		return
+	}
+	inspect := func(p string, info fs.FileInfo, wErr error) (_ error) {
+		var err error
+		if wErr != nil || info.IsDir() {
+			addon.Log.Error(wErr, p)
+			return
+		}
+		switch strings.ToUpper(path.Ext(p)) {
+		case "",
+			".YAML",
+			".YML":
+		default:
+			return
+		}
+		key := "labels"
+		if path.Base(p) == parser.RULE_SET_GOLDEN_FILE_NAME {
+			ruleSet := make(map[any]any)
+			err = read(&ruleSet, p)
+			if err != nil {
+				return
+			}
+			ruleSet[key] = []string{"konveyor.io/include=always"}
+			err = write(&ruleSet, p)
+			if err != nil {
+				return
+			}
+		} else {
+			rules := make([]map[any]any, 0)
+			err = read(&rules, p)
+			if err != nil {
+				return
+			}
+			for _, rule := range rules {
+				rule[key] = []string{"konveyor.io/include=always"}
+			}
+			err = write(&rules, p)
+			if err != nil {
+				return
+			}
+		}
+		return
+	}
+	ruleSelector := RuleSelector{Included: r.Included}
+	selector := ruleSelector.String()
+	if selector == "" {
+		return
+	}
+	for _, ruleDir := range paths {
+		err = filepath.Walk(ruleDir, inspect)
+		if err != nil {
+			return
 		}
 	}
 	return
@@ -426,9 +530,9 @@ func (r Label) Match(other Label) (matched bool) {
 
 // Eq returns true when equal.
 func (r Label) Eq(other Label) (matched bool) {
-	matched = r.Namespace() != other.Namespace() ||
-		r.Name() != other.Name() ||
-		r.Value() != other.Value()
+	matched = r.Namespace() == other.Namespace() &&
+		r.Name() == other.Name() &&
+		r.Value() == other.Value()
 	return
 }
 
@@ -443,7 +547,7 @@ func (r *RuleSelector) String() (selector string) {
 	var other, sources, targets []string
 	for _, s := range r.unique(r.Included) {
 		label := Label(s)
-		if label.Namespace() != "konveyor.io" {
+		if label.Namespace() != KonveyorIO {
 			other = append(other, s)
 			continue
 		}
