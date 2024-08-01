@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin/binding"
+	"github.com/konveyor/tackle2-addon-analyzer/builder"
 	"github.com/konveyor/tackle2-addon/ssh"
 	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
@@ -104,49 +105,22 @@ func main() {
 			return
 		}
 		//
-		// Run analysis.
+		// Run the analyzer.
 		analyzer := Analyzer{}
 		analyzer.Data = d
-		issues, err := analyzer.Run()
+		issues, deps, err := analyzer.Run()
 		if err != nil {
 			return
 		}
-		if !d.Mode.Discovery {
-			depAnalyzer := DepAnalyzer{}
-			depAnalyzer.Data = d
-			deps, dErr := depAnalyzer.Run()
-			if dErr != nil {
-				err = dErr
-				return
-			}
-			//
-			// Post report.
-			appAnalysis := addon.Application.Analysis(application.ID)
-			mark := time.Now()
-			analysis := &api.Analysis{}
-			err = appAnalysis.Create(
-				analysis,
-				binding.MIMEYAML,
-				issues.Reader(),
-				deps.Reader())
-			if err != nil {
-				return
-			}
-			addon.Activity("Analysis reported. duration: %s", time.Since(mark))
-			//
-			// RuleError
-			ruleErr := issues.RuleError()
-			ruleErr.Report()
-			//
-			// Facts
-			facts := addon.Application.Facts(application.ID)
-			facts.Source(Source)
-			err = facts.Replace(issues.Facts())
-			if err == nil {
-				addon.Activity("Facts updated.")
-			} else {
-				return
-			}
+		//
+		// RuleError
+		ruleErr := issues.RuleError()
+		ruleErr.Report()
+		//
+		// Update application.
+		err = updateApplication(d, application.ID, issues, deps)
+		if err != nil {
+			return
 		}
 		//
 		// Tags.
@@ -164,4 +138,45 @@ func main() {
 
 		return
 	})
+}
+
+// updateApplication creates analysis report and updates
+// the application facts and tags.
+func updateApplication(d *Data, appId uint, issues *builder.Issues, deps *builder.Deps) (err error) {
+	//
+	// Tags.
+	if d.Tagger.Enabled {
+		if d.Tagger.Source == "" {
+			d.Tagger.Source = Source
+		}
+		err = d.Tagger.Update(appId, issues.Tags())
+		if err != nil {
+			return
+		}
+	}
+	if d.Mode.Discovery {
+		return
+	}
+	//
+	// Analysis.
+	appAnalysis := addon.Application.Analysis(appId)
+	mark := time.Now()
+	analysis := &api.Analysis{}
+	err = appAnalysis.Create(
+		analysis,
+		binding.MIMEYAML,
+		issues.Reader(),
+		deps.Reader())
+	if err != nil {
+		return
+	}
+	addon.Activity("Analysis reported. duration: %s", time.Since(mark))
+	// Facts.
+	facts := addon.Application.Facts(appId)
+	facts.Source(Source)
+	err = facts.Replace(issues.Facts())
+	if err == nil {
+		addon.Activity("Facts updated.")
+	}
+	return
 }

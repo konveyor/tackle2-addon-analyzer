@@ -35,7 +35,6 @@ func (r *Settings) Read() (err error) {
 		return
 	}
 	r.index = len(r.content)
-	err = r.AppendExtensions()
 	return
 }
 
