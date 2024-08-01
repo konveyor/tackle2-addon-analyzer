@@ -63,6 +63,7 @@ func (b *Deps) read() (input []output.DepsFlatItem, err error) {
 	f, err := os.Open(b.Path)
 	if err != nil {
 		if os.IsNotExist(err) {
+			addon.Activity(err.Error())
 			err = nil
 		}
 		return
