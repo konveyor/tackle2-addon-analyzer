@@ -318,8 +318,10 @@ func (r *Rules) ensureRuleSet() (err error) {
 			_ = f.Close()
 		}()
 		en := yaml.NewEncoder(f)
+		p = path.Dir(p)
+		p = strings.TrimPrefix(p, RuleDir)
 		part := strings.Split(p, "/")
-		name := strings.Join(part, "-")
+		name := strings.Join(part[1:], "-")
 		err = en.Encode(map[string]any{"name": name})
 		return
 	}
