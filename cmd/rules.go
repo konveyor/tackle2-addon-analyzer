@@ -330,7 +330,7 @@ func (r *Rules) ensureRuleSet() (err error) {
 			continue
 		}
 		if os.IsNotExist(err) {
-			err = create(p)
+			err = create(ruleDir)
 			if err != nil {
 				return
 			}
