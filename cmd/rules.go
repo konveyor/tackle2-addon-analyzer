@@ -304,14 +304,22 @@ func (r *Rules) addSelector(options *command.Options) (err error) {
 }
 
 // convert windup rules.
+// Run the shim on all ruleset directories.
 func (r *Rules) convert() (err error) {
-	cmd := command.New("/usr/bin/windup-shim")
-	cmd.Options.Add("convert")
-	cmd.Options.Add("--outputdir", RuleDir)
-	cmd.Options.Add(RuleDir)
-	err = cmd.Run()
-	if err != nil {
-		return
+	var st os.FileInfo
+	for _, ruleDir := range r.rules {
+		st, err = os.Stat(ruleDir)
+		if !st.IsDir() {
+			continue
+		}
+		cmd := command.New("/usr/bin/windup-shim")
+		cmd.Options.Add("convert")
+		cmd.Options.Add("--outputdir", ruleDir)
+		cmd.Options.Add(ruleDir)
+		err = cmd.Run()
+		if err != nil {
+			return
+		}
 	}
 	return
 }
