@@ -318,7 +318,9 @@ func (r *Rules) ensureRuleSet() (err error) {
 			_ = f.Close()
 		}()
 		en := yaml.NewEncoder(f)
-		err = en.Encode(map[string]any{"name": path.Base(p)})
+		part := strings.Split(p, "/")
+		name := strings.Join(part, "-")
+		err = en.Encode(map[string]any{"name": name})
 		return
 	}
 	for _, ruleDir := range r.rules {
@@ -330,7 +332,7 @@ func (r *Rules) ensureRuleSet() (err error) {
 			continue
 		}
 		if os.IsNotExist(err) {
-			err = create(ruleDir)
+			err = create(p)
 			if err != nil {
 				return
 			}
