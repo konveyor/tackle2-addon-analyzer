@@ -70,16 +70,14 @@ func (r *Mode) fetchRepository(application *api.Application) (err error) {
 				application.Repository.URL),
 			".")[0])
 	r.path.appDir = path.Join(SourceDir, application.Repository.Path)
-	var rp repository.SCM
-	rp, nErr := repository.New(
+	r.Repository, err = repository.New(
 		SourceDir,
 		application.Repository,
 		application.Identities)
-	if nErr != nil {
-		err = nErr
+	if err != nil {
 		return
 	}
-	err = rp.Fetch()
+	err = r.Repository.Fetch()
 	return
 }
 

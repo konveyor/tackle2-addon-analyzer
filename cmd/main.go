@@ -122,7 +122,7 @@ func main() {
 		if err != nil {
 			return
 		}
-		
+
 		addon.Activity("Done.")
 
 		return
@@ -151,6 +151,12 @@ func updateApplication(d *Data, appId uint, issues *builder.Issues, deps *builde
 	appAnalysis := addon.Application.Analysis(appId)
 	mark := time.Now()
 	analysis := &api.Analysis{}
+	if d.Mode.Repository != nil {
+		analysis.Commit, err = d.Mode.Repository.Head()
+		if err != nil {
+			return
+		}
+	}
 	err = appAnalysis.Create(
 		analysis,
 		binding.MIMEYAML,
