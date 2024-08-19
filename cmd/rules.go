@@ -310,6 +310,7 @@ func (r *Rules) convert() (err error) {
 // contains a ruleset.yaml file.
 func (r *Rules) ensureRuleSet() (err error) {
 	create := func(p string) (err error) {
+		addon.Activity("[RULE] %s not-found;created.", p)
 		f, err := os.Create(p)
 		if err != nil {
 			return
@@ -388,8 +389,8 @@ func (r *Labels) ruleSetMap() (mp RuleSetMap, err error) {
 	return
 }
 
-// injectAlways - Replaces the labels in every rule file
-// with konveyor.io/include=always.
+// injectAlways - Replaces the labels in every ruleset.yaml
+// file with konveyor.io/include=always.
 func (r *Labels) injectAlways(paths []string) (err error) {
 	read := func(m any, p string) (err error) {
 		f, err := os.Open(p)
@@ -421,35 +422,17 @@ func (r *Labels) injectAlways(paths []string) (err error) {
 			addon.Log.Error(wErr, p)
 			return
 		}
-		switch strings.ToUpper(path.Ext(p)) {
-		case "",
-			".YAML",
-			".YML":
-		default:
-			return
-		}
 		key := "labels"
+		value := []string{"konveyor.io/include=always"}
 		if path.Base(p) == parser.RULE_SET_GOLDEN_FILE_NAME {
 			ruleSet := make(map[any]any)
 			err = read(&ruleSet, p)
 			if err != nil {
 				return
 			}
-			ruleSet[key] = []string{"konveyor.io/include=always"}
+			ruleSet[key] = value
+			addon.Activity("[RULE] inject(%s): %s.", value[0], p)
 			err = write(&ruleSet, p)
-			if err != nil {
-				return
-			}
-		} else {
-			rules := make([]map[any]any, 0)
-			err = read(&rules, p)
-			if err != nil {
-				return
-			}
-			for _, rule := range rules {
-				rule[key] = []string{"konveyor.io/include=always"}
-			}
-			err = write(&rules, p)
 			if err != nil {
 				return
 			}
