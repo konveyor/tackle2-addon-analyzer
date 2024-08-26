@@ -15,25 +15,11 @@ application:
   id: 1
 data:
   mode:
-    artifact: ""
-    binary: false
-    withDeps: false
+    withDeps: true
   rules:
     labels:
-      excluded: []
       included:
         - konveyor.io/target=cloud-readiness
-    path: ""
-    tags:
-      excluded: []
-  scope:
-    packages:
-      excluded: []
-      included: []
-    withKnownLibs: false
-  sources: []
   tagger:
     enabled: true
-  targets: []
-  verbosity: 0
 "
