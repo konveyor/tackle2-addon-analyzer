@@ -57,6 +57,10 @@ func (r *Rules) Build() (err error) {
 	if err != nil {
 		return
 	}
+	err = r.ensureRuleSet()
+	if err != nil {
+		return
+	}
 	err = r.Labels.injectAlways(r.repositories)
 	if err != nil {
 		return
@@ -94,26 +98,8 @@ func (r *Rules) addFiles() (err error) {
 	if err != nil {
 		return
 	}
-	entries, err := os.ReadDir(ruleDir)
-	if err != nil {
-		return
-	}
-	for _, ent := range entries {
-		if ent.Name() == parser.RULE_SET_GOLDEN_FILE_NAME {
-			r.repositories = append(r.repositories, ruleDir)
-			r.append(ruleDir)
-			return
-		}
-	}
-	n := 0
-	for _, ent := range entries {
-		p := path.Join(ruleDir, ent.Name())
-		r.append(p)
-		n++
-	}
-	if n > 0 {
-		r.repositories = append(r.repositories, ruleDir)
-	}
+	r.rules = append(r.rules, ruleDir)
+	r.repositories = append(r.repositories, ruleDir)
 	return
 }
 
@@ -205,22 +191,21 @@ func (r *Rules) addRules(ruleset *api.RuleSet) (err error) {
 		return
 	}
 	n := len(ruleset.Rules)
+	if n < 1 {
+		return
+	}
+	r.rules = append(r.rules, ruleDir)
 	for _, ruleset := range ruleset.Rules {
-		fileRef := ruleset.File
-		if fileRef == nil {
+		file := ruleset.File
+		if file == nil {
 			continue
 		}
-		path := path.Join(ruleDir, fileRef.Name)
-		err = addon.File.Get(ruleset.File.ID, path)
+		err = addon.File.Get(
+			ruleset.File.ID,
+			path.Join(ruleDir, file.Name))
 		if err != nil {
 			break
 		}
-		if n == 1 {
-			r.append(path)
-		}
-	}
-	if n > 1 {
-		r.append(ruleDir)
 	}
 	return
 }
@@ -256,7 +241,7 @@ func (r *Rules) addRuleSetRepository(ruleset *api.RuleSet) (err error) {
 	}
 	ruleDir := path.Join(rootDir, ruleset.Repository.Path)
 	r.repositories = append(r.repositories, ruleDir)
-	r.append(ruleDir)
+	r.rules = append(r.rules, ruleDir)
 	return
 }
 
@@ -289,7 +274,7 @@ func (r *Rules) addRepository() (err error) {
 	}
 	ruleDir := path.Join(rootDir, r.Repository.Path)
 	r.repositories = append(r.repositories, ruleDir)
-	r.append(ruleDir)
+	r.rules = append(r.rules, ruleDir)
 	return
 }
 
@@ -304,31 +289,61 @@ func (r *Rules) addSelector(options *command.Options) (err error) {
 }
 
 // convert windup rules.
+// Run the shim on all ruleset directories.
 func (r *Rules) convert() (err error) {
-	cmd := command.New("/usr/bin/windup-shim")
-	cmd.Options.Add("convert")
-	cmd.Options.Add("--outputdir", RuleDir)
-	cmd.Options.Add(RuleDir)
-	err = cmd.Run()
-	if err != nil {
-		return
+
+	for _, ruleDir := range r.rules {
+
+		cmd := command.New("/usr/bin/windup-shim")
+		cmd.Options.Add("convert")
+		cmd.Options.Add("--outputdir", ruleDir)
+		cmd.Options.Add(ruleDir)
+		err = cmd.Run()
+		if err != nil {
+			return
+		}
 	}
 	return
 }
 
-// append path.
-func (r *Rules) append(p string) {
-	for i := range r.rules {
-		if r.rules[i] == p {
+// ensureRuleSet ensures each ruleDir in rules
+// contains a ruleset.yaml file.
+func (r *Rules) ensureRuleSet() (err error) {
+	create := func(p string) (err error) {
+		addon.Activity("[RULE] %s not-found;created.", p)
+		f, err := os.Create(p)
+		if err != nil {
+			return
+		}
+		defer func() {
+			_ = f.Close()
+		}()
+		en := yaml.NewEncoder(f)
+		p = path.Dir(p)
+		p = strings.TrimPrefix(p, RuleDir)
+		part := strings.Split(p, "/")
+		name := strings.Join(part[1:], "-")
+		err = en.Encode(map[string]any{"name": name})
+		return
+	}
+	for _, ruleDir := range r.rules {
+		p := path.Join(
+			ruleDir,
+			parser.RULE_SET_GOLDEN_FILE_NAME)
+		_, err = os.Stat(p)
+		if err == nil {
+			continue
+		}
+		if os.IsNotExist(err) {
+			err = create(p)
+			if err != nil {
+				return
+			}
+		} else {
 			return
 		}
 	}
-	switch strings.ToUpper(path.Ext(p)) {
-	case "",
-		".YAML",
-		".YML":
-		r.rules = append(r.rules, p)
-	}
+	return
 }
 
 // Labels collection.
@@ -374,8 +389,8 @@ func (r *Labels) ruleSetMap() (mp RuleSetMap, err error) {
 	return
 }
 
-// injectAlways - Replaces the labels in every rule file
-// with konveyor.io/include=always.
+// injectAlways - Replaces the labels in every ruleset.yaml
+// file with konveyor.io/include=always.
 func (r *Labels) injectAlways(paths []string) (err error) {
 	read := func(m any, p string) (err error) {
 		f, err := os.Open(p)
@@ -407,35 +422,17 @@ func (r *Labels) injectAlways(paths []string) (err error) {
 			addon.Log.Error(wErr, p)
 			return
 		}
-		switch strings.ToUpper(path.Ext(p)) {
-		case "",
-			".YAML",
-			".YML":
-		default:
-			return
-		}
 		key := "labels"
+		value := []string{"konveyor.io/include=always"}
 		if path.Base(p) == parser.RULE_SET_GOLDEN_FILE_NAME {
 			ruleSet := make(map[any]any)
 			err = read(&ruleSet, p)
 			if err != nil {
 				return
 			}
-			ruleSet[key] = []string{"konveyor.io/include=always"}
+			ruleSet[key] = value
+			addon.Activity("[RULE] inject(%s): %s.", value[0], p)
 			err = write(&ruleSet, p)
-			if err != nil {
-				return
-			}
-		} else {
-			rules := make([]map[any]any, 0)
-			err = read(&rules, p)
-			if err != nil {
-				return
-			}
-			for _, rule := range rules {
-				rule[key] = []string{"konveyor.io/include=always"}
-			}
-			err = write(&rules, p)
 			if err != nil {
 				return
 			}
