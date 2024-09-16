@@ -17,6 +17,7 @@ jobs:
   image-build:
     uses: konveyor/release-tools/.github/workflows/build-push-images.yaml@main
     with:
+      go-version: '1.21'
       registry: "quay.io/konveyor"
       image_name: "tackle2-addon-analyzer"
       containerfile: "./Dockerfile"
