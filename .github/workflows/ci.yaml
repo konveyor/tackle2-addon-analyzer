@@ -16,6 +16,8 @@ jobs:
         run: |
           IMG=quay.io/konveyor/tackle2-addon-analyzer:latest make image-docker
           docker save -o /tmp/tackle2-addon-analyzer.tar quay.io/konveyor/tackle2-addon-analyzer:latest
+        with:
+          go-version: '1.22'
 
       - name: Upload tackle2-addon-analyzer image as artifact
         uses: actions/upload-artifact@v3
