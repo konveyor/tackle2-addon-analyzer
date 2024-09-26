@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/konveyor/analyzer-lsp v0.4.0-alpha.1.0.20240603131628-bc4ff29956a2
 	github.com/konveyor/tackle2-addon v0.5.0-rc.2.0.20240813152219-3153a61e7c46
-	github.com/konveyor/tackle2-hub v0.5.0-rc.1.0.20240726125502-8bb3c0911660
+	github.com/konveyor/tackle2-hub v0.5.1-0.20240926152344-e15a8a4fbf23
 	github.com/onsi/gomega v1.27.6
 	github.com/rogpeppe/go-internal v1.10.0
 	go.lsp.dev/uri v0.3.0
@@ -63,6 +63,7 @@ require (
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
+	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect

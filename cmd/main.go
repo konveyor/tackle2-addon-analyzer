@@ -148,7 +148,6 @@ func updateApplication(d *Data, appId uint, issues *builder.Issues, deps *builde
 	}
 	//
 	// Analysis.
-	mark := time.Now()
 	manifest := builder.Manifest{
 		Analysis: api.Analysis{},
 		Issues:   issues,
@@ -164,12 +163,13 @@ func updateApplication(d *Data, appId uint, issues *builder.Issues, deps *builde
 	if err != nil {
 		return
 	}
+	mark := time.Now()
 	analysis := addon.Application.Analysis(appId)
-	_, err = analysis.Create(manifest.Path, binding.MIMEYAML)
+	reported, err := analysis.Create(manifest.Path, binding.MIMEYAML)
 	if err != nil {
 		return
 	}
-	addon.Activity("Analysis reported. duration: %s", time.Since(mark))
+	addon.Activity("Analysis %d reported. duration: %s", reported.ID, time.Since(mark))
 	// Facts.
 	facts := addon.Application.Facts(appId)
 	facts.Source(Source)
