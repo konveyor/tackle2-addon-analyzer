@@ -8,8 +8,6 @@ import (
 	"github.com/konveyor/tackle2-addon/command"
 )
 
-type RuleError = builder.RuleError
-
 // Analyzer application analyzer.
 type Analyzer struct {
 	*Data

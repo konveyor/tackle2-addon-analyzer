@@ -148,20 +148,24 @@ func updateApplication(d *Data, appId uint, issues *builder.Issues, deps *builde
 	}
 	//
 	// Analysis.
-	appAnalysis := addon.Application.Analysis(appId)
 	mark := time.Now()
-	analysis := &api.Analysis{}
+	manifest := builder.Manifest{
+		Analysis: api.Analysis{},
+		Issues:   issues,
+		Deps:     deps,
+	}
 	if d.Mode.Repository != nil {
-		analysis.Commit, err = d.Mode.Repository.Head()
+		manifest.Analysis.Commit, err = d.Mode.Repository.Head()
 		if err != nil {
 			return
 		}
 	}
-	err = appAnalysis.Create(
-		analysis,
-		binding.MIMEYAML,
-		issues.Reader(),
-		deps.Reader())
+	err = manifest.Write()
+	if err != nil {
+		return
+	}
+	analysis := addon.Application.Analysis(appId)
+	_, err = analysis.Create(manifest.Path, binding.MIMEYAML)
 	if err != nil {
 		return
 	}

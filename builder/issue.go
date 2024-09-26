@@ -31,30 +31,18 @@ func (b *Issues) RuleError() (r *RuleError) {
 	return &b.ruleErr
 }
 
-// Reader returns a reader.
-func (b *Issues) Reader() (r io.Reader) {
-	r, w := io.Pipe()
-	go func() {
-		var err error
-		defer func() {
-			if err != nil {
-				_ = w.CloseWithError(err)
-			} else {
-				_ = w.Close()
-			}
-		}()
-		err = b.Write(w)
-	}()
-	return
-}
-
-// Write issues to the writer.
+// Write issues section.
 func (b *Issues) Write(writer io.Writer) (err error) {
 	input, err := b.read()
 	if err != nil {
 		return
 	}
 	encoder := yaml.NewEncoder(writer)
+	_, _ = writer.Write([]byte(api.BeginIssuesMarker))
+	_, _ = writer.Write([]byte{'\n'})
+	if err != nil {
+		return
+	}
 	for _, ruleset := range input {
 		b.ruleErr.Append(ruleset)
 		for ruleid, v := range ruleset.Violations {
@@ -98,6 +86,8 @@ func (b *Issues) Write(writer io.Writer) (err error) {
 			}
 		}
 	}
+	_, _ = writer.Write([]byte(api.EndIssuesMarker))
+	_, _ = writer.Write([]byte{'\n'})
 	return
 }
 
@@ -139,7 +129,7 @@ func (b *Issues) Tags() (tags []string) {
 }
 
 // Facts builds facts.
-func (b *Issues) Facts() (facts api.FactMap) {
+func (b *Issues) Facts() (facts api.Map) {
 	return
 }
 

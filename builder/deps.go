@@ -14,30 +14,15 @@ type Deps struct {
 	Path string
 }
 
-// Reader returns a reader.
-func (b *Deps) Reader() (r io.Reader) {
-	r, w := io.Pipe()
-	go func() {
-		var err error
-		defer func() {
-			if err != nil {
-				_ = w.CloseWithError(err)
-			} else {
-				_ = w.Close()
-			}
-		}()
-		err = b.Write(w)
-	}()
-	return
-}
-
-// Write deps to the writer.
+// Write deps section.
 func (b *Deps) Write(writer io.Writer) (err error) {
 	input, err := b.read()
 	if err != nil {
 		return
 	}
 	encoder := yaml.NewEncoder(writer)
+	_, _ = writer.Write([]byte(api.BeginDepsMarker))
+	_, _ = writer.Write([]byte{'\n'})
 	for _, p := range input {
 		for _, d := range p.Dependencies {
 			err = encoder.Encode(
@@ -54,6 +39,8 @@ func (b *Deps) Write(writer io.Writer) (err error) {
 			}
 		}
 	}
+	_, _ = writer.Write([]byte(api.EndDepsMarker))
+	_, _ = writer.Write([]byte{'\n'})
 	return
 }
 
