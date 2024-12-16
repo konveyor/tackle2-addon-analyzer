@@ -147,6 +147,16 @@ func (r *ResourceInjector) build(md *Metadata) (err error) {
 					return
 				}
 			}
+		case "setting":
+			setting := &api.Setting{}
+			err = addon.Setting.Get(parsed.value, &setting.Value)
+			if err != nil {
+				return
+			}
+			err = r.add(&resource, setting)
+			if err != nil {
+				return
+			}
 		default:
 			err = &SelectorNotSupported{Selector: resource.Selector}
 			return
