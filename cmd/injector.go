@@ -15,6 +15,7 @@ import (
 	"github.com/konveyor/tackle2-hub/nas"
 )
 
+// KeyRegex $(variable)
 var (
 	KeyRegex = regexp.MustCompile(`(\$\()([^)]+)(\))`)
 )
