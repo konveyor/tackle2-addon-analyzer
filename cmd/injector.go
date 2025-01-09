@@ -253,15 +253,16 @@ func (r *ResourceInjector) inject(in any) (out any) {
 				break
 			}
 			v := r.dict[match[2]]
-			if len(node) == len(match[0]) {
+			if len(node) > len(match[0]) {
+				node = strings.Replace(
+					node,
+					match[0],
+					r.string(v),
+					-1)
+			} else {
 				out = v
 				return
 			}
-			node = strings.Replace(
-				node,
-				match[0],
-				r.string(v),
-				-1)
 		}
 		out = node
 	default:
