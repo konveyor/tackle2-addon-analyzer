@@ -116,7 +116,7 @@ func (f *Field) cast(object any) (cast any, err error) {
 		case string:
 			cast, err = strconv.Atoi(x)
 		default:
-			err = errors.New("expected: int|boolean|string")
+			err = errors.New("expected: integer|boolean|string")
 		}
 	case "boolean":
 		switch x := object.(type) {
@@ -131,10 +131,10 @@ func (f *Field) cast(object any) (cast any, err error) {
 		case string:
 			cast, err = strconv.ParseBool(x)
 		default:
-			err = errors.New("expected: int|boolean|string")
+			err = errors.New("expected: integer|boolean|string")
 		}
 	default:
-		err = errors.New("expected: integer|boolean")
+		err = errors.New("expected: integer|boolean|string")
 	}
 	return
 }
