@@ -98,7 +98,7 @@ func (p *ParsedSelector) With(s string) {
 
 // ResourceInjector inject resources into extension metadata.
 type ResourceInjector struct {
-	dict map[string]string
+	dict map[string]any
 }
 
 // Inject resources into extension metadata.
@@ -126,7 +126,7 @@ func (r *ResourceInjector) Inject(extension *api.Extension) (p *provider.Config,
 
 // build builds resource dictionary.
 func (r *ResourceInjector) build(md *Metadata) (err error) {
-	r.dict = make(map[string]string)
+	r.dict = make(map[string]any)
 	application, err := addon.Task.Application()
 	if err != nil {
 		return
@@ -177,30 +177,33 @@ func (r *ResourceInjector) add(resource *Resource, object any) (err error) {
 			}
 			return
 		}
-		fv := r.string(v)
 		if f.Path != "" {
-			err = r.write(f.Path, fv)
+			err = r.write(f.Path, v)
 			if err != nil {
 				return
 			}
-			fv = f.Path
+			v = f.Path
 		}
-		r.dict[f.Key] = fv
+		r.dict[f.Key] = v
 	}
 	return
 }
 
 // write a resource field value to a file.
-func (r *ResourceInjector) write(path string, s string) (err error) {
+func (r *ResourceInjector) write(path string, v any) (err error) {
 	err = nas.MkDir(pathlib.Dir(path), 0755)
 	if err != nil {
 		return
 	}
 	f, err := os.Create(path)
-	if err == nil {
-		_, err = f.Write([]byte(s))
-		_ = f.Close()
+	if err != nil {
+		return
 	}
+	defer func() {
+		_ = f.Close()
+	}()
+	s := r.string(v)
+	_, err = f.Write([]byte(s))
 	return
 }
 
@@ -249,10 +252,15 @@ func (r *ResourceInjector) inject(in any) (out any) {
 			if len(match) < 3 {
 				break
 			}
+			v := r.dict[match[2]]
+			if len(node) == len(match[0]) {
+				out = v
+				return
+			}
 			node = strings.Replace(
 				node,
 				match[0],
-				r.dict[match[2]],
+				r.string(v),
 				-1)
 		}
 		out = node
