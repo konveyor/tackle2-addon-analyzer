@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -125,4 +126,84 @@ func TestIncidentSelector(t *testing.T) {
 	scope.Packages.Excluded = []string{"C", "D"}
 	selector = scope.incidentSelector()
 	g.Expect("(!package||package=a||package=b) && !(package=C||package=D)").To(gomega.Equal(selector))
+}
+
+func TestInjectorDefaults(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	inj := ResourceInjector{dict: make(map[string]any)}
+	r := &Resource{
+		Fields: []Field{
+			{
+				Name:    "Name",
+				Key:     "person.name",
+				Default: "Elmer",
+			},
+			{
+				Name: "Age",
+				Key:  "person.age",
+			},
+		},
+	}
+	err := inj.addDefaults(r)
+	g.Expect(err).To(gomega.BeNil())
+	g.Expect(inj.dict[r.Fields[0].Key]).To(gomega.Equal(r.Fields[0].Default))
+	g.Expect(inj.dict[r.Fields[1].Key]).To(gomega.BeNil())
+}
+
+func TestInjectorTypeCast(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	inj := ResourceInjector{dict: make(map[string]any)}
+	r := &Resource{
+		Fields: []Field{
+			{
+				Name:    "Name",
+				Key:     "person.name",
+				Default: "Elmer",
+			},
+			{
+				Name:    "Age",
+				Key:     "person.age",
+				Type:    "integer",
+				Default: "18",
+			},
+			{
+				Name:    "Resident",
+				Key:     "person.resident",
+				Type:    "boolean",
+				Default: "true",
+			},
+			{
+				Name:    "Member",
+				Key:     "person.member",
+				Type:    "boolean",
+				Default: 1,
+			},
+			{
+				Name:    "One",
+				Key:     "person.one",
+				Type:    "integer",
+				Default: true,
+			},
+		},
+	}
+	err := inj.addDefaults(r)
+	g.Expect(err).To(gomega.BeNil())
+	g.Expect(inj.dict[r.Fields[0].Key]).To(gomega.Equal(r.Fields[0].Default))
+	g.Expect(inj.dict[r.Fields[1].Key]).To(gomega.Equal(18))
+	g.Expect(inj.dict[r.Fields[2].Key]).To(gomega.BeTrue())
+	g.Expect(inj.dict[r.Fields[3].Key]).To(gomega.BeTrue())
+	g.Expect(inj.dict[r.Fields[4].Key]).To(gomega.Equal(1))
+
+	// cast error.
+	inj.dict = make(map[string]any)
+	r.Fields = append(
+		r.Fields,
+		Field{
+			Name:    "Resident",
+			Key:     "person.parent",
+			Type:    "integer",
+			Default: "true",
+		})
+	err = inj.addDefaults(r)
+	g.Expect(errors.Is(err, &TypeError{})).To(gomega.BeTrue())
 }

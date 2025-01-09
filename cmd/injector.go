@@ -7,6 +7,7 @@ import (
 	"os"
 	pathlib "path"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/konveyor/analyzer-lsp/provider"
@@ -49,11 +50,92 @@ func (e *FieldNotMatched) Is(err error) (matched bool) {
 	return
 }
 
+// TypeError used to report resource field cast error.
+type TypeError struct {
+	Field  *Field
+	Reason string
+	Object any
+}
+
+func (e *TypeError) Error() (s string) {
+	return fmt.Sprintf(
+		"Resource injector: cast failed. field=%s type=%s reason=%s, object:%v",
+		e.Field.Name,
+		e.Field.Type,
+		e.Reason,
+		e.Object)
+}
+
+func (e *TypeError) Is(err error) (matched bool) {
+	var inst *TypeError
+	matched = errors.As(err, &inst)
+	return
+}
+
 // Field injection specification.
 type Field struct {
-	Name string `json:"name"`
-	Path string `json:"path"`
-	Key  string `json:"key"`
+	Name    string `json:"name"`
+	Path    string `json:"path"`
+	Key     string `json:"key"`
+	Type    string `json:"type"`
+	Default any    `json:"default"`
+}
+
+// cast returns object cast as defined by Field.Type.
+func (f *Field) cast(object any) (cast any, err error) {
+	cast = object
+	if f.Type == "" {
+		return
+	}
+	defer func() {
+		if err != nil {
+			err = &TypeError{
+				Field:  f,
+				Reason: err.Error(),
+				Object: object,
+			}
+		}
+	}()
+	switch strings.ToLower(f.Type) {
+	case "string":
+		cast = fmt.Sprintf("%v", object)
+	case "integer":
+		switch x := object.(type) {
+		case int,
+			int8,
+			int16,
+			int32,
+			int64:
+			cast = x
+		case bool:
+			cast = 0
+			if x {
+				cast = 1
+			}
+		case string:
+			cast, err = strconv.Atoi(x)
+		default:
+			err = errors.New("expected: int|boolean|string")
+		}
+	case "boolean":
+		switch x := object.(type) {
+		case bool:
+			cast = x
+		case int,
+			int8,
+			int16,
+			int32,
+			int64:
+			cast = x != 0
+		case string:
+			cast, err = strconv.ParseBool(x)
+		default:
+			err = errors.New("expected: int|boolean|string")
+		}
+	default:
+		err = errors.New("expected: integer|boolean")
+	}
+	return
 }
 
 // Resource injection specification.
@@ -97,6 +179,25 @@ func (p *ParsedSelector) With(s string) {
 }
 
 // ResourceInjector inject resources into extension metadata.
+// Example:
+//   metadata:
+//    provider:
+//      address: localhost:$(PORT)
+//      initConfig:
+//      - providerSpecificConfig:
+//          mavenInsecure: $(maven.insecure)
+//          mavenSettingsFile: $(maven.settings.path)
+//      name: java
+//    resources:
+//    - selector: identity:kind=maven
+//      fields:
+//      - key: maven.settings.path
+//        name: settings
+//        path: /shared/creds/maven/settings.xml
+//    - selector: setting:key=mvn.insecure.enabled
+//      fields:
+//      - key: maven.insecure
+//        name: value
 type ResourceInjector struct {
 	dict map[string]any
 }
@@ -132,6 +233,9 @@ func (r *ResourceInjector) build(md *Metadata) (err error) {
 		return
 	}
 	for _, resource := range md.Resources {
+		err = r.addDefaults(&resource)
+	}
+	for _, resource := range md.Resources {
 		parsed := ParsedSelector{}
 		parsed.With(resource.Selector)
 		switch strings.ToLower(parsed.kind) {
@@ -165,6 +269,20 @@ func (r *ResourceInjector) build(md *Metadata) (err error) {
 	return
 }
 
+// addDefaults adds defaults when specified.
+func (r *ResourceInjector) addDefaults(resource *Resource) (err error) {
+	for _, f := range resource.Fields {
+		if f.Default == nil {
+			continue
+		}
+		err = r.addField(&f, f.Default)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
 // add the resource fields specified in the injector.
 func (r *ResourceInjector) add(resource *Resource, object any) (err error) {
 	mp := r.asMap(object)
@@ -177,20 +295,36 @@ func (r *ResourceInjector) add(resource *Resource, object any) (err error) {
 			}
 			return
 		}
-		if f.Path != "" {
-			err = r.write(f.Path, v)
-			if err != nil {
-				return
-			}
-			v = f.Path
+		err = r.addField(&f, v)
+		if err != nil {
+			return
 		}
-		r.dict[f.Key] = v
 	}
 	return
 }
 
+// addField adds field to the dict.
+// When field has a path defined, the values is written to the
+// file and the dict[key] = path.
+func (r *ResourceInjector) addField(f *Field, v any) (err error) {
+	if f.Path != "" {
+		err = r.write(f.Path, v)
+		if err != nil {
+			return
+		}
+		v = f.Path
+	} else {
+		v, err = f.cast(v)
+		if err != nil {
+			return
+		}
+	}
+	r.dict[f.Key] = v
+	return
+}
+
 // write a resource field value to a file.
-func (r *ResourceInjector) write(path string, v any) (err error) {
+func (r *ResourceInjector) write(path string, object any) (err error) {
 	err = nas.MkDir(pathlib.Dir(path), 0755)
 	if err != nil {
 		return
@@ -202,7 +336,7 @@ func (r *ResourceInjector) write(path string, v any) (err error) {
 	defer func() {
 		_ = f.Close()
 	}()
-	s := r.string(v)
+	s := r.string(object)
 	_, err = f.Write([]byte(s))
 	return
 }
