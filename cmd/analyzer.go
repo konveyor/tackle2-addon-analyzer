@@ -52,8 +52,11 @@ func (r *Analyzer) Run() (issueBuilder *builder.Issues, depBuilder *builder.Deps
 
 // options builds Analyzer options.
 func (r *Analyzer) options(output, depOutput string) (options command.Options, err error) {
+	variables := map[string]any{
+		"location": r.Mode.Location(),
+	}
 	settings := &Settings{}
-	err = settings.AppendExtensions()
+	err = settings.AppendExtensions(variables)
 	if err != nil {
 		return
 	}

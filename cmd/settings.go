@@ -39,20 +39,22 @@ func (r *Settings) Read() (err error) {
 }
 
 // AppendExtensions adds extension fragments.
-func (r *Settings) AppendExtensions() (err error) {
+func (r *Settings) AppendExtensions(variables map[string]any) (err error) {
 	addon, err := addon.Addon(true)
 	if err != nil {
 		return
 	}
 	for _, extension := range addon.Extensions {
-		var p *provider.Config
+		var md *Metadata
+		md, err = r.metadata(&extension)
 		injector := ResourceInjector{}
-		p, err = injector.Inject(&extension)
+		injector.Use(variables)
+		err = injector.Inject(md)
 		if err != nil {
 			return
 		}
-		if !r.hasProvider(p.Name) {
-			r.content = append(r.content, *p)
+		if !r.hasProvider(md.Provider.Name) {
+			r.content = append(r.content, md.Provider)
 		}
 	}
 	return
@@ -73,17 +75,6 @@ func (r *Settings) Write() (err error) {
 	}
 	_, err = f.Write(b)
 	return
-}
-
-// Location update the location on each provider.
-func (r *Settings) Location(path string) {
-	for i := range r.content {
-		p := r.content[i]
-		for i := range p.InitConfig {
-			init := &p.InitConfig[i]
-			init.Location = path
-		}
-	}
 }
 
 // Mode update the mode on each provider.
@@ -185,6 +176,18 @@ func (r *Settings) hasProvider(name string) (found bool) {
 			found = true
 			break
 		}
+	}
+	return
+}
+
+// metadata returns the metadata object within the extension.
+func (r *Settings) metadata(extension *api.Extension) (md *Metadata, err error) {
+	injector := Injector{}
+	mp := injector.asMap(extension.Metadata)
+	md = &Metadata{}
+	err = injector.object(mp, md)
+	if err != nil {
+		return
 	}
 	return
 }
