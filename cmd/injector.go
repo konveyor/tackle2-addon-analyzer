@@ -73,21 +73,21 @@ func (e *TypeError) Is(err error) (matched bool) {
 	return
 }
 
-// KeyRedefinedError reports key redefined errors.
-type KeyRedefinedError struct {
+// KeyConflictError reports key redefined errors.
+type KeyConflictError struct {
 	Key   string
 	Value any
 }
 
-func (e *KeyRedefinedError) Error() (s string) {
+func (e *KeyConflictError) Error() (s string) {
 	return fmt.Sprintf(
 		"Key: '%s' = '%v' cannot be redefined.",
 		e.Key,
 		e.Value)
 }
 
-func (e *KeyRedefinedError) Is(err error) (matched bool) {
-	var inst *KeyRedefinedError
+func (e *KeyConflictError) Is(err error) (matched bool) {
+	var inst *KeyConflictError
 	matched = errors.As(err, &inst)
 	return
 }
@@ -425,7 +425,7 @@ func (r *ResourceInjector) addField(f *Field, v any) (err error) {
 		}
 	}
 	if _, found := r.dict[f.Key]; found {
-		err = &KeyRedefinedError{
+		err = &KeyConflictError{
 			Key:   f.Key,
 			Value: v,
 		}
