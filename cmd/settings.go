@@ -17,7 +17,7 @@ import (
 const (
 	// Builtin namespace.
 	Builtin = "builtin"
-	// BuiltinLocation The Location passed to the provider.
+	// BuiltinLocation The (code) Location passed to the provider.
 	BuiltinLocation = Builtin + ".location"
 )
 
