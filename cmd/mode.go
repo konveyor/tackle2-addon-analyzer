@@ -49,10 +49,15 @@ func (r *Mode) AddOptions(options *command.Options, settings *Settings) (err err
 		settings.Mode(provider.SourceOnlyAnalysisMode)
 		options.Add("--no-dependency-rules")
 	}
+	return
+}
+
+// Location returns the location to be analyzed.
+func (r *Mode) Location() (path string) {
 	if r.Binary {
-		settings.Location(r.path.binary)
+		path = r.path.binary
 	} else {
-		settings.Location(r.path.appDir)
+		path = r.path.appDir
 	}
 	return
 }

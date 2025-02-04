@@ -14,6 +14,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	// Builtin namespace.
+	Builtin = "builtin"
+	// BuiltinLocation The (code) Location passed to the provider.
+	BuiltinLocation = Builtin + ".location"
+)
+
 // Settings - provider settings file.
 type Settings struct {
 	index   int
@@ -39,21 +46,25 @@ func (r *Settings) Read() (err error) {
 }
 
 // AppendExtensions adds extension fragments.
-func (r *Settings) AppendExtensions() (err error) {
+func (r *Settings) AppendExtensions(mode *Mode) (err error) {
 	addon, err := addon.Addon(true)
 	if err != nil {
 		return
 	}
 	for _, extension := range addon.Extensions {
-		var p *provider.Config
+		var md *Metadata
+		md, err = r.metadata(&extension)
+		if r.hasProvider(&md.Provider) {
+			continue
+		}
+		builtin := r.injectBuiltins(md, mode)
 		injector := ResourceInjector{}
-		p, err = injector.Inject(&extension)
+		injector.Use(builtin)
+		err = injector.Inject(md)
 		if err != nil {
 			return
 		}
-		if !r.hasProvider(p.Name) {
-			r.content = append(r.content, *p)
-		}
+		r.content = append(r.content, md.Provider)
 	}
 	return
 }
@@ -73,17 +84,6 @@ func (r *Settings) Write() (err error) {
 	}
 	_, err = f.Write(b)
 	return
-}
-
-// Location update the location on each provider.
-func (r *Settings) Location(path string) {
-	for i := range r.content {
-		p := r.content[i]
-		for i := range p.InitConfig {
-			init := &p.InitConfig[i]
-			init.Location = path
-		}
-	}
 }
 
 // Mode update the mode on each provider.
@@ -137,6 +137,18 @@ func (r *Settings) ProxySettings() (err error) {
 	return
 }
 
+// injectBuiltins injects `builtin` field values.
+func (r *Settings) injectBuiltins(md *Metadata, mode *Mode) (builtin map[string]any) {
+	builtin = make(map[string]any)
+	list := md.Provider.InitConfig
+	for i := range list {
+		in := &list[i]
+		in.Location = mode.Location()
+		builtin[BuiltinLocation] = in.Location
+	}
+	return
+}
+
 // getProxy set proxy settings.
 func (r *Settings) getProxy(kind string) (url string, excluded []string, err error) {
 	var p *api.Proxy
@@ -179,12 +191,24 @@ func (r *Settings) path() (p string) {
 }
 
 // hasProvider returns true when the provider found.
-func (r *Settings) hasProvider(name string) (found bool) {
-	for _, p := range r.content {
-		if p.Name == name {
+func (r *Settings) hasProvider(p *provider.Config) (found bool) {
+	for i := range r.content {
+		if r.content[i].Name == p.Name {
 			found = true
 			break
 		}
+	}
+	return
+}
+
+// metadata returns the metadata object within the extension.
+func (r *Settings) metadata(extension *api.Extension) (md *Metadata, err error) {
+	injector := Injector{}
+	mp := injector.asMap(extension.Metadata)
+	md = &Metadata{}
+	err = injector.object(mp, md)
+	if err != nil {
+		return
 	}
 	return
 }

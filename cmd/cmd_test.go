@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/konveyor/analyzer-lsp/provider"
 	"github.com/onsi/gomega"
 )
 
@@ -130,7 +131,8 @@ func TestIncidentSelector(t *testing.T) {
 
 func TestInjectorDefaults(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
-	inj := ResourceInjector{dict: make(map[string]any)}
+	inj := ResourceInjector{}
+	inj.dict = make(map[string]any)
 	r := &Resource{
 		Fields: []Field{
 			{
@@ -152,7 +154,8 @@ func TestInjectorDefaults(t *testing.T) {
 
 func TestInjectorTypeCast(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
-	inj := ResourceInjector{dict: make(map[string]any)}
+	inj := ResourceInjector{}
+	inj.dict = make(map[string]any)
 	r := &Resource{
 		Fields: []Field{
 			{
@@ -206,4 +209,36 @@ func TestInjectorTypeCast(t *testing.T) {
 		})
 	err = inj.addDefaults(r)
 	g.Expect(errors.Is(err, &TypeError{})).To(gomega.BeTrue())
+}
+
+func TestInject(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	key := "location"
+	path := "/tmp/x"
+	inj := Injector{}
+	inj.Use(make(map[string]any))
+	inj.dict[key] = path
+	md := &Metadata{}
+	md.Provider.InitConfig = []provider.InitConfig{
+		{Location: "$(" + key + ")"},
+	}
+	err := inj.Inject(md)
+	g.Expect(err).To(gomega.BeNil())
+	g.Expect(md.Provider.InitConfig[0].Location).To(gomega.Equal(path))
+}
+
+func TestRawInject(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	key := "location"
+	path := "/tmp/x"
+	inj := Injector{}
+	inj.Use(make(map[string]any))
+	inj.dict[key] = path
+	md := map[string]any{
+		"Location": "$(" + key + ")",
+	}
+	md2 := inj.inject(md).(map[string]any)
+	g.Expect(md2["Location"]).To(gomega.Equal(path))
 }

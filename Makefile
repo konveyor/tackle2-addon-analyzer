@@ -31,6 +31,9 @@ fmt: $(GOIMPORTS)
 vet:
 	go vet $(PKG)
 
+test:
+	go test -count=1 -v ./cmd/...
+
 # Ensure goimports installed.
 $(GOIMPORTS):
 	go install golang.org/x/tools/cmd/goimports@v0.24

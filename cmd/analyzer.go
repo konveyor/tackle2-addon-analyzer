@@ -53,7 +53,7 @@ func (r *Analyzer) Run() (issueBuilder *builder.Issues, depBuilder *builder.Deps
 // options builds Analyzer options.
 func (r *Analyzer) options(output, depOutput string) (options command.Options, err error) {
 	settings := &Settings{}
-	err = settings.AppendExtensions()
+	err = settings.AppendExtensions(&r.Mode)
 	if err != nil {
 		return
 	}

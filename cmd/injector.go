@@ -73,6 +73,25 @@ func (e *TypeError) Is(err error) (matched bool) {
 	return
 }
 
+// KeyConflictError reports key redefined errors.
+type KeyConflictError struct {
+	Key   string
+	Value any
+}
+
+func (e *KeyConflictError) Error() (s string) {
+	return fmt.Sprintf(
+		"Key: '%s' = '%v' cannot be redefined.",
+		e.Key,
+		e.Value)
+}
+
+func (e *KeyConflictError) Is(err error) (matched bool) {
+	var inst *KeyConflictError
+	matched = errors.As(err, &inst)
+	return
+}
+
 // Field injection specification.
 type Field struct {
 	Name    string `json:"name"`
@@ -179,56 +198,141 @@ func (p *ParsedSelector) With(s string) {
 	}
 }
 
-// ResourceInjector inject resources into extension metadata.
-// Example:
-//   metadata:
-//    provider:
-//      address: localhost:$(PORT)
-//      initConfig:
-//      - providerSpecificConfig:
-//          mavenInsecure: $(maven.insecure)
-//          mavenSettingsFile: $(maven.settings.path)
-//      name: java
-//    resources:
-//    - selector: identity:kind=maven
-//      fields:
-//      - key: maven.settings.path
-//        name: settings
-//        path: /shared/creds/maven/settings.xml
-//    - selector: setting:key=mvn.insecure.enabled
-//      fields:
-//      - key: maven.insecure
-//        name: value
-type ResourceInjector struct {
+// Injector replaces variables in the object.
+// format: $(variable).
+type Injector struct {
 	dict map[string]any
 }
 
 // Inject resources into extension metadata.
-// Returns injected provider (settings).
-func (r *ResourceInjector) Inject(extension *api.Extension) (p *provider.Config, err error) {
-	mp := r.asMap(extension.Metadata)
-	md := Metadata{}
-	err = r.object(mp, &md)
-	if err != nil {
-		return
-	}
-	err = r.build(&md)
-	if err != nil {
-		return
-	}
-	mp = r.asMap(&md.Provider)
+func (r *Injector) Inject(md *Metadata) (err error) {
+	r.init()
+	mp := r.asMap(md)
 	mp = r.inject(mp).(map[string]any)
-	err = r.object(mp, &md.Provider)
+	err = r.object(mp, md)
 	if err != nil {
 		return
 	}
-	p = &md.Provider
+	return
+}
+
+// Use map.
+func (r *Injector) Use(d map[string]any) {
+	r.dict = d
+}
+
+// constructor.
+func (r *Injector) init() {
+	if r.dict == nil {
+		r.dict = make(map[string]any)
+	}
+}
+
+// inject replaces `dict` variables referenced in metadata.
+func (r *Injector) inject(in any) (out any) {
+	if r.dict == nil {
+		return
+	}
+	switch node := in.(type) {
+	case map[string]any:
+		for k, v := range node {
+			node[k] = r.inject(v)
+		}
+		out = node
+	case []any:
+		var injected []any
+		for _, n := range node {
+			injected = append(
+				injected,
+				r.inject(n))
+		}
+		out = injected
+	case string:
+		for {
+			match := KeyRegex.FindStringSubmatch(node)
+			if len(match) < 3 {
+				break
+			}
+			v := r.dict[match[2]]
+			if len(node) > len(match[0]) {
+				node = strings.Replace(
+					node,
+					match[0],
+					r.string(v),
+					-1)
+			} else {
+				out = v
+				return
+			}
+		}
+		out = node
+	default:
+		out = node
+	}
+	return
+}
+
+// objectMap returns a map for a resource object.
+func (r *Injector) asMap(object any) (mp map[string]any) {
+	b, _ := json.Marshal(object)
+	mp = make(map[string]any)
+	_ = json.Unmarshal(b, &mp)
+	return
+}
+
+// objectMap returns a map for a resource object.
+func (r *Injector) object(mp map[string]any, object any) (err error) {
+	b, _ := json.Marshal(mp)
+	err = json.Unmarshal(b, object)
+	return
+}
+
+// string returns a string representation of a field value.
+func (r *Injector) string(object any) (s string) {
+	if object != nil {
+		s = fmt.Sprintf("%v", object)
+	}
+	return
+}
+
+// ResourceInjector inject resources into extension metadata.
+// Example:
+//
+//	metadata:
+//	 provider:
+//	   address: localhost:$(PORT)
+//	   initConfig:
+//	   - providerSpecificConfig:
+//	       mavenInsecure: $(maven.insecure)
+//	       mavenSettingsFile: $(maven.settings.path)
+//	   name: java
+//	 resources:
+//	 - selector: identity:kind=maven
+//	   fields:
+//	   - key: maven.settings.path
+//	     name: settings
+//	     path: /shared/creds/maven/settings.xml
+//	 - selector: setting:key=mvn.insecure.enabled
+//	   fields:
+//	   - key: maven.insecure
+//	     name: value
+type ResourceInjector struct {
+	Injector
+}
+
+// Inject resources into extension metadata.
+func (r *ResourceInjector) Inject(md *Metadata) (err error) {
+	r.init()
+	err = r.build(md)
+	if err != nil {
+		return
+	}
+	err = r.Injector.Inject(md)
 	return
 }
 
 // build builds resource dictionary.
 func (r *ResourceInjector) build(md *Metadata) (err error) {
-	r.dict = make(map[string]any)
 	application, err := addon.Task.Application()
 	if err != nil {
 		return
@@ -320,6 +424,13 @@ func (r *ResourceInjector) addField(f *Field, v any) (err error) {
 			return
 		}
 	}
+	if _, found := r.dict[f.Key]; found {
+		err = &KeyConflictError{
+			Key:   f.Key,
+			Value: v,
+		}
+		return
+	}
 	r.dict[f.Key] = v
 	return
 }
@@ -339,69 +450,5 @@ func (r *ResourceInjector) write(path string, object any) (err error) {
 	}()
 	s := r.string(object)
 	_, err = f.Write([]byte(s))
-	return
-}
-
-// string returns a string representation of a field value.
-func (r *ResourceInjector) string(object any) (s string) {
-	if object != nil {
-		s = fmt.Sprintf("%v", object)
-	}
-	return
-}
-
-// objectMap returns a map for a resource object.
-func (r *ResourceInjector) asMap(object any) (mp map[string]any) {
-	b, _ := json.Marshal(object)
-	mp = make(map[string]any)
-	_ = json.Unmarshal(b, &mp)
-	return
-}
-
-// objectMap returns a map for a resource object.
-func (r *ResourceInjector) object(mp map[string]any, object any) (err error) {
-	b, _ := json.Marshal(mp)
-	err = json.Unmarshal(b, object)
-	return
-}
-
-// inject replaces `dict` variables referenced in metadata.
-func (r *ResourceInjector) inject(in any) (out any) {
-	switch node := in.(type) {
-	case map[string]any:
-		for k, v := range node {
-			node[k] = r.inject(v)
-		}
-		out = node
-	case []any:
-		var injected []any
-		for _, n := range node {
-			injected = append(
-				injected,
-				r.inject(n))
-		}
-		out = injected
-	case string:
-		for {
-			match := KeyRegex.FindStringSubmatch(node)
-			if len(match) < 3 {
-				break
-			}
-			v := r.dict[match[2]]
-			if len(node) > len(match[0]) {
-				node = strings.Replace(
-					node,
-					match[0],
-					r.string(v),
-					-1)
-			} else {
-				out = v
-				return
-			}
-		}
-		out = node
-	default:
-		out = node
-	}
 	return
 }
