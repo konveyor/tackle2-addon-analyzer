@@ -1,8 +1,6 @@
 package main
 
 import (
-	"hash/crc32"
-	"io"
 	"os"
 	"path"
 	"time"
@@ -180,21 +178,4 @@ func updateApplication(d *Data, appId uint, issues *builder.Issues, deps *builde
 		addon.Activity("Facts updated.")
 	}
 	return
-}
-
-// calculateCRC calculates the CRC-32 checksum of a file.
-func calculateCRC(filePath string) (uint32, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return 0, err
-	}
-	defer file.Close()
-
-	hash := crc32.NewIEEE()
-	_, err = io.Copy(hash, file)
-	if err != nil {
-		return 0, err
-	}
-
-	return hash.Sum32(), nil
 }
