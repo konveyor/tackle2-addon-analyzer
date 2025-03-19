@@ -19,32 +19,37 @@ var (
 	addon = hub.Addon
 )
 
+// NewIssues returns a new issues builder.
+func NewIssues(path string) (b *Issues, err error) {
+	b = &Issues{}
+	err = b.read(path)
+	return
+}
+
 // Issues builds issues and facts.
 type Issues struct {
 	ruleErr RuleError
 	facts   []api.Fact
-	Path    string
+	input   []output.RuleSet
 }
 
 // RuleError returns the rule error.
 func (b *Issues) RuleError() (r *RuleError) {
+	for _, ruleset := range b.input {
+		b.ruleErr.Append(ruleset)
+	}
 	return &b.ruleErr
 }
 
 // Write issues section.
 func (b *Issues) Write(writer io.Writer) (err error) {
-	input, err := b.read()
-	if err != nil {
-		return
-	}
 	encoder := yaml.NewEncoder(writer)
 	_, _ = writer.Write([]byte(api.BeginIssuesMarker))
 	_, _ = writer.Write([]byte{'\n'})
 	if err != nil {
 		return
 	}
-	for _, ruleset := range input {
-		b.ruleErr.Append(ruleset)
+	for _, ruleset := range b.input {
 		for ruleid, v := range ruleset.Violations {
 			issue := api.Issue{
 				RuleSet:     ruleset.Name,
@@ -92,17 +97,17 @@ func (b *Issues) Write(writer io.Writer) (err error) {
 }
 
 // read ruleSets.
-func (b *Issues) read() (input []output.RuleSet, err error) {
-	input = []output.RuleSet{}
-	f, err := os.Open(b.Path)
+func (b *Issues) read(path string) (err error) {
+	b.input = []output.RuleSet{}
+	f, err := os.Open(path)
 	if err != nil {
 		return
 	}
 	defer func() {
 		_ = f.Close()
 	}()
-	bfr, err := io.ReadAll(f)
-	err = yaml.Unmarshal(bfr, &input)
+	d := yaml.NewDecoder(f)
+	err = d.Decode(&b.input)
 	return
 }
 
@@ -118,11 +123,7 @@ func (b *Issues) fileRef(in uri.URI) (s string) {
 
 // Tags builds tags.
 func (b *Issues) Tags() (tags []string) {
-	input, err := b.read()
-	if err != nil {
-		return
-	}
-	for _, r := range input {
+	for _, r := range b.input {
 		tags = append(tags, r.Tags...)
 	}
 	return
