@@ -5,9 +5,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"path/filepath"
-	"sort"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin/binding"
@@ -109,23 +106,6 @@ func main() {
 		if err != nil {
 			return
 		}
-
-		//
-		//
-		digest, err := directoryCRC(RuleDir)
-		if err != nil {
-			return
-		}
-		addon.Activity("[Rule] CRC dir: %s=%d", RuleDir, digest)
-		//
-		digest, err = directoryCRC(M2Dir)
-		if err != nil {
-			return
-		}
-		addon.Activity("[Rule] CRC dir: %s=%d", M2Dir, digest)
-		//
-		//
-
 		//
 		// Run the analyzer.
 		analyzer := Analyzer{}
@@ -214,41 +194,6 @@ func calculateCRC(filePath string) (uint32, error) {
 	_, err = io.Copy(hash, file)
 	if err != nil {
 		return 0, err
-	}
-
-	return hash.Sum32(), nil
-}
-
-// directoryCRC calculates the CRC-32 checksum of a directory tree.
-func directoryCRC(dirPath string) (uint32, error) {
-	var filePaths []string
-	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			filePaths = append(filePaths, path)
-		}
-		return nil
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	// Sort file paths to ensure consistent checksums across runs.
-	sort.Strings(filePaths)
-
-	hash := crc32.NewIEEE()
-	for _, filePath := range filePaths {
-		fileCRC, err := calculateCRC(filePath)
-		if err != nil {
-			return 0, err
-		}
-		// Update the directory hash with the file's CRC.
-		_, err = hash.Write([]byte(strconv.Itoa(int(fileCRC))))
-		if err != nil {
-			return 0, err
-		}
 	}
 
 	return hash.Sum32(), nil
