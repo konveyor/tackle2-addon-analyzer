@@ -1,3 +1,5 @@
+#!/bin/bash
+
 usage() {
   echo "Usage: ${self} options"
   echo "  -h help" 
@@ -7,6 +9,7 @@ usage() {
   echo "  --rules"
   echo "  --label-selector"
   echo "  --dep-label-selector"
+  echo "  --no-dependency-rules"
 }
 
 RULES=()
@@ -29,11 +32,11 @@ while [[ $# -gt 0 ]]; do
       OUTPUT="${1#*=}"
       shift
       ;;
-    --dep-output)
+    --dep-output-file)
       DEP_OUTPUT="$2"
       shift 2
       ;;
-    --dep-output=*)
+    --dep-output-file=*)
       DEP_OUTPUT="${1#*=}"
       shift
       ;;
@@ -61,6 +64,10 @@ while [[ $# -gt 0 ]]; do
       DEP_LABEL_SELECTOR="${1#*=}"
       shift
       ;;
+    --no-dependency-rules)
+      NO_DEP_RULES="TRUE"
+      shift
+      ;;
     -h)
       usage
       exit 0
@@ -73,15 +80,26 @@ while [[ $# -gt 0 ]]; do
 done
 
 echo
-echo "Using:"
+echo "main:"
 echo "  settings: ${SETTINGS}"
 echo "     rules: ${RULES[*]}"
 echo "    output: ${OUTPUT}"
 echo "  selector: ${LABEL_SELECTOR}"
-echo "  dep:"
-echo "    output: ${DEP_OUTPUT}"
-echo "  selector: ${DEP_LABEL_SELECTOR}"
+echo "dep:"
+echo "  output: ${DEP_OUTPUT}"
+echo "selector: ${DEP_LABEL_SELECTOR}"
+echo "no rules: ${NO_DEP_RULES}"
 
+if [[ -f "${ISSUES}" ]]
+then
+  cp ${ISSUES} ${OUTPUT}
+fi
 
+if [[ -f "${DEPS}" ]]
+then
+  cp ${DEPS} ${DEP_OUTPUT}
+fi
 
+echo
+echo "DONE"
 
