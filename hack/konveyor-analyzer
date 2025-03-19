@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#
+# Fake analyzer used for testing."
+# The $ISSUES Envar is the path to an analyzer output file.
+# The $DEPS Envar is the path to an analyzer (deps) output file.
+#
+
 usage() {
   echo "Usage: ${self} options"
   echo "  -h help" 
