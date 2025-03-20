@@ -2,9 +2,16 @@
 
 #
 # Fake analyzer used for testing."
-# The $ISSUES Envar is the path to an analyzer output file.
-# The $DEPS Envar is the path to an analyzer (deps) output file.
 #
+# The $ISSUES Envar is the path to an analyzer output file.
+ISSUES=examples/issues.yaml
+# The $DEPS Envar is the path to an analyzer (deps) output file.
+DEPS=examples/deps.yaml
+
+# path relative to the script.
+cd $0
+set -e
+set -x
 
 usage() {
   echo "Usage: ${self} options"
@@ -96,11 +103,13 @@ echo "  output: ${DEP_OUTPUT}"
 echo "selector: ${DEP_LABEL_SELECTOR}"
 echo "no rules: ${NO_DEP_RULES}"
 
+# copy issues to --output-file
 if [[ -f "${ISSUES}" ]]
 then
   cp ${ISSUES} ${OUTPUT}
 fi
 
+# copy deps to --deps-output-file
 if [[ -f "${DEPS}" ]]
 then
   cp ${DEPS} ${DEP_OUTPUT}
