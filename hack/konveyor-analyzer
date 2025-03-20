@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e
 #
 # Fake analyzer used for testing."
 #
@@ -8,10 +9,17 @@ ISSUES=examples/issues.yaml
 # The $DEPS Envar is the path to an analyzer (deps) output file.
 DEPS=examples/deps.yaml
 
-# path relative to the script.
-cd $0
-set -e
-set -x
+# options
+RULES=()
+SETTINGS=
+OUTPUT=
+DEP_OUTPUT=
+LABEL_SELECTOR=
+DEP_LABEL_SELECTOR=
+NO_DEP_RULES=
+
+# paths relative to the script.
+cd $(dirname "$0")
 
 usage() {
   echo "Usage: ${self} options"
@@ -25,95 +33,100 @@ usage() {
   echo "  --no-dependency-rules"
 }
 
-RULES=()
+run() {
+  echo "\$ $@" ; "$@" ;
+}
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --provider-settings)
-      SETTINGS="$2"
-      shift 2
-      ;;
-    --provider-settings=*)
-      SETTINGS="${1#*=}"
-      shift
-      ;;
-    --output-file)
-      OUTPUT="$2"
-      shift 2
-      ;;
-    --output-file=*)
-      OUTPUT="${1#*=}"
-      shift
-      ;;
-    --dep-output-file)
-      DEP_OUTPUT="$2"
-      shift 2
-      ;;
-    --dep-output-file=*)
-      DEP_OUTPUT="${1#*=}"
-      shift
-      ;;
-    --rules)
-      RULES+=("$2")
-      shift 2
-      ;;
-    --rules=*)
-      RULES+=("${1#*=}")
-      shift
-      ;;
-    --label-selector)
-      LABEL_SELECTOR="$2"
-      shift 2
-      ;;
-    --label-selector=*)
-      LABEL_SELECTOR="${1#*=}"
-      shift
-      ;;
-    --dep-label-selector)
-      DEP_LABEL_SELECTOR="$2"
-      shift 2
-      ;;
-    --dep-label-selector=*)
-      DEP_LABEL_SELECTOR="${1#*=}"
-      shift
-      ;;
-    --no-dependency-rules)
-      NO_DEP_RULES="TRUE"
-      shift
-      ;;
-    -h)
-      usage
-      exit 0
-      ;;
-    *)
-      echo "Unknown option: $1"
-      exit 1
-      ;;
-  esac
-done
+main() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --provider-settings)
+        SETTINGS="$2"
+        shift 2
+        ;;
+      --provider-settings=*)
+        SETTINGS="${1#*=}"
+        shift
+        ;;
+      --output-file)
+        OUTPUT="$2"
+        shift 2
+        ;;
+      --output-file=*)
+        OUTPUT="${1#*=}"
+        shift
+        ;;
+      --dep-output-file)
+        DEP_OUTPUT="$2"
+        shift 2
+        ;;
+      --dep-output-file=*)
+        DEP_OUTPUT="${1#*=}"
+        shift
+        ;;
+      --rules)
+        RULES+=("$2")
+        shift 2
+        ;;
+      --rules=*)
+        RULES+=("${1#*=}")
+        shift
+        ;;
+      --label-selector)
+        LABEL_SELECTOR="$2"
+        shift 2
+        ;;
+      --label-selector=*)
+        LABEL_SELECTOR="${1#*=}"
+        shift
+        ;;
+      --dep-label-selector)
+        DEP_LABEL_SELECTOR="$2"
+        shift 2
+        ;;
+      --dep-label-selector=*)
+        DEP_LABEL_SELECTOR="${1#*=}"
+        shift
+        ;;
+      --no-dependency-rules)
+        NO_DEP_RULES="TRUE"
+        shift
+        ;;
+      -h)
+        usage
+        exit 0
+        ;;
+      *)
+        echo "Unknown option: $1"
+        exit 1
+        ;;
+    esac
+  done
+ 
+  # print options.
+  echo
+  echo "main:"
+  echo "  settings: ${SETTINGS}"
+  echo "     rules: ${RULES[*]}"
+  echo "    output: ${OUTPUT}"
+  echo "  selector: ${LABEL_SELECTOR}"
+  echo "dep:"
+  echo "  output: ${DEP_OUTPUT}"
+  echo "selector: ${DEP_LABEL_SELECTOR}"
+  echo "no rules: ${NO_DEP_RULES}"
 
-echo
-echo "main:"
-echo "  settings: ${SETTINGS}"
-echo "     rules: ${RULES[*]}"
-echo "    output: ${OUTPUT}"
-echo "  selector: ${LABEL_SELECTOR}"
-echo "dep:"
-echo "  output: ${DEP_OUTPUT}"
-echo "selector: ${DEP_LABEL_SELECTOR}"
-echo "no rules: ${NO_DEP_RULES}"
+  # copy files.
+  if [[ -f "${ISSUES}" ]]
+  then
+    run cp ${ISSUES} ${OUTPUT}
+  fi
+  if [[ -f "${DEPS}" ]]
+  then
+    run cp ${DEPS} ${DEP_OUTPUT}
+  fi
+}
 
-# copy issues to --output-file
-if [[ -f "${ISSUES}" ]]
-then
-  cp ${ISSUES} ${OUTPUT}
-fi
-
-# copy deps to --deps-output-file
-if [[ -f "${DEPS}" ]]
-then
-  cp ${DEPS} ${DEP_OUTPUT}
-fi
+main $@
 
 echo
 echo "DONE"
