@@ -5,9 +5,15 @@ set -e
 # Fake analyzer used for testing."
 #
 # The $ISSUES Envar is the path to an analyzer output file.
-ISSUES=examples/issues.yaml
+if [ -z "${ISSUES}" ]
+then
+  ISSUES=examples/issues.yaml
+fi
 # The $DEPS Envar is the path to an analyzer (deps) output file.
-DEPS=examples/deps.yaml
+if [ -z "${DEPS}" ]
+then
+  DEPS=examples/deps.yaml
+fi
 
 # options
 RULES=()
