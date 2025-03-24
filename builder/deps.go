@@ -9,21 +9,24 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// NewDeps returns a new deps builder.
+func NewDeps(path string) (b *Deps, err error) {
+	b = &Deps{}
+	err = b.read(path)
+	return
+}
+
 // Deps builds dependencies.
 type Deps struct {
-	Path string
+	input []output.DepsFlatItem
 }
 
 // Write deps section.
 func (b *Deps) Write(writer io.Writer) (err error) {
-	input, err := b.read()
-	if err != nil {
-		return
-	}
 	encoder := yaml.NewEncoder(writer)
 	_, _ = writer.Write([]byte(api.BeginDepsMarker))
 	_, _ = writer.Write([]byte{'\n'})
-	for _, p := range input {
+	for _, p := range b.input {
 		for _, d := range p.Dependencies {
 			err = encoder.Encode(
 				&api.TechDependency{
@@ -45,9 +48,9 @@ func (b *Deps) Write(writer io.Writer) (err error) {
 }
 
 // read dependencies.
-func (b *Deps) read() (input []output.DepsFlatItem, err error) {
-	input = []output.DepsFlatItem{}
-	f, err := os.Open(b.Path)
+func (b *Deps) read(path string) (err error) {
+	b.input = []output.DepsFlatItem{}
+	f, err := os.Open(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			addon.Log.Info(err.Error())
@@ -58,7 +61,7 @@ func (b *Deps) read() (input []output.DepsFlatItem, err error) {
 	defer func() {
 		_ = f.Close()
 	}()
-	bfr, err := io.ReadAll(f)
-	err = yaml.Unmarshal(bfr, &input)
+	d := yaml.NewDecoder(f)
+	err = d.Decode(&b.input)
 	return
 }
