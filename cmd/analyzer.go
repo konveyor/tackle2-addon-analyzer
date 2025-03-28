@@ -6,7 +6,18 @@ import (
 
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
 	"github.com/konveyor/tackle2-addon/command"
+	"k8s.io/utils/env"
 )
+
+var (
+	AnalyzerBin = ""
+)
+
+func init() {
+	AnalyzerBin = env.GetString(
+		"ANALYZER",
+		"/usr/local/bin/konveyor-analyzer")
+}
 
 // Analyzer application analyzer.
 type Analyzer struct {
@@ -14,10 +25,10 @@ type Analyzer struct {
 }
 
 // Run analyzer.
-func (r *Analyzer) Run() (issueBuilder *builder.Issues, depBuilder *builder.Deps, err error) {
+func (r *Analyzer) Run() (issues *builder.Issues, deps *builder.Deps, err error) {
 	output := path.Join(Dir, "issues.yaml")
 	depOutput := path.Join(Dir, "deps.yaml")
-	cmd := command.New("/usr/local/bin/konveyor-analyzer")
+	cmd := command.New(AnalyzerBin)
 	cmd.Options, err = r.options(output, depOutput)
 	if err != nil {
 		return
@@ -25,8 +36,6 @@ func (r *Analyzer) Run() (issueBuilder *builder.Issues, depBuilder *builder.Deps
 	if Verbosity > 0 {
 		cmd.Reporter.Verbosity = command.LiveOutput
 	}
-	issueBuilder = &builder.Issues{Path: output}
-	depBuilder = &builder.Deps{Path: depOutput}
 	err = cmd.Run()
 	if err != nil {
 		return
@@ -46,6 +55,14 @@ func (r *Analyzer) Run() (issueBuilder *builder.Issues, depBuilder *builder.Deps
 			}
 			addon.Attach(f)
 		}
+	}
+	issues, err = builder.NewIssues(output)
+	if err != nil {
+		return
+	}
+	deps, err = builder.NewDeps(depOutput)
+	if err != nil {
+		return
 	}
 	return
 }
