@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math/rand"
 	"regexp"
 
 	"github.com/konveyor/tackle2-addon/command"
@@ -56,10 +55,7 @@ func (r *Tagger) ensureCategories(tags []string) (catMap map[string]uint, err er
 	for name := range catMap {
 		wanted = append(
 			wanted,
-			api.TagCategory{
-				Name: name,
-				Rank: uint(rand.Intn(10)),
-			})
+			api.TagCategory{Name: name})
 	}
 	for _, cat := range wanted {
 		err = addon.TagCategory.Ensure(&cat)
