@@ -153,8 +153,8 @@ github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250414173818-69f16ed24d65 h1
 github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250414173818-69f16ed24d65/go.mod h1:nlSmohI+wwPTzvWXAtHI3PXe7B9RRU5NKnqnu222Ia0=
 github.com/konveyor/tackle2-addon v0.7.0-alpha.2.0.20250416134249-7c0f33d51619 h1:BI/0DisZHAGuuQ3PUWNYRQM8M15R5P4WrSeMyHo81lU=
 github.com/konveyor/tackle2-addon v0.7.0-alpha.2.0.20250416134249-7c0f33d51619/go.mod h1:Q71YvZ1e7xWH7/CqWOHYWST0Xbq2s3NOrNhDbAsyMPk=
-github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250416123026-821dd6b3c173 h1:E4o122KKaUVSq7mLh61K+o7hN2PnVzWcupxdOR+gaIw=
-github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250416123026-821dd6b3c173/go.mod h1:QqKePb871tNLi1w6csz5YuGTmaWWaTyjp0GTG56Wxv0=
+github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250417030359-32aba8021fd6 h1:qQ5xt5aPPyn0yPKcTva5Ro4Eu0SB5PBD0f2nilUkBpQ=
+github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250417030359-32aba8021fd6/go.mod h1:QqKePb871tNLi1w6csz5YuGTmaWWaTyjp0GTG56Wxv0=
 github.com/kr/pretty v0.2.0/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
