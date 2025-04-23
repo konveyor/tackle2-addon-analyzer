@@ -598,11 +598,9 @@ func (r *RuleSelector) notjoin(operator string, operands ...string) (joined stri
 	switch len(packed) {
 	case 0:
 	case 1:
-		joined = "!"
-		joined += strings.Join(packed, operator)
+		joined = "!" + strings.Join(packed, operator)
 	default:
-		joined = "!"
-		joined += "(" + strings.Join(packed, operator) + ")"
+		joined = "!(" + strings.Join(packed, operator) + ")"
 	}
 	return
 }
