@@ -587,7 +587,7 @@ func (r *RuleSelector) join(operator string, operands ...string) (joined string)
 	return
 }
 
-// notjoin joins clauses and injects ! prefix.
+// notjoin joins clauses and injects `!` prefix.
 func (r *RuleSelector) notjoin(operator string, operands ...string) (joined string) {
 	var packed []string
 	for _, s := range operands {
