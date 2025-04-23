@@ -439,7 +439,10 @@ func (r *Labels) injectAlways(paths []string) (err error) {
 		}
 		return
 	}
-	ruleSelector := RuleSelector{Included: r.Included}
+	ruleSelector := RuleSelector{
+		Included: r.Included,
+		Excluded: r.Excluded,
+	}
 	selector := ruleSelector.String()
 	if selector == "" {
 		return
@@ -563,20 +566,6 @@ func (r *RuleSelector) String() (selector string) {
 	selector = r.join("||", other...)
 	selector = r.join("||", selector, r.join("&&", ands...))
 	selector = r.join("&&", selector, r.notjoin("||", r.Excluded...))
-	selector = r.trim(selector)
-	return
-}
-
-// trim unnecessary outer () created by joins.
-// Example:
-//  ((a||b)&&(c||d))
-// trimmed:
-//  (a||b)&&(c||d)
-func (r *RuleSelector) trim(in string) (out string) {
-	out = in
-	if strings.HasPrefix(out, "((") && strings.HasSuffix(out, ")") {
-		out = out[1 : len(out)-1]
-	}
 	return
 }
 
