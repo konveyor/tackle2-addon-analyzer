@@ -23,6 +23,23 @@ func TestRuleSelector(t *testing.T) {
 	expected :=
 		"(p1||p2)||((konveyor.io/source=s1||konveyor.io/source=s2)&&(konveyor.io/target=t1||konveyor.io/target=t2))"
 	g.Expect(selector.String()).To(gomega.Equal(expected))
+	// all clauses
+	selector = RuleSelector{}
+	selector.Included = []string{
+		"p1",
+		"p2",
+		"konveyor.io/source=s1",
+		"konveyor.io/source=s2",
+		"konveyor.io/target=t1",
+		"konveyor.io/target=t2",
+	}
+	selector.Excluded = []string{
+		"x1",
+		"x2",
+	}
+	expected =
+		"((p1||p2)||((konveyor.io/source=s1||konveyor.io/source=s2)&&(konveyor.io/target=t1||konveyor.io/target=t2)))&&!(x1||x2)"
+	g.Expect(selector.String()).To(gomega.Equal(expected))
 	// other
 	selector = RuleSelector{}
 	selector.Included = []string{
@@ -67,6 +84,21 @@ func TestRuleSelector(t *testing.T) {
 		"konveyor.io/target=t2",
 	}
 	expected = "(p1||p2)||(konveyor.io/target=t1||konveyor.io/target=t2)"
+	g.Expect(selector.String()).To(gomega.Equal(expected))
+	// excluded (one)
+	selector = RuleSelector{}
+	selector.Excluded = []string{
+		"x1",
+	}
+	expected = "!x1"
+	g.Expect(selector.String()).To(gomega.Equal(expected))
+	// excluded (many)
+	selector = RuleSelector{}
+	selector.Excluded = []string{
+		"x1",
+		"x2",
+	}
+	expected = "!(x1||x2)"
 	g.Expect(selector.String()).To(gomega.Equal(expected))
 }
 
