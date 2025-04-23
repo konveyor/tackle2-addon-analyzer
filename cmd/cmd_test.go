@@ -23,7 +23,7 @@ func TestRuleSelector(t *testing.T) {
 	expected :=
 		"((p1||p2)||((konveyor.io/source=s1||konveyor.io/source=s2)&&(konveyor.io/target=t1||konveyor.io/target=t2)))"
 	g.Expect(selector.String()).To(gomega.Equal(expected))
-	// all clauses
+	// all clauses plus excluded
 	selector = RuleSelector{}
 	selector.Included = []string{
 		"p1",
