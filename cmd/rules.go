@@ -439,7 +439,10 @@ func (r *Labels) injectAlways(paths []string) (err error) {
 		}
 		return
 	}
-	ruleSelector := RuleSelector{Included: r.Included}
+	ruleSelector := RuleSelector{
+		Included: r.Included,
+		Excluded: r.Excluded,
+	}
 	selector := ruleSelector.String()
 	if selector == "" {
 		return
@@ -562,9 +565,7 @@ func (r *RuleSelector) String() (selector string) {
 	ands = append(ands, r.join("||", targets...))
 	selector = r.join("||", other...)
 	selector = r.join("||", selector, r.join("&&", ands...))
-	if strings.HasPrefix(selector, "((") {
-		selector = selector[1 : len(selector)-1]
-	}
+	selector = r.join("&&", selector, r.notjoin("||", r.Excluded...))
 	return
 }
 
@@ -582,6 +583,24 @@ func (r *RuleSelector) join(operator string, operands ...string) (joined string)
 		joined = strings.Join(packed, operator)
 	default:
 		joined = "(" + strings.Join(packed, operator) + ")"
+	}
+	return
+}
+
+// notjoin joins clauses and injects `!` prefix.
+func (r *RuleSelector) notjoin(operator string, operands ...string) (joined string) {
+	var packed []string
+	for _, s := range operands {
+		if len(s) > 0 {
+			packed = append(packed, s)
+		}
+	}
+	switch len(packed) {
+	case 0:
+	case 1:
+		joined = "!" + strings.Join(packed, operator)
+	default:
+		joined = "!(" + strings.Join(packed, operator) + ")"
 	}
 	return
 }
