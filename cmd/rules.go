@@ -280,7 +280,10 @@ func (r *Rules) addRepository() (err error) {
 
 // addSelector adds label selector.
 func (r *Rules) addSelector(options *command.Options) (err error) {
-	ruleSelector := RuleSelector{Included: r.Labels.Included}
+	ruleSelector := RuleSelector{
+		Included: r.Labels.Included,
+		Excluded: r.Labels.Excluded,
+	}
 	selector := ruleSelector.String()
 	if selector != "" {
 		options.Add("--label-selector", selector)
@@ -565,7 +568,7 @@ func (r *RuleSelector) String() (selector string) {
 	ands = append(ands, r.join("||", targets...))
 	selector = r.join("||", other...)
 	selector = r.join("||", selector, r.join("&&", ands...))
-	selector = r.join("&&", selector, r.notjoin("||", r.Excluded...))
+	selector = r.join("&&", selector, r.notjoin("||", r.unique(r.Excluded)...))
 	return
 }
 
