@@ -46,9 +46,6 @@ func (b *Issues) Write(writer io.Writer) (err error) {
 	encoder := yaml.NewEncoder(writer)
 	_, _ = writer.Write([]byte(api.BeginIssuesMarker))
 	_, _ = writer.Write([]byte{'\n'})
-	if err != nil {
-		return
-	}
 	for _, ruleset := range b.input {
 		for ruleid, v := range ruleset.Violations {
 			issue := api.Issue{
@@ -62,6 +59,40 @@ func (b *Issues) Write(writer io.Writer) (err error) {
 			}
 			if v.Effort != nil {
 				issue.Effort = *v.Effort
+			}
+			issue.Links = []api.Link{}
+			for _, l := range v.Links {
+				issue.Links = append(
+					issue.Links,
+					api.Link{
+						URL:   l.URL,
+						Title: l.Title,
+					})
+			}
+			issue.Incidents = []api.Incident{}
+			for _, i := range v.Incidents {
+				incident := api.Incident{
+					File:     b.fileRef(i.URI),
+					Line:     pointer.IntDeref(i.LineNumber, 0),
+					Message:  i.Message,
+					CodeSnip: i.CodeSnip,
+					Facts:    i.Variables,
+				}
+				issue.Incidents = append(
+					issue.Incidents,
+					incident)
+			}
+			err = encoder.Encode(&issue)
+			if err != nil {
+				return
+			}
+		}
+		for ruleid, v := range ruleset.Insights {
+			issue := api.Issue{
+				RuleSet:     ruleset.Name,
+				Rule:        ruleid,
+				Description: v.Description,
+				Labels:      v.Labels,
 			}
 			issue.Links = []api.Link{}
 			for _, l := range v.Links {
