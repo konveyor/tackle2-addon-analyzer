@@ -25,8 +25,8 @@ type Analyzer struct {
 }
 
 // Run analyzer.
-func (r *Analyzer) Run() (issues *builder.Issues, deps *builder.Deps, err error) {
-	output := path.Join(Dir, "issues.yaml")
+func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err error) {
+	output := path.Join(Dir, "insights.yaml")
 	depOutput := path.Join(Dir, "deps.yaml")
 	cmd := command.New(AnalyzerBin)
 	cmd.Options, err = r.options(output, depOutput)
@@ -56,7 +56,7 @@ func (r *Analyzer) Run() (issues *builder.Issues, deps *builder.Deps, err error)
 			addon.Attach(f)
 		}
 	}
-	issues, err = builder.NewIssues(output)
+	insights, err = builder.NewInsights(output)
 	if err != nil {
 		return
 	}

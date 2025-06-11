@@ -140,6 +140,8 @@ github.com/jinzhu/now v1.1.5 h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=
 github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
 github.com/jortel/go-utils v0.1.4 h1:DzrID+gI9urEGkOoXYGYIKA/bozEIxmcYV/4cdVjW58=
 github.com/jortel/go-utils v0.1.4/go.mod h1:7vzFYbnb91+ltjjAmCv2jVL4CKX7Onz1i2EQPAvw9Cs=
+github.com/jortel/tackle2-hub v0.0.0-20250708154344-8e3a804a6004 h1:ZUFa4gRYxZxL2XTWgX/pbuzPEtGeq1sKnjr4OVjiwsg=
+github.com/jortel/tackle2-hub v0.0.0-20250708154344-8e3a804a6004/go.mod h1:RdQChIneyr3sRRg9X9r2f+EYGLVKXVPiFApOSy3Nq0U=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
@@ -153,8 +155,6 @@ github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf h1
 github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf/go.mod h1:/7nwwqN27iODJy/PBai9W16KH91LrPGx1nwu21+rCOg=
 github.com/konveyor/tackle2-addon v0.7.0-rc.1.0.20250604115244-17140aad3dd4 h1:cXh9HGpCMFnmUMdO6/5rbC28pFrhMps5fVyqBqYQk9Y=
 github.com/konveyor/tackle2-addon v0.7.0-rc.1.0.20250604115244-17140aad3dd4/go.mod h1:mITXAU1o/8ZdBoGacaTZxXORfFe1q2S74W9RfTHHm7A=
-github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250613230242-66dbfe5a9563 h1:LAcvID6gNNVQlFeiNTvLley0+yYfb+tjZTGQdXSGzYg=
-github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250613230242-66dbfe5a9563/go.mod h1:RdQChIneyr3sRRg9X9r2f+EYGLVKXVPiFApOSy3Nq0U=
 github.com/kr/pretty v0.2.0/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
