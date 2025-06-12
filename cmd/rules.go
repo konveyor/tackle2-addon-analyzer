@@ -53,10 +53,6 @@ func (r *Rules) Build() (err error) {
 	if err != nil {
 		return
 	}
-	err = r.convert()
-	if err != nil {
-		return
-	}
 	err = r.ensureRuleSet()
 	if err != nil {
 		return
@@ -287,24 +283,6 @@ func (r *Rules) addSelector(options *command.Options) (err error) {
 	selector := ruleSelector.String()
 	if selector != "" {
 		options.Add("--label-selector", selector)
-	}
-	return
-}
-
-// convert windup rules.
-// Run the shim on all ruleset directories.
-func (r *Rules) convert() (err error) {
-
-	for _, ruleDir := range r.rules {
-
-		cmd := command.New("/usr/bin/windup-shim")
-		cmd.Options.Add("convert")
-		cmd.Options.Add("--outputdir", ruleDir)
-		cmd.Options.Add(ruleDir)
-		err = cmd.Run()
-		if err != nil {
-			return
-		}
 	}
 	return
 }
