@@ -19,60 +19,57 @@ var (
 	addon = hub.Addon
 )
 
-// NewIssues returns a new issues builder.
-func NewIssues(path string) (b *Issues, err error) {
-	b = &Issues{}
+// NewInsights returns a new insights builder.
+func NewInsights(path string) (b *Insights, err error) {
+	b = &Insights{}
 	err = b.read(path)
 	return
 }
 
-// Issues builds issues and facts.
-type Issues struct {
+// Insights builds insights and facts.
+type Insights struct {
 	ruleErr RuleError
 	facts   []api.Fact
 	input   []output.RuleSet
 }
 
 // RuleError returns the rule error.
-func (b *Issues) RuleError() (r *RuleError) {
+func (b *Insights) RuleError() (r *RuleError) {
 	for _, ruleset := range b.input {
 		b.ruleErr.Append(ruleset)
 	}
 	return &b.ruleErr
 }
 
-// Write issues section.
-func (b *Issues) Write(writer io.Writer) (err error) {
+// Write insights section.
+func (b *Insights) Write(writer io.Writer) (err error) {
 	encoder := yaml.NewEncoder(writer)
-	_, _ = writer.Write([]byte(api.BeginIssuesMarker))
+	_, _ = writer.Write([]byte(api.BeginInsightsMarker))
 	_, _ = writer.Write([]byte{'\n'})
-	if err != nil {
-		return
-	}
 	for _, ruleset := range b.input {
 		for ruleid, v := range ruleset.Violations {
-			issue := api.Issue{
+			insight := api.Insight{
 				RuleSet:     ruleset.Name,
 				Rule:        ruleid,
 				Description: v.Description,
 				Labels:      v.Labels,
 			}
 			if v.Category != nil {
-				issue.Category = string(*v.Category)
+				insight.Category = string(*v.Category)
 			}
 			if v.Effort != nil {
-				issue.Effort = *v.Effort
+				insight.Effort = *v.Effort
 			}
-			issue.Links = []api.Link{}
+			insight.Links = []api.Link{}
 			for _, l := range v.Links {
-				issue.Links = append(
-					issue.Links,
+				insight.Links = append(
+					insight.Links,
 					api.Link{
 						URL:   l.URL,
 						Title: l.Title,
 					})
 			}
-			issue.Incidents = []api.Incident{}
+			insight.Incidents = []api.Incident{}
 			for _, i := range v.Incidents {
 				incident := api.Incident{
 					File:     b.fileRef(i.URI),
@@ -81,23 +78,57 @@ func (b *Issues) Write(writer io.Writer) (err error) {
 					CodeSnip: i.CodeSnip,
 					Facts:    i.Variables,
 				}
-				issue.Incidents = append(
-					issue.Incidents,
+				insight.Incidents = append(
+					insight.Incidents,
 					incident)
 			}
-			err = encoder.Encode(&issue)
+			err = encoder.Encode(&insight)
+			if err != nil {
+				return
+			}
+		}
+		for ruleid, v := range ruleset.Insights {
+			insight := api.Insight{
+				RuleSet:     ruleset.Name,
+				Rule:        ruleid,
+				Description: v.Description,
+				Labels:      v.Labels,
+			}
+			insight.Links = []api.Link{}
+			for _, l := range v.Links {
+				insight.Links = append(
+					insight.Links,
+					api.Link{
+						URL:   l.URL,
+						Title: l.Title,
+					})
+			}
+			insight.Incidents = []api.Incident{}
+			for _, i := range v.Incidents {
+				incident := api.Incident{
+					File:     b.fileRef(i.URI),
+					Line:     pointer.IntDeref(i.LineNumber, 0),
+					Message:  i.Message,
+					CodeSnip: i.CodeSnip,
+					Facts:    i.Variables,
+				}
+				insight.Incidents = append(
+					insight.Incidents,
+					incident)
+			}
+			err = encoder.Encode(&insight)
 			if err != nil {
 				return
 			}
 		}
 	}
-	_, _ = writer.Write([]byte(api.EndIssuesMarker))
+	_, _ = writer.Write([]byte(api.EndInsightsMarker))
 	_, _ = writer.Write([]byte{'\n'})
 	return
 }
 
 // read ruleSets.
-func (b *Issues) read(path string) (err error) {
+func (b *Insights) read(path string) (err error) {
 	b.input = []output.RuleSet{}
 	f, err := os.Open(path)
 	if err != nil {
@@ -112,7 +143,7 @@ func (b *Issues) read(path string) (err error) {
 }
 
 // fileRef returns the file (relative) path.
-func (b *Issues) fileRef(in uri.URI) (s string) {
+func (b *Insights) fileRef(in uri.URI) (s string) {
 	s = string(in)
 	u, err := url.Parse(s)
 	if err == nil {
@@ -122,7 +153,7 @@ func (b *Issues) fileRef(in uri.URI) (s string) {
 }
 
 // Tags builds tags.
-func (b *Issues) Tags() (tags []string) {
+func (b *Insights) Tags() (tags []string) {
 	for _, r := range b.input {
 		tags = append(tags, r.Tags...)
 	}
@@ -130,7 +161,7 @@ func (b *Issues) Tags() (tags []string) {
 }
 
 // Facts builds facts.
-func (b *Issues) Facts() (facts api.Map) {
+func (b *Insights) Facts() (facts api.Map) {
 	return
 }
 
