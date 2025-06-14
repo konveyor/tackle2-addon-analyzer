@@ -6,9 +6,9 @@ toolchain go1.22.0
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250414173818-69f16ed24d65
-	github.com/konveyor/tackle2-addon v0.7.0-alpha.2.0.20250416134249-7c0f33d51619
-	github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250417030359-32aba8021fd6
+	github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf
+	github.com/konveyor/tackle2-addon v0.7.0-rc.1.0.20250604115244-17140aad3dd4
+	github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250613230242-66dbfe5a9563
 	github.com/onsi/gomega v1.31.1
 	github.com/rogpeppe/go-internal v1.10.0
 	go.lsp.dev/uri v0.3.0
@@ -94,14 +94,14 @@ require (
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/oauth2 v0.16.0 // indirect
+	golang.org/x/oauth2 v0.18.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/term v0.23.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
-	google.golang.org/grpc v1.62.2 // indirect
+	google.golang.org/grpc v1.64.1 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gorm.io/gorm v1.25.2-0.20230530020048-26663ab9bf55 // indirect
