@@ -10,7 +10,7 @@ import (
 // Manifest file.
 type Manifest struct {
 	Analysis api.Analysis
-	Issues   *Issues
+	Insights *Insights
 	Deps     *Deps
 	Path     string
 }
@@ -34,7 +34,7 @@ func (m *Manifest) Write() (err error) {
 	}
 	_, _ = file.Write([]byte(api.EndMainMarker))
 	_, _ = file.Write([]byte{'\n'})
-	err = m.Issues.Write(file)
+	err = m.Insights.Write(file)
 	if err != nil {
 		return
 	}

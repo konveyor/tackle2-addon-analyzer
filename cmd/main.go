@@ -108,17 +108,17 @@ func main() {
 		// Run the analyzer.
 		analyzer := Analyzer{}
 		analyzer.Data = d
-		issues, deps, err := analyzer.Run()
+		insights, deps, err := analyzer.Run()
 		if err != nil {
 			return
 		}
 		//
 		// RuleError
-		ruleErr := issues.RuleError()
+		ruleErr := insights.RuleError()
 		ruleErr.Report()
 		//
 		// Update application.
-		err = updateApplication(d, application.ID, issues, deps)
+		err = updateApplication(d, application.ID, insights, deps)
 		if err != nil {
 			return
 		}
@@ -131,14 +131,14 @@ func main() {
 
 // updateApplication creates analysis report and updates
 // the application facts and tags.
-func updateApplication(d *Data, appId uint, issues *builder.Issues, deps *builder.Deps) (err error) {
+func updateApplication(d *Data, appId uint, insights *builder.Insights, deps *builder.Deps) (err error) {
 	//
 	// Tags.
 	if d.Tagger.Enabled {
 		if d.Tagger.Source == "" {
 			d.Tagger.Source = Source
 		}
-		err = d.Tagger.Update(appId, issues.Tags())
+		err = d.Tagger.Update(appId, insights.Tags())
 		if err != nil {
 			return
 		}
@@ -150,7 +150,7 @@ func updateApplication(d *Data, appId uint, issues *builder.Issues, deps *builde
 	// Analysis.
 	manifest := builder.Manifest{
 		Analysis: api.Analysis{},
-		Issues:   issues,
+		Insights: insights,
 		Deps:     deps,
 	}
 	if d.Mode.Repository != nil {
@@ -173,7 +173,7 @@ func updateApplication(d *Data, appId uint, issues *builder.Issues, deps *builde
 	// Facts.
 	facts := addon.Application.Facts(appId)
 	facts.Source(Source)
-	err = facts.Replace(issues.Facts())
+	err = facts.Replace(insights.Facts())
 	if err == nil {
 		addon.Activity("Facts updated.")
 	}
