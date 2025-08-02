@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"strconv"
 
 	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	hub "github.com/konveyor/tackle2-hub/addon"
@@ -43,6 +44,7 @@ func (b *Insights) RuleError() (r *RuleError) {
 
 // Write insights section.
 func (b *Insights) Write(writer io.Writer) (err error) {
+	b.cleanInput()
 	encoder := yaml.NewEncoder(writer)
 	_, _ = writer.Write([]byte(api.BeginInsightsMarker))
 	_, _ = writer.Write([]byte{'\n'})
@@ -162,6 +164,45 @@ func (b *Insights) Tags() (tags []string) {
 
 // Facts builds facts.
 func (b *Insights) Facts() (facts api.Map) {
+	return
+}
+
+// cleanInput detects duplicates.
+// When detected, append '.<n>' to the ruleId to make it unique.
+func (b *Insights) cleanInput() {
+	reported := make(map[string]int)
+	for i := range b.input {
+		ruleset := &b.input[i]
+		collections := []map[string]output.Violation{
+			ruleset.Violations,
+			ruleset.Insights,
+		}
+		for _, violations := range collections {
+			for ruleid, v := range violations {
+				uid := ruleset.Name + "." + ruleid
+				if _, found := reported[uid]; found {
+					delete(violations, ruleid)
+					ruleid = b.nextId(violations, ruleid)
+					violations[ruleid] = v
+				} else {
+					reported[uid]++
+				}
+			}
+		}
+	}
+	return
+}
+
+// nextId returns the next unique rule id.
+func (b *Insights) nextId(m map[string]output.Violation, ruleid string) (nextId string) {
+	nextId = ruleid
+	for n := 1; n < 1000; n++ {
+		id := ruleid + "." + strconv.Itoa(n)
+		if _, found := m[id]; !found {
+			nextId = id
+			break
+		}
+	}
 	return
 }
 
