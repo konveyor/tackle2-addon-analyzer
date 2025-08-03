@@ -169,8 +169,7 @@ func (b *Insights) Facts() (facts api.Map) {
 // cleanInput detect rules reporting both violation and insight.
 func (b *Insights) cleanInput() {
 	rules := make(map[string]int8)
-	for i := range b.input {
-		ruleset := &b.input[i]
+	for _, ruleset := range b.input {
 		collections := []map[string]output.Violation{
 			ruleset.Violations,
 			ruleset.Insights,
