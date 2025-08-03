@@ -179,13 +179,13 @@ func (b *Insights) cleanInput() {
 		}
 		for _, violations := range collections {
 			for ruleid, v := range violations {
-				uid := ruleset.Name + "." + ruleid
-				if _, found := reported[uid]; found {
+				key := ruleset.Name + ruleid
+				if _, found := reported[key]; found {
 					delete(violations, ruleid)
 					ruleid = b.nextId(violations, ruleid)
 					violations[ruleid] = v
 				} else {
-					reported[uid]++
+					reported[key]++
 				}
 			}
 		}
