@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/url"
 	"os"
-	"strconv"
 
 	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	hub "github.com/konveyor/tackle2-hub/addon"
@@ -167,10 +166,9 @@ func (b *Insights) Facts() (facts api.Map) {
 	return
 }
 
-// cleanInput detects duplicates.
-// When detected, append '.<n>' to the ruleId to make it unique.
+// cleanInput detect rules reporting both violation and insight.
 func (b *Insights) cleanInput() {
-	reported := make(map[string]int)
+	rules := make(map[string]int8)
 	for i := range b.input {
 		ruleset := &b.input[i]
 		collections := []map[string]output.Violation{
@@ -180,27 +178,13 @@ func (b *Insights) cleanInput() {
 		for _, violations := range collections {
 			for ruleid, v := range violations {
 				key := ruleset.Name + ruleid
-				if _, found := reported[key]; found {
+				if _, found := rules[key]; found {
 					delete(violations, ruleid)
-					ruleid = b.nextId(violations, ruleid)
+					ruleid += "(1)"
 					violations[ruleid] = v
-				} else {
-					reported[key]++
 				}
+				rules[key]++
 			}
-		}
-	}
-	return
-}
-
-// nextId returns the next unique rule id.
-func (b *Insights) nextId(m map[string]output.Violation, ruleid string) (nextId string) {
-	nextId = ruleid
-	for n := 1; n < 1000; n++ {
-		id := ruleid + "." + strconv.Itoa(n)
-		if _, found := m[id]; !found {
-			nextId = id
-			break
 		}
 	}
 	return
