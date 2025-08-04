@@ -166,8 +166,9 @@ func (b *Insights) Facts() (facts api.Map) {
 	return
 }
 
-// cleanInput detect rules reporting both violation and insight.
-func (b *Insights) cleanInput() {
+// ensureUnique detect rules reporting both violation and insight.
+// Append (_) suffix to ruleid as needed.
+func (b *Insights) ensureUnique() {
 	rules := make(map[string]int8)
 	for _, ruleset := range b.input {
 		collections := []map[string]output.Violation{
