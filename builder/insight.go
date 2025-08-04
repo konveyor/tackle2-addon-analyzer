@@ -179,7 +179,7 @@ func (b *Insights) cleanInput() {
 				key := ruleset.Name + ruleid
 				if _, found := rules[key]; found {
 					delete(violations, ruleid)
-					ruleid += "(1)"
+					ruleid += "_"
 					violations[ruleid] = v
 				}
 				rules[key]++
