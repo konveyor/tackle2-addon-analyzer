@@ -43,7 +43,7 @@ func (b *Insights) RuleError() (r *RuleError) {
 
 // Write insights section.
 func (b *Insights) Write(writer io.Writer) (err error) {
-	b.cleanInput()
+	b.ensureUnique()
 	encoder := yaml.NewEncoder(writer)
 	_, _ = writer.Write([]byte(api.BeginInsightsMarker))
 	_, _ = writer.Write([]byte{'\n'})
