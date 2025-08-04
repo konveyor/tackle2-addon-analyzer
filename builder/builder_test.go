@@ -25,7 +25,7 @@ func TestNextId(t *testing.T) {
 			},
 		},
 	}
-	b.cleanInput()
+	b.ensureUnique()
 	cleaned := []output.RuleSet{
 		{
 			Name: "RULESET-A",
