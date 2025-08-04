@@ -35,9 +35,9 @@ func TestNextId(t *testing.T) {
 				"rule-002": {},
 			},
 			Insights: map[string]output.Violation{
-				"rule-001(1)": {},
-				"rule-003":    {},
-				"rule-004":    {},
+				"rule-001_": {},
+				"rule-003":  {},
+				"rule-004":  {},
 			},
 		},
 	}
