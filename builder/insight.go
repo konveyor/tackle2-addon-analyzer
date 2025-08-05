@@ -43,6 +43,7 @@ func (b *Insights) RuleError() (r *RuleError) {
 
 // Write insights section.
 func (b *Insights) Write(writer io.Writer) (err error) {
+	b.ensureUnique()
 	encoder := yaml.NewEncoder(writer)
 	_, _ = writer.Write([]byte(api.BeginInsightsMarker))
 	_, _ = writer.Write([]byte{'\n'})
@@ -162,6 +163,30 @@ func (b *Insights) Tags() (tags []string) {
 
 // Facts builds facts.
 func (b *Insights) Facts() (facts api.Map) {
+	return
+}
+
+// ensureUnique detect rules reporting both violation and insight.
+// Append (_) suffix to ruleid as needed.
+func (b *Insights) ensureUnique() {
+	rules := make(map[string]int8)
+	for _, ruleset := range b.input {
+		collections := []map[string]output.Violation{
+			ruleset.Violations,
+			ruleset.Insights,
+		}
+		for _, violations := range collections {
+			for ruleid, v := range violations {
+				key := ruleset.Name + ruleid
+				if _, found := rules[key]; found {
+					delete(violations, ruleid)
+					ruleid += "_"
+					violations[ruleid] = v
+				}
+				rules[key]++
+			}
+		}
+	}
 	return
 }
 

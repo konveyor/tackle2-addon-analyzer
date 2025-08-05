@@ -32,7 +32,7 @@ vet:
 	go vet $(PKG)
 
 test:
-	go test -count=1 -v ./cmd/...
+	go test -count=1 -v ./cmd/... ./builder/...
 
 # Ensure goimports installed.
 $(GOIMPORTS):
