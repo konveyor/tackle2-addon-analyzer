@@ -20,6 +20,7 @@ func (m *Manifest) Write() (err error) {
 	m.Path = "manifest.yaml"
 	file, err := os.Create(m.Path)
 	if err != nil {
+		err = wrap(err)
 		return
 	}
 	defer func() {
@@ -30,6 +31,7 @@ func (m *Manifest) Write() (err error) {
 	encoder := yaml.NewEncoder(file)
 	err = encoder.Encode(m.Analysis)
 	if err != nil {
+		err = wrap(err)
 		return
 	}
 	_, _ = file.Write([]byte(api.EndMainMarker))

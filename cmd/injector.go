@@ -439,10 +439,12 @@ func (r *ResourceInjector) addField(f *Field, v any) (err error) {
 func (r *ResourceInjector) write(path string, object any) (err error) {
 	err = nas.MkDir(pathlib.Dir(path), 0755)
 	if err != nil {
+		err = wrap(err)
 		return
 	}
 	f, err := os.Create(path)
 	if err != nil {
+		err = wrap(err)
 		return
 	}
 	defer func() {
@@ -450,5 +452,6 @@ func (r *ResourceInjector) write(path string, object any) (err error) {
 	}()
 	s := r.string(object)
 	_, err = f.Write([]byte(s))
+	err = wrap(err)
 	return
 }

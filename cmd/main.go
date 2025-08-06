@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin/binding"
+	liberr "github.com/jortel/go-utils/error"
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
 	"github.com/konveyor/tackle2-addon/ssh"
 	hub "github.com/konveyor/tackle2-hub/addon"
@@ -26,6 +27,10 @@ var (
 	OptDir    = ""
 	Source    = "Analysis"
 	Verbosity = 0
+)
+
+var (
+	wrap = liberr.Wrap
 )
 
 func init() {
@@ -77,6 +82,7 @@ func main() {
 		for _, dir := range []string{BinDir, M2Dir, RuleDir, OptDir} {
 			err = nas.MkDir(dir, 0755)
 			if err != nil {
+				err = wrap(err)
 				return
 			}
 		}
