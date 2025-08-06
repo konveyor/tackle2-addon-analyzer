@@ -31,14 +31,20 @@ type Settings struct {
 func (r *Settings) Read() (err error) {
 	f, err := os.Open(r.path())
 	if err != nil {
+		err = wrap(err)
 		return
 	}
 	defer func() {
 		_ = f.Close()
 	}()
 	b, err := io.ReadAll(f)
+	if err != nil {
+		err = wrap(err)
+		return
+	}
 	err = yaml.Unmarshal(b, &r.content)
 	if err != nil {
+		err = wrap(err)
 		return
 	}
 	r.index = len(r.content)
@@ -73,6 +79,7 @@ func (r *Settings) AppendExtensions(mode *Mode) (err error) {
 func (r *Settings) Write() (err error) {
 	f, err := os.Create(r.path())
 	if err != nil {
+		err = wrap(err)
 		return
 	}
 	defer func() {
@@ -80,9 +87,11 @@ func (r *Settings) Write() (err error) {
 	}()
 	b, err := yaml.Marshal(r.content)
 	if err != nil {
+		err = wrap(err)
 		return
 	}
 	_, err = f.Write(b)
+	err = wrap(err)
 	return
 }
 

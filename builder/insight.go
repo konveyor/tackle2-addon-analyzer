@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 
+	liberr "github.com/jortel/go-utils/error"
 	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
@@ -17,6 +18,7 @@ import (
 
 var (
 	addon = hub.Addon
+	wrap  = liberr.Wrap
 )
 
 // NewInsights returns a new insights builder.
@@ -119,6 +121,7 @@ func (b *Insights) Write(writer io.Writer) (err error) {
 			}
 			err = encoder.Encode(&insight)
 			if err != nil {
+				err = wrap(err)
 				return
 			}
 		}
@@ -133,6 +136,7 @@ func (b *Insights) read(path string) (err error) {
 	b.input = []output.RuleSet{}
 	f, err := os.Open(path)
 	if err != nil {
+		err = wrap(err)
 		return
 	}
 	defer func() {
@@ -140,6 +144,7 @@ func (b *Insights) read(path string) (err error) {
 	}()
 	d := yaml.NewDecoder(f)
 	err = d.Decode(&b.input)
+	err = wrap(err)
 	return
 }
 
