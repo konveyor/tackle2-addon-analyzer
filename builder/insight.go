@@ -44,7 +44,6 @@ func (b *Insights) RuleError() (r *RuleError) {
 // Write insights section.
 func (b *Insights) Write(writer io.Writer) (err error) {
 	b.ensureUnique()
-	encoder := yaml.NewEncoder(writer)
 	_, _ = writer.Write([]byte(api.BeginInsightsMarker))
 	_, _ = writer.Write([]byte{'\n'})
 	for _, ruleset := range b.input {
@@ -83,7 +82,7 @@ func (b *Insights) Write(writer io.Writer) (err error) {
 					insight.Incidents,
 					incident)
 			}
-			err = encoder.Encode(&insight)
+			err = b.encode(writer, &insight)
 			if err != nil {
 				return
 			}
@@ -117,7 +116,7 @@ func (b *Insights) Write(writer io.Writer) (err error) {
 					insight.Incidents,
 					incident)
 			}
-			err = encoder.Encode(&insight)
+			err = b.encode(writer, &insight)
 			if err != nil {
 				return
 			}
@@ -125,6 +124,17 @@ func (b *Insights) Write(writer io.Writer) (err error) {
 	}
 	_, _ = writer.Write([]byte(api.EndInsightsMarker))
 	_, _ = writer.Write([]byte{'\n'})
+	return
+}
+
+// encode object.
+func (b *Insights) encode(writer io.Writer, r any) (err error) {
+	encoder := yaml.NewEncoder(writer)
+	err = encoder.Encode(r)
+	if err != nil {
+		return
+	}
+	err = encoder.Close()
 	return
 }
 
