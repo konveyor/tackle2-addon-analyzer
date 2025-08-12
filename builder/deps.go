@@ -67,6 +67,7 @@ func (b *Deps) read(path string) (err error) {
 			addon.Log.Info(err.Error())
 			err = nil
 		}
+		err = wrap(err)
 		return
 	}
 	defer func() {
@@ -74,5 +75,6 @@ func (b *Deps) read(path string) (err error) {
 	}()
 	d := yaml.NewDecoder(f)
 	err = d.Decode(&b.input)
+	err = wrap(err)
 	return
 }
