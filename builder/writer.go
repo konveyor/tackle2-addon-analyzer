@@ -6,7 +6,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Writer provides safe output writer.
+// Writer provides an encoding output writer.
+// Error() should be used to determine if the writer had an error.
 type Writer struct {
 	wrapped io.Writer
 	errors  []error
