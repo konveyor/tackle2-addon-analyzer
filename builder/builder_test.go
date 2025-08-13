@@ -177,24 +177,6 @@ func TestInsightBuilder(t *testing.T) {
 ---
 analysis: 0
 ruleset: Test
-rule: ""
-name: ""
-labels: []
----
-analysis: 0
-ruleset: Test
-rule: ""
-name: ""
-labels: []
----
-analysis: 0
-ruleset: Test
-rule: ""
-name: ""
-labels: []
----
-analysis: 0
-ruleset: Test
 rule: rule-001
 name: ""
 incidents:
@@ -248,24 +230,6 @@ incidents:
   message: rule-002 matched here.
   codeSnip: ""
   facts: {}
-labels: []
----
-analysis: 0
-ruleset: Test
-rule: ""
-name: ""
-labels: []
----
-analysis: 0
-ruleset: Test
-rule: ""
-name: ""
-labels: []
----
-analysis: 0
-ruleset: Test
-rule: ""
-name: ""
 labels: []
 ---
 analysis: 0

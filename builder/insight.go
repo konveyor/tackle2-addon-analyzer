@@ -190,7 +190,7 @@ func (b *Insights) ensureUnique() {
 
 // ruleIds returns a sorted list of rule ids.
 func (b *Insights) ruleIds(m map[string]output.Violation) (ids []string) {
-	ids = make([]string, len(m))
+	ids = make([]string, 0, len(m))
 	for ruleid := range m {
 		ids = append(ids, ruleid)
 	}
