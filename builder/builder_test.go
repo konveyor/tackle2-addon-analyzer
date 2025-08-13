@@ -47,6 +47,18 @@ func TestNextId(t *testing.T) {
 	g.Expect(cleaned).To(gomega.Equal(b.input))
 }
 
+func TestWriterError(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	f, _ := os.CreateTemp("", "")
+	_ = f.Close()
+	// writer
+	wr := Writer{wrapped: f}
+	wr.Write("")
+	g.Expect(wr.Error()).ToNot(gomega.BeNil())
+	wr.Encode("")
+	g.Expect(wr.Error()).ToNot(gomega.BeNil())
+}
+
 func TestInsightBuilder(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 

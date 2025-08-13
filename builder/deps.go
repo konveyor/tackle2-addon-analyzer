@@ -18,18 +18,17 @@ func NewDeps(path string) (b *Deps, err error) {
 
 // Deps builds dependencies.
 type Deps struct {
-	Builder
 	input []output.DepsFlatItem
 }
 
 // Write deps section.
 func (b *Deps) Write(writer io.Writer) (err error) {
-	b.write(writer, api.BeginDepsMarker)
-	b.write(writer, "\n")
+	wr := Writer{wrapped: writer}
+	wr.Write(api.BeginDepsMarker)
+	wr.Write("\n")
 	for _, p := range b.input {
 		for _, d := range p.Dependencies {
-			b.encode(
-				writer,
+			wr.Encode(
 				&api.TechDependency{
 					Provider: p.Provider,
 					Indirect: d.Indirect,
@@ -40,9 +39,9 @@ func (b *Deps) Write(writer io.Writer) (err error) {
 				})
 		}
 	}
-	b.write(writer, api.EndDepsMarker)
-	b.write(writer, "\n")
-	err = b.error()
+	wr.Write(api.EndDepsMarker)
+	wr.Write("\n")
+	err = wr.Error()
 	return
 }
 

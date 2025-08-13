@@ -29,7 +29,6 @@ func NewInsights(path string) (b *Insights, err error) {
 
 // Insights builds insights and facts.
 type Insights struct {
-	Builder
 	ruleErr RuleError
 	facts   []api.Fact
 	input   []output.RuleSet
@@ -45,9 +44,10 @@ func (b *Insights) RuleError() (r *RuleError) {
 
 // Write insights section.
 func (b *Insights) Write(writer io.Writer) (err error) {
+	wr := Writer{wrapped: writer}
 	b.ensureUnique()
-	b.write(writer, api.BeginInsightsMarker)
-	b.write(writer, "\n")
+	wr.Write(api.BeginInsightsMarker)
+	wr.Write("\n")
 	for _, ruleset := range b.input {
 		for _, ruleid := range b.ruleIds(ruleset.Violations) {
 			v := ruleset.Violations[ruleid]
@@ -85,7 +85,7 @@ func (b *Insights) Write(writer io.Writer) (err error) {
 					insight.Incidents,
 					incident)
 			}
-			b.encode(writer, &insight)
+			wr.Encode(&insight)
 		}
 		for _, ruleid := range b.ruleIds(ruleset.Insights) {
 			v := ruleset.Insights[ruleid]
@@ -117,12 +117,12 @@ func (b *Insights) Write(writer io.Writer) (err error) {
 					insight.Incidents,
 					incident)
 			}
-			b.encode(writer, &insight)
+			wr.Encode(&insight)
 		}
 	}
-	b.write(writer, api.EndInsightsMarker)
-	b.write(writer, "\n")
-	err = b.error()
+	wr.Write(api.EndInsightsMarker)
+	wr.Write("\n")
+	err = wr.Error()
 	return
 }
 
