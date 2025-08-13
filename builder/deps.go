@@ -23,12 +23,12 @@ type Deps struct {
 
 // Write deps section.
 func (b *Deps) Write(writer io.Writer) (err error) {
-	_, _ = writer.Write([]byte(api.BeginDepsMarker))
-	_, _ = writer.Write([]byte{'\n'})
+	wr := Writer{wrapped: writer}
+	wr.Write(api.BeginDepsMarker)
+	wr.Write("\n")
 	for _, p := range b.input {
 		for _, d := range p.Dependencies {
-			err = b.encode(
-				writer,
+			wr.Encode(
 				&api.TechDependency{
 					Provider: p.Provider,
 					Indirect: d.Indirect,
@@ -37,24 +37,11 @@ func (b *Deps) Write(writer io.Writer) (err error) {
 					SHA:      d.ResolvedIdentifier,
 					Labels:   d.Labels,
 				})
-			if err != nil {
-				return
-			}
 		}
 	}
-	_, _ = writer.Write([]byte(api.EndDepsMarker))
-	_, _ = writer.Write([]byte{'\n'})
-	return
-}
-
-// encode object.
-func (b *Deps) encode(writer io.Writer, r any) (err error) {
-	encoder := yaml.NewEncoder(writer)
-	err = encoder.Encode(r)
-	if err != nil {
-		return
-	}
-	err = encoder.Close()
+	wr.Write(api.EndDepsMarker)
+	wr.Write("\n")
+	err = wr.Error()
 	return
 }
 
