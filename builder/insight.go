@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"sort"
 
 	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	hub "github.com/konveyor/tackle2-hub/addon"
@@ -28,6 +29,7 @@ func NewInsights(path string) (b *Insights, err error) {
 
 // Insights builds insights and facts.
 type Insights struct {
+	Builder
 	ruleErr RuleError
 	facts   []api.Fact
 	input   []output.RuleSet
@@ -44,10 +46,11 @@ func (b *Insights) RuleError() (r *RuleError) {
 // Write insights section.
 func (b *Insights) Write(writer io.Writer) (err error) {
 	b.ensureUnique()
-	_, _ = writer.Write([]byte(api.BeginInsightsMarker))
-	_, _ = writer.Write([]byte{'\n'})
+	b.write(writer, api.BeginInsightsMarker)
+	b.write(writer, "\n")
 	for _, ruleset := range b.input {
-		for ruleid, v := range ruleset.Violations {
+		for _, ruleid := range b.ruleIds(ruleset.Violations) {
+			v := ruleset.Violations[ruleid]
 			insight := api.Insight{
 				RuleSet:     ruleset.Name,
 				Rule:        ruleid,
@@ -82,12 +85,10 @@ func (b *Insights) Write(writer io.Writer) (err error) {
 					insight.Incidents,
 					incident)
 			}
-			err = b.encode(writer, &insight)
-			if err != nil {
-				return
-			}
+			b.encode(writer, &insight)
 		}
-		for ruleid, v := range ruleset.Insights {
+		for _, ruleid := range b.ruleIds(ruleset.Insights) {
+			v := ruleset.Insights[ruleid]
 			insight := api.Insight{
 				RuleSet:     ruleset.Name,
 				Rule:        ruleid,
@@ -116,25 +117,12 @@ func (b *Insights) Write(writer io.Writer) (err error) {
 					insight.Incidents,
 					incident)
 			}
-			err = b.encode(writer, &insight)
-			if err != nil {
-				return
-			}
+			b.encode(writer, &insight)
 		}
 	}
-	_, _ = writer.Write([]byte(api.EndInsightsMarker))
-	_, _ = writer.Write([]byte{'\n'})
-	return
-}
-
-// encode object.
-func (b *Insights) encode(writer io.Writer, r any) (err error) {
-	encoder := yaml.NewEncoder(writer)
-	err = encoder.Encode(r)
-	if err != nil {
-		return
-	}
-	err = encoder.Close()
+	b.write(writer, api.EndInsightsMarker)
+	b.write(writer, "\n")
+	err = b.error()
 	return
 }
 
@@ -197,6 +185,16 @@ func (b *Insights) ensureUnique() {
 			}
 		}
 	}
+	return
+}
+
+// ruleIds returns a sorted list of rule ids.
+func (b *Insights) ruleIds(m map[string]output.Violation) (ids []string) {
+	ids = make([]string, len(m))
+	for ruleid := range m {
+		ids = append(ids, ruleid)
+	}
+	sort.Strings(ids)
 	return
 }
 

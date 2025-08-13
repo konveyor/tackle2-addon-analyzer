@@ -18,16 +18,17 @@ func NewDeps(path string) (b *Deps, err error) {
 
 // Deps builds dependencies.
 type Deps struct {
+	Builder
 	input []output.DepsFlatItem
 }
 
 // Write deps section.
 func (b *Deps) Write(writer io.Writer) (err error) {
-	_, _ = writer.Write([]byte(api.BeginDepsMarker))
-	_, _ = writer.Write([]byte{'\n'})
+	b.write(writer, api.BeginDepsMarker)
+	b.write(writer, "\n")
 	for _, p := range b.input {
 		for _, d := range p.Dependencies {
-			err = b.encode(
+			b.encode(
 				writer,
 				&api.TechDependency{
 					Provider: p.Provider,
@@ -37,24 +38,11 @@ func (b *Deps) Write(writer io.Writer) (err error) {
 					SHA:      d.ResolvedIdentifier,
 					Labels:   d.Labels,
 				})
-			if err != nil {
-				return
-			}
 		}
 	}
-	_, _ = writer.Write([]byte(api.EndDepsMarker))
-	_, _ = writer.Write([]byte{'\n'})
-	return
-}
-
-// encode object.
-func (b *Deps) encode(writer io.Writer, r any) (err error) {
-	encoder := yaml.NewEncoder(writer)
-	err = encoder.Encode(r)
-	if err != nil {
-		return
-	}
-	err = encoder.Close()
+	b.write(writer, api.EndDepsMarker)
+	b.write(writer, "\n")
+	err = b.error()
 	return
 }
 
