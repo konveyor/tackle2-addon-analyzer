@@ -253,14 +253,14 @@ func (r *Rules) addRepository() (err error) {
 	if err != nil {
 		return
 	}
-	var ids []api.Ref
+	var options []any
 	if r.Identity != nil {
-		ids = []api.Ref{*r.Identity}
+		options = append(options, r.Identity)
 	}
 	rp, err := repository.New(
 		rootDir,
 		r.Repository,
-		ids)
+		options...)
 	if err != nil {
 		return
 	}
