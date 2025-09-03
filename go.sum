@@ -151,8 +151,8 @@ github.com/klauspost/cpuid/v2 v2.2.4 h1:acbojRNwl3o09bUq+yDCtZFc1aiwaAAxtcn8YkZX
 github.com/klauspost/cpuid/v2 v2.2.4/go.mod h1:RVVoqg1df56z8g3pUjL/3lE5UfnlrJX8tyFgg4nqhuY=
 github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250414173818-69f16ed24d65 h1:YbN65QMFBX88onRsZm7fsrPTCN/Ty0/17rbm9KOCQKo=
 github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250414173818-69f16ed24d65/go.mod h1:nlSmohI+wwPTzvWXAtHI3PXe7B9RRU5NKnqnu222Ia0=
-github.com/konveyor/tackle2-addon v0.7.0-alpha.2.0.20250416134249-7c0f33d51619 h1:BI/0DisZHAGuuQ3PUWNYRQM8M15R5P4WrSeMyHo81lU=
-github.com/konveyor/tackle2-addon v0.7.0-alpha.2.0.20250416134249-7c0f33d51619/go.mod h1:Q71YvZ1e7xWH7/CqWOHYWST0Xbq2s3NOrNhDbAsyMPk=
+github.com/konveyor/tackle2-addon v0.7.2-0.20250903122049-abf0694112d6 h1:8aNkqoHywFLidXChXCVzYA5iWMCPYUIig/lZarcTfWk=
+github.com/konveyor/tackle2-addon v0.7.2-0.20250903122049-abf0694112d6/go.mod h1:Q71YvZ1e7xWH7/CqWOHYWST0Xbq2s3NOrNhDbAsyMPk=
 github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250417030359-32aba8021fd6 h1:qQ5xt5aPPyn0yPKcTva5Ro4Eu0SB5PBD0f2nilUkBpQ=
 github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250417030359-32aba8021fd6/go.mod h1:QqKePb871tNLi1w6csz5YuGTmaWWaTyjp0GTG56Wxv0=
 github.com/kr/pretty v0.2.0/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
