@@ -12,6 +12,7 @@ import (
 
 	"github.com/konveyor/analyzer-lsp/provider"
 	"github.com/konveyor/tackle2-hub/api"
+	"github.com/konveyor/tackle2-hub/binding"
 	"github.com/konveyor/tackle2-hub/nas"
 )
 
@@ -345,7 +346,9 @@ func (r *ResourceInjector) build(md *Metadata) (err error) {
 		parsed.With(resource.Selector)
 		switch strings.ToLower(parsed.kind) {
 		case "identity":
-			identity, found, nErr := addon.Application.Identity(application.ID).Find(parsed.value)
+			filter := binding.Filter{}
+			filter.And("role").Eq(parsed.value)
+			identity, found, nErr := addon.Application.Identity(application.ID).Find(filter)
 			if nErr != nil {
 				err = nErr
 				return
