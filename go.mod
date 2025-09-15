@@ -8,7 +8,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf
 	github.com/konveyor/tackle2-addon v0.8.0-beta.2.0.20250902130618-7007f002e757
-	github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250708195852-4e3f74795b04
+	github.com/konveyor/tackle2-hub v0.8.0-beta.4.0.20250915141536-ccf24542dd57
 	github.com/onsi/gomega v1.31.1
 	github.com/rogpeppe/go-internal v1.10.0
 	go.lsp.dev/uri v0.3.0
@@ -16,8 +16,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed
 )
-
-replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20250912202113-72cee0d71b8e
 
 require (
 	github.com/Nerzal/gocloak/v13 v13.9.0 // indirect
