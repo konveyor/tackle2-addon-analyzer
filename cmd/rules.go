@@ -220,14 +220,19 @@ func (r *Rules) addRuleSetRepository(ruleset *api.RuleSet) (err error) {
 	if err != nil {
 		return
 	}
-	var ids []api.Ref
+	var options []any
 	if ruleset.Identity != nil {
-		ids = []api.Ref{*ruleset.Identity}
+		identity, err := addon.Identity.Get(ruleset.Identity.ID)
+		if err == nil {
+			options = append(options, identity)
+		} else {
+			return
+		}
 	}
 	rp, err := repository.New(
 		rootDir,
 		ruleset.Repository,
-		ids)
+		options...)
 	if err != nil {
 		return
 	}
