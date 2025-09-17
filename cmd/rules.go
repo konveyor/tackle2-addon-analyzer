@@ -222,7 +222,8 @@ func (r *Rules) addRuleSetRepository(ruleset *api.RuleSet) (err error) {
 	}
 	var options []any
 	if ruleset.Identity != nil {
-		identity, err := addon.Identity.Get(ruleset.Identity.ID)
+		var identity *api.Identity
+		identity, err = addon.Identity.Get(ruleset.Identity.ID)
 		if err == nil {
 			options = append(options, identity)
 		} else {
