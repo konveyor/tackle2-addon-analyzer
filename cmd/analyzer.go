@@ -34,7 +34,9 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 		return
 	}
 	if Verbosity > 0 {
-		cmd.Reporter.Verbosity = command.LiveOutput
+		if w, cast := cmd.Writer.(*command.Writer); cast {
+			w.Reporter().Verbosity = command.LiveOutput
+		}
 	}
 	err = cmd.Run()
 	if err != nil {

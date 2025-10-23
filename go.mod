@@ -17,6 +17,10 @@ require (
 	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed
 )
 
+replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20251023004856-021a0d0eff97
+
+replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20251023015557-c41c968ff100
+
 require (
 	github.com/Nerzal/gocloak/v13 v13.9.0 // indirect
 	github.com/PaesslerAG/gval v1.2.2 // indirect
@@ -28,7 +32,6 @@ require (
 	github.com/cbroglie/mustache v1.4.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
-	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/elliotchance/orderedmap v1.5.1 // indirect
