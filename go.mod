@@ -7,8 +7,8 @@ toolchain go1.22.0
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf
-	github.com/konveyor/tackle2-addon v0.8.0-beta.2.0.20250902130618-7007f002e757
-	github.com/konveyor/tackle2-hub v0.8.0-beta.4.0.20250915141536-ccf24542dd57
+	github.com/konveyor/tackle2-addon v0.8.1-alpha.3.0.20251031193159-41bf83251324
+	github.com/konveyor/tackle2-hub v0.8.1-alpha.2.0.20251031162728-9244b63a0ad1
 	github.com/onsi/gomega v1.31.1
 	github.com/rogpeppe/go-internal v1.10.0
 	go.lsp.dev/uri v0.3.0
@@ -16,10 +16,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed
 )
-
-replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20251023141834-6ef77a8c4eb4
-
-replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20251023141942-70b1d8366275
 
 require (
 	github.com/Nerzal/gocloak/v13 v13.9.0 // indirect

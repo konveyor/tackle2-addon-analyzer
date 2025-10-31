@@ -7,7 +7,7 @@ import (
 
 	"github.com/konveyor/analyzer-lsp/provider"
 	"github.com/konveyor/tackle2-addon/command"
-	"github.com/konveyor/tackle2-addon/repository"
+	"github.com/konveyor/tackle2-addon/scm"
 	"github.com/konveyor/tackle2-hub/api"
 )
 
@@ -17,7 +17,7 @@ type Mode struct {
 	Binary     bool   `json:"binary"`
 	Artifact   string `json:"artifact"`
 	WithDeps   bool   `json:"withDeps"`
-	Repository repository.SCM
+	Repository scm.SCM
 	//
 	path struct {
 		appDir string
@@ -87,7 +87,7 @@ func (r *Mode) fetchRepository(application *api.Application) (err error) {
 				application.Repository.URL),
 			".")[0])
 	r.path.appDir = path.Join(SourceDir, application.Repository.Path)
-	r.Repository, err = repository.New(
+	r.Repository, err = scm.New(
 		SourceDir,
 		application.Repository,
 		options...)
