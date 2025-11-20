@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io"
 	"os"
 	"path"
 
@@ -58,25 +57,7 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 		}
 		metadataLog := path.Join(Dir, ".metadata", ".log")
 		if _, stErr := os.Stat(metadataLog); stErr == nil {
-			// Copy to provider-jdtls.log before uploading
-			renamedLog := path.Join(Dir, "provider-jdtls.log")
-			var src, dst *os.File
-			src, err = os.Open(metadataLog)
-			if err != nil {
-				return
-			}
-			defer src.Close()
-			dst, err = os.Create(renamedLog)
-			if err != nil {
-				return
-			}
-			defer dst.Close()
-			_, err = io.Copy(dst, src)
-			if err != nil {
-				return
-			}
-			// Upload the renamed file
-			f, pErr = addon.File.Post(renamedLog)
+			f, pErr = addon.File.Post(metadataLog)
 			if pErr != nil {
 				err = pErr
 				return
