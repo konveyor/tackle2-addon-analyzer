@@ -68,17 +68,13 @@ func (r *Mode) fetchRepository(application *api.Application) (err error) {
 		err = errors.New("Application repository not defined.")
 		return
 	}
-	var options []any
-	identity, found, err :=
+	identity, _, err :=
 		addon.Application.Identity(application.ID).Search().
 			Direct("source").
 			Indirect("source").
 			Find()
 	if err != nil {
 		return
-	}
-	if found {
-		options = append(options, identity)
 	}
 	SourceDir = path.Join(
 		SourceDir,
@@ -89,8 +85,8 @@ func (r *Mode) fetchRepository(application *api.Application) (err error) {
 	r.path.appDir = path.Join(SourceDir, application.Repository.Path)
 	r.Repository, err = scm.New(
 		SourceDir,
-		application.Repository,
-		options...)
+		*application.Repository,
+		identity)
 	if err != nil {
 		return
 	}

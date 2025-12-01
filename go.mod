@@ -7,8 +7,8 @@ toolchain go1.22.0
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf
-	github.com/konveyor/tackle2-addon v0.8.1-alpha.3.0.20251031193159-41bf83251324
-	github.com/konveyor/tackle2-hub v0.8.1-alpha.2.0.20251031162728-9244b63a0ad1
+	github.com/konveyor/tackle2-addon v0.9.0-alpha.1.0.20251201140732-e2d462ae6a65
+	github.com/konveyor/tackle2-hub v0.9.0-alpha.1.0.20251201140238-d91e19c75c6d
 	github.com/onsi/gomega v1.31.1
 	github.com/rogpeppe/go-internal v1.10.0
 	go.lsp.dev/uri v0.3.0
@@ -62,7 +62,7 @@ require (
 	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/jortel/go-utils v0.1.4 // indirect
+	github.com/jortel/go-utils v0.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect

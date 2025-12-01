@@ -156,8 +156,8 @@ github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD
 github.com/jinzhu/inflection v1.0.0/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkryuEj+Srlc=
 github.com/jinzhu/now v1.1.5 h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=
 github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
-github.com/jortel/go-utils v0.1.4 h1:DzrID+gI9urEGkOoXYGYIKA/bozEIxmcYV/4cdVjW58=
-github.com/jortel/go-utils v0.1.4/go.mod h1:7vzFYbnb91+ltjjAmCv2jVL4CKX7Onz1i2EQPAvw9Cs=
+github.com/jortel/go-utils v0.1.5 h1:fBkvlojnbrx5rqJt+1fx9dlGV5NjjnCyGgWyXsQ12Ws=
+github.com/jortel/go-utils v0.1.5/go.mod h1:R9W67T6eTYPcofmSuvvv3lOcNuF4zh7ZoBfaoTA9zss=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
@@ -169,10 +169,10 @@ github.com/klauspost/cpuid/v2 v2.2.4 h1:acbojRNwl3o09bUq+yDCtZFc1aiwaAAxtcn8YkZX
 github.com/klauspost/cpuid/v2 v2.2.4/go.mod h1:RVVoqg1df56z8g3pUjL/3lE5UfnlrJX8tyFgg4nqhuY=
 github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf h1:zzDuUJmF2wGW1ra+upIMHHEKC9MUfjvD5Ehm4jaX188=
 github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf/go.mod h1:/7nwwqN27iODJy/PBai9W16KH91LrPGx1nwu21+rCOg=
-github.com/konveyor/tackle2-addon v0.8.1-alpha.3.0.20251031193159-41bf83251324 h1:0RIHlOehTLwkcz+/eP1rjc/a5NK7+RYdFaOd9bYXjX8=
-github.com/konveyor/tackle2-addon v0.8.1-alpha.3.0.20251031193159-41bf83251324/go.mod h1:Wv8TFc0LOKxVSN6D30hhW+c9JkhEU371Xy5cPZqevoA=
-github.com/konveyor/tackle2-hub v0.8.1-alpha.2.0.20251031162728-9244b63a0ad1 h1:sR8P5z/hspuxceQXmk8Z+boNNHrTrdGqcI0snr/sWdE=
-github.com/konveyor/tackle2-hub v0.8.1-alpha.2.0.20251031162728-9244b63a0ad1/go.mod h1:xk2bGyr5r4S2ouacICCtDEn+yri02ZKmhlglprrmdvw=
+github.com/konveyor/tackle2-addon v0.9.0-alpha.1.0.20251201140732-e2d462ae6a65 h1:0EizqTbwdPk9VV+zarPENySP9MhQtw2LqbN4jx9Q4CY=
+github.com/konveyor/tackle2-addon v0.9.0-alpha.1.0.20251201140732-e2d462ae6a65/go.mod h1:aWaoV343saDuCi/XyFaLxbEjVnQZJjaMqfmI74+9ZbU=
+github.com/konveyor/tackle2-hub v0.9.0-alpha.1.0.20251201140238-d91e19c75c6d h1:FMJK/ydKQuvGb0TW7kiwSn3JIWJvpCMs4DSTbz6yIXY=
+github.com/konveyor/tackle2-hub v0.9.0-alpha.1.0.20251201140238-d91e19c75c6d/go.mod h1:CtDv5VlIpjKHP2W0ngZo16kmp4GBf+IC6EEt+Zr4/x8=
 github.com/kr/pretty v0.2.0/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
