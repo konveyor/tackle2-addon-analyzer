@@ -7,7 +7,7 @@ toolchain go1.22.0
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf
-	github.com/konveyor/tackle2-addon f6352badfc54c4eb31fd326664c03a3eff4cffde
+	github.com/konveyor/tackle2-addon v0.9.0-alpha.1.0.20251202141412-f6352badfc54
 	github.com/konveyor/tackle2-hub v0.9.0-alpha.1.0.20251202133231-c937c30f820f
 	github.com/onsi/gomega v1.31.1
 	github.com/rogpeppe/go-internal v1.10.0
