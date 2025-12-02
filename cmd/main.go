@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
-	"github.com/konveyor/tackle2-addon/ssh"
 	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
@@ -84,13 +83,6 @@ func main() {
 		// Fetch application.
 		addon.Activity("Fetching application.")
 		application, err := addon.Task.Application()
-		if err != nil {
-			return
-		}
-		//
-		// SSH
-		agent := ssh.Agent{}
-		err = agent.Start()
 		if err != nil {
 			return
 		}

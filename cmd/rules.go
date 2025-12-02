@@ -11,7 +11,7 @@ import (
 
 	"github.com/konveyor/analyzer-lsp/parser"
 	"github.com/konveyor/tackle2-addon/command"
-	"github.com/konveyor/tackle2-addon/repository"
+	"github.com/konveyor/tackle2-addon/scm"
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
 	"github.com/rogpeppe/go-internal/semver"
@@ -220,20 +220,17 @@ func (r *Rules) addRuleSetRepository(ruleset *api.RuleSet) (err error) {
 	if err != nil {
 		return
 	}
-	var options []any
+	var identity *api.Identity
 	if ruleset.Identity != nil {
-		var identity *api.Identity
 		identity, err = addon.Identity.Get(ruleset.Identity.ID)
-		if err == nil {
-			options = append(options, identity)
-		} else {
+		if err != nil {
 			return
 		}
 	}
-	rp, err := repository.New(
+	rp, err := scm.New(
 		rootDir,
-		ruleset.Repository,
-		options...)
+		*ruleset.Repository,
+		identity)
 	if err != nil {
 		return
 	}
@@ -259,14 +256,17 @@ func (r *Rules) addRepository() (err error) {
 	if err != nil {
 		return
 	}
-	var options []any
+	var identity *api.Identity
 	if r.Identity != nil {
-		options = append(options, r.Identity)
+		identity, err = addon.Identity.Get(r.Identity.ID)
+		if err != nil {
+			return
+		}
 	}
-	rp, err := repository.New(
+	rp, err := scm.New(
 		rootDir,
-		r.Repository,
-		options...)
+		*r.Repository,
+		identity)
 	if err != nil {
 		return
 	}
