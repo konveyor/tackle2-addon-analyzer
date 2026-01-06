@@ -5,12 +5,11 @@ import (
 	"path"
 	"time"
 
-	"github.com/gin-gonic/gin/binding"
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
 	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
+	"github.com/konveyor/tackle2-hub/env"
 	"github.com/konveyor/tackle2-hub/nas"
-	"k8s.io/utils/env"
 )
 
 var (
@@ -30,8 +29,8 @@ var (
 func init() {
 	Dir, _ = os.Getwd()
 	OptDir = path.Join(Dir, "opt")
-	SharedDir = env.GetString(hub.EnvSharedDir, "/tmp/shared")
-	CacheDir = env.GetString(hub.EnvCacheDir, "/tmp/cache")
+	SharedDir = env.Get(hub.EnvSharedDir, "/tmp/shared")
+	CacheDir = env.Get(hub.EnvCacheDir, "/tmp/cache")
 	SourceDir = path.Join(SharedDir, "source")
 	RuleDir = path.Join(Dir, "rules")
 	BinDir = path.Join(SharedDir, "bin")
@@ -157,7 +156,7 @@ func updateApplication(d *Data, appId uint, insights *builder.Insights, deps *bu
 	}
 	mark := time.Now()
 	analysis := addon.Application.Analysis(appId)
-	reported, err := analysis.Create(manifest.Path, binding.MIMEYAML)
+	reported, err := analysis.Create(manifest.Path, api.MIMEYAML)
 	if err != nil {
 		return
 	}

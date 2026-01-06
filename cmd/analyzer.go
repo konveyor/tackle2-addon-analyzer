@@ -5,8 +5,9 @@ import (
 	"path"
 
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
-	"github.com/konveyor/tackle2-addon/command"
-	"k8s.io/utils/env"
+	addonCmd "github.com/konveyor/tackle2-hub/addon/command"
+	"github.com/konveyor/tackle2-hub/command"
+	"github.com/konveyor/tackle2-hub/env"
 )
 
 var (
@@ -14,7 +15,7 @@ var (
 )
 
 func init() {
-	AnalyzerBin = env.GetString(
+	AnalyzerBin = env.Get(
 		"ANALYZER",
 		"/usr/local/bin/konveyor-analyzer")
 }
@@ -34,8 +35,8 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 		return
 	}
 	if Verbosity > 0 {
-		if w, cast := cmd.Writer.(*command.Writer); cast {
-			w.Reporter().Verbosity = command.LiveOutput
+		if w, cast := cmd.Writer.(*addonCmd.Writer); cast {
+			w.Reporter().Verbosity = addonCmd.LiveOutput
 		}
 	}
 	err = cmd.Run()

@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/konveyor/analyzer-lsp/provider"
-	"github.com/konveyor/tackle2-addon/command"
-	"github.com/konveyor/tackle2-addon/scm"
 	"github.com/konveyor/tackle2-hub/api"
+	"github.com/konveyor/tackle2-hub/command"
+	"github.com/konveyor/tackle2-hub/scm"
 )
 
 // Mode settings.
@@ -83,7 +83,7 @@ func (r *Mode) fetchRepository(application *api.Application) (err error) {
 				application.Repository.URL),
 			".")[0])
 	r.path.appDir = path.Join(SourceDir, application.Repository.Path)
-	r.Repository, err = scm.New(
+	r.Repository, err = addon.SCM.New(
 		SourceDir,
 		*application.Repository,
 		identity)
