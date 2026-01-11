@@ -3,8 +3,8 @@ package main
 import (
 	"regexp"
 
+	"github.com/konveyor/tackle2-hub/addon/command"
 	"github.com/konveyor/tackle2-hub/api"
-	"github.com/konveyor/tackle2-hub/command"
 )
 
 var TagExp = regexp.MustCompile("(.+)(=)(.+)")

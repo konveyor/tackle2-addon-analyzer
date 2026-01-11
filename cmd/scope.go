@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 
-	"github.com/konveyor/tackle2-hub/command"
+	"github.com/konveyor/tackle2-hub/addon/command"
 )
 
 // Scope settings.

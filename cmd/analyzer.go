@@ -5,8 +5,7 @@ import (
 	"path"
 
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
-	addonCmd "github.com/konveyor/tackle2-hub/addon/command"
-	"github.com/konveyor/tackle2-hub/command"
+	"github.com/konveyor/tackle2-hub/addon/command"
 	"github.com/konveyor/tackle2-hub/env"
 )
 
@@ -35,8 +34,8 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 		return
 	}
 	if Verbosity > 0 {
-		if w, cast := cmd.Writer.(*addonCmd.Writer); cast {
-			w.Reporter().Verbosity = addonCmd.LiveOutput
+		if w, cast := cmd.Writer.(*command.Writer); cast {
+			w.Reporter().Verbosity = command.LiveOutput
 		}
 	}
 	err = cmd.Run()

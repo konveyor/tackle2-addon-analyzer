@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/konveyor/analyzer-lsp/provider"
+	"github.com/konveyor/tackle2-hub/addon/command"
+	"github.com/konveyor/tackle2-hub/addon/scm"
 	"github.com/konveyor/tackle2-hub/api"
-	"github.com/konveyor/tackle2-hub/command"
-	"github.com/konveyor/tackle2-hub/scm"
 )
 
 // Mode settings.

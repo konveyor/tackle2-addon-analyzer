@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/konveyor/analyzer-lsp/parser"
+	"github.com/konveyor/tackle2-hub/addon/command"
 	"github.com/konveyor/tackle2-hub/addon/scm"
 	"github.com/konveyor/tackle2-hub/api"
-	"github.com/konveyor/tackle2-hub/command"
 	"github.com/konveyor/tackle2-hub/nas"
 	"github.com/rogpeppe/go-internal/semver"
 	"gopkg.in/yaml.v3"
