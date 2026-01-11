@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	pathlib "path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -441,7 +441,7 @@ func (r *ResourceInjector) addField(f *Field, v any) (err error) {
 
 // write a resource field value to a file.
 func (r *ResourceInjector) write(path string, object any) (err error) {
-	err = nas.MkDir(pathlib.Dir(path), 0755)
+	err = nas.MkDir(filepath.Dir(path), 0755)
 	if err != nil {
 		return
 	}

@@ -45,4 +45,4 @@ require (
 	google.golang.org/protobuf v1.34.2 // indirect
 )
 
-replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20260106140442-96d6096d5f44
+replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20260109203336-4d440eac7ff7
