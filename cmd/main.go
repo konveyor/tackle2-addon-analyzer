@@ -10,6 +10,7 @@ import (
 	"github.com/konveyor/tackle2-hub/shared/api"
 	"github.com/konveyor/tackle2-hub/shared/env"
 	"github.com/konveyor/tackle2-hub/shared/nas"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -89,6 +90,7 @@ func main() {
 		}
 		//
 		// Apply profile.
+		d.Profile.ID = 1
 		err = applyProfile(d)
 		if err != nil {
 			return
@@ -140,7 +142,12 @@ func applyProfile(d *Data) (err error) {
 	if err != nil {
 		return
 	}
-	addon.Activity("Using profile (id=%d): %s", p.ID, p.Name)
+	b, _ := yaml.Marshal(p)
+	addon.Activity(
+		"Using profile (id=%d): %s\n%s",
+		p.ID,
+		p.Name,
+		string(b))
 	err = d.Mode.With(&p.Mode)
 	if err != nil {
 		return
@@ -153,6 +160,10 @@ func applyProfile(d *Data) (err error) {
 	if err != nil {
 		return
 	}
+	b, _ = yaml.Marshal(d)
+	addon.Activity(
+		"Using configuration:\n%s",
+		string(b))
 	return
 }
 
