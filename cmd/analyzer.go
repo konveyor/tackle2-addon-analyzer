@@ -5,8 +5,8 @@ import (
 	"path"
 
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
-	"github.com/konveyor/tackle2-hub/addon/command"
-	"github.com/konveyor/tackle2-hub/env"
+	"github.com/konveyor/tackle2-hub/shared/addon/command"
+	"github.com/konveyor/tackle2-hub/shared/env"
 )
 
 var (

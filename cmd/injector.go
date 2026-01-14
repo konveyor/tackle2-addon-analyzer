@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/konveyor/analyzer-lsp/provider"
-	"github.com/konveyor/tackle2-hub/api"
-	"github.com/konveyor/tackle2-hub/nas"
+	"github.com/konveyor/tackle2-hub/shared/api"
+	"github.com/konveyor/tackle2-hub/shared/nas"
 )
 
 // KeyRegex $(variable)

@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
-	hub "github.com/konveyor/tackle2-hub/addon"
-	"github.com/konveyor/tackle2-hub/api"
-	"github.com/konveyor/tackle2-hub/env"
-	"github.com/konveyor/tackle2-hub/nas"
+	hub "github.com/konveyor/tackle2-hub/shared/addon"
+	"github.com/konveyor/tackle2-hub/shared/api"
+	"github.com/konveyor/tackle2-hub/shared/env"
+	"github.com/konveyor/tackle2-hub/shared/nas"
 )
 
 var (
@@ -41,6 +41,8 @@ func init() {
 type Data struct {
 	// Verbosity level.
 	Verbosity int `json:"verbosity"`
+	// Profile id.
+	Profile uint `json:"profile"`
 	// Mode options.
 	Mode Mode `json:"mode"`
 	// Scope options.
@@ -86,6 +88,12 @@ func main() {
 			return
 		}
 		//
+		// Apply profile.
+		err = applyProfile(d)
+		if err != nil {
+			return
+		}
+		//
 		// Build assets.
 		err = d.Mode.Build(application)
 		if err != nil {
@@ -118,6 +126,34 @@ func main() {
 
 		return
 	})
+}
+
+// applyProfile fetch and apply profile when specified.
+func applyProfile(d *Data) (err error) {
+	if d.Profile == 0 {
+		return
+	}
+	d.Mode = Data{}.Mode
+	d.Scope = Data{}.Scope
+	d.Rules = Data{}.Rules
+	p, err := addon.AnalysisProfile.Get(d.Profile)
+	if err != nil {
+		return
+	}
+	addon.Activity("Using profile (id=%d): %s", p.ID, p.Name)
+	err = d.Mode.With(&p.Mode)
+	if err != nil {
+		return
+	}
+	err = d.Scope.With(&p.Scope)
+	if err != nil {
+		return
+	}
+	err = d.Rules.With(&p.Rules)
+	if err != nil {
+		return
+	}
+	return
 }
 
 // updateApplication creates analysis report and updates

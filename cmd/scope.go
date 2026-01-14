@@ -3,7 +3,8 @@ package main
 import (
 	"strings"
 
-	"github.com/konveyor/tackle2-hub/addon/command"
+	"github.com/konveyor/tackle2-hub/shared/addon/command"
+	"github.com/konveyor/tackle2-hub/shared/api"
 )
 
 // Scope settings.
@@ -13,6 +14,14 @@ type Scope struct {
 		Included []string `json:"included,omitempty"`
 		Excluded []string `json:"excluded,omitempty"`
 	} `json:"packages"`
+}
+
+// With populates with a profile.
+func (r *Scope) With(p *api.ApScope) (err error) {
+	r.WithKnownLibs = p.WithKnownLibs
+	r.Packages.Included = p.Packages.Included
+	r.Packages.Excluded = p.Packages.Excluded
+	return
 }
 
 // AddOptions adds analyzer options.

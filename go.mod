@@ -6,7 +6,7 @@ toolchain go1.24.11
 
 require (
 	github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf
-	github.com/konveyor/tackle2-hub v0.9.0-alpha.1.0.20251202133231-c937c30f820f
+	github.com/konveyor/tackle2-hub/shared v0.0.0-20260114183229-ffd12d7dc394
 	github.com/onsi/gomega v1.31.1
 	github.com/rogpeppe/go-internal v1.14.1
 	go.lsp.dev/uri v0.3.0
@@ -44,5 +44,3 @@ require (
 	google.golang.org/grpc v1.64.1 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
-
-replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20260111170350-e1d8a5689984
