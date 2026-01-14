@@ -41,13 +41,17 @@ type Rules struct {
 }
 
 func (r *Rules) With(p *api.ApRules) (err error) {
-	// r.Identity =  TODO:
+	r.Identity = p.Identity
 	r.Repository = p.Repository
 	var target *api.Target
 	for _, ref := range p.Targets {
 		target, err = addon.Target.Get(ref.ID)
 		if err != nil {
 			return
+		}
+		if ref.Selection != "" {
+			r.Labels.Included = append(r.Labels.Included, ref.Selection)
+			continue
 		}
 		for _, label := range target.Labels {
 			r.Labels.Included = append(

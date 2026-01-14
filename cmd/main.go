@@ -42,7 +42,7 @@ type Data struct {
 	// Verbosity level.
 	Verbosity int `json:"verbosity"`
 	// Profile id.
-	Profile uint `json:"profile"`
+	Profile api.Ref `json:"profile"`
 	// Mode options.
 	Mode Mode `json:"mode"`
 	// Scope options.
@@ -130,13 +130,13 @@ func main() {
 
 // applyProfile fetch and apply profile when specified.
 func applyProfile(d *Data) (err error) {
-	if d.Profile == 0 {
+	if d.Profile.ID == 0 {
 		return
 	}
 	d.Mode = Data{}.Mode
 	d.Scope = Data{}.Scope
 	d.Rules = Data{}.Rules
-	p, err := addon.AnalysisProfile.Get(d.Profile)
+	p, err := addon.AnalysisProfile.Get(d.Profile.ID)
 	if err != nil {
 		return
 	}
