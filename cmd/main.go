@@ -90,7 +90,6 @@ func main() {
 		}
 		//
 		// Apply profile.
-		d.Profile.ID = 1
 		err = applyProfile(d)
 		if err != nil {
 			return
