@@ -5,8 +5,8 @@ import (
 	"path"
 
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
-	"github.com/konveyor/tackle2-addon/command"
-	"k8s.io/utils/env"
+	"github.com/konveyor/tackle2-hub/shared/addon/command"
+	"github.com/konveyor/tackle2-hub/shared/env"
 )
 
 var (
@@ -14,7 +14,7 @@ var (
 )
 
 func init() {
-	AnalyzerBin = env.GetString(
+	AnalyzerBin = env.Get(
 		"ANALYZER",
 		"/usr/local/bin/konveyor-analyzer")
 }

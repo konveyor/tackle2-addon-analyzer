@@ -10,10 +10,10 @@ import (
 	"strings"
 
 	"github.com/konveyor/analyzer-lsp/parser"
-	"github.com/konveyor/tackle2-addon/command"
-	"github.com/konveyor/tackle2-addon/scm"
-	"github.com/konveyor/tackle2-hub/api"
-	"github.com/konveyor/tackle2-hub/nas"
+	"github.com/konveyor/tackle2-hub/shared/addon/command"
+	"github.com/konveyor/tackle2-hub/shared/addon/scm"
+	"github.com/konveyor/tackle2-hub/shared/api"
+	"github.com/konveyor/tackle2-hub/shared/nas"
 	"github.com/rogpeppe/go-internal/semver"
 	"gopkg.in/yaml.v3"
 )
@@ -35,8 +35,43 @@ type Rules struct {
 	Identity     *api.Ref        `json:"identity"`
 	Labels       Labels          `json:"labels"`
 	RuleSets     []api.Ref       `json:"ruleSets"`
+	ruleFiles    []api.Ref
 	repositories []string
 	rules        []string
+}
+
+func (r *Rules) With(p *api.ApRules) (err error) {
+	r.Identity = p.Identity
+	r.Repository = p.Repository
+	var target *api.Target
+	for _, ref := range p.Targets {
+		target, err = addon.Target.Get(ref.ID)
+		if err != nil {
+			return
+		}
+		if target.Choice {
+			if ref.Selection != "" {
+				r.Labels.Included = append(
+					r.Labels.Included,
+					ref.Selection)
+			} else {
+				addon.Activity(
+					"[RULESET] Target (id=%d) %s: has no selection",
+					target.ID,
+					target.Name)
+			}
+		} else {
+			for _, label := range target.Labels {
+				r.Labels.Included = append(
+					r.Labels.Included,
+					label.Label)
+			}
+		}
+	}
+	r.Labels.Included = append(r.Labels.Included, p.Labels.Included...)
+	r.Labels.Excluded = p.Labels.Excluded
+	r.ruleFiles = p.Files
+	return
 }
 
 // Build assets.
@@ -78,24 +113,38 @@ func (r *Rules) AddOptions(options *command.Options) (err error) {
 
 // addFiles add uploaded rules files.
 func (r *Rules) addFiles() (err error) {
-	if r.Path == "" {
-		return
-	}
 	ruleDir := path.Join(RuleDir, "/files")
 	err = nas.MkDir(ruleDir, 0755)
 	if err != nil {
 		return
 	}
-	addon.Activity(
-		"[RULESET] fetching: %s",
-		r.Path)
-	bucket := addon.Bucket()
-	err = bucket.Get(r.Path, ruleDir)
-	if err != nil {
-		return
-	}
 	r.rules = append(r.rules, ruleDir)
 	r.repositories = append(r.repositories, ruleDir)
+	if len(r.ruleFiles) > 0 {
+		for _, ref := range r.ruleFiles {
+			fileId := strconv.Itoa(int(ref.ID))
+			dest := filepath.Join(ruleDir, fileId)
+			addon.Activity(
+				"[RULESET] fetching file: (id=%d) => %s",
+				ref.ID,
+				dest)
+			err = addon.File.Get(ref.ID, dest)
+			if err != nil {
+				return
+			}
+		}
+	} else {
+		if r.Path != "" {
+			addon.Activity(
+				"[RULESET] fetching bucket: %s",
+				r.Path)
+			bucket := addon.Bucket()
+			err = bucket.Get(r.Path, ruleDir)
+			if err != nil {
+				return
+			}
+		}
+	}
 	return
 }
 

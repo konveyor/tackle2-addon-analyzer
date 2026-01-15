@@ -5,12 +5,12 @@ import (
 	"path"
 	"time"
 
-	"github.com/gin-gonic/gin/binding"
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
-	hub "github.com/konveyor/tackle2-hub/addon"
-	"github.com/konveyor/tackle2-hub/api"
-	"github.com/konveyor/tackle2-hub/nas"
-	"k8s.io/utils/env"
+	hub "github.com/konveyor/tackle2-hub/shared/addon"
+	"github.com/konveyor/tackle2-hub/shared/api"
+	"github.com/konveyor/tackle2-hub/shared/env"
+	"github.com/konveyor/tackle2-hub/shared/nas"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -30,8 +30,8 @@ var (
 func init() {
 	Dir, _ = os.Getwd()
 	OptDir = path.Join(Dir, "opt")
-	SharedDir = env.GetString(hub.EnvSharedDir, "/tmp/shared")
-	CacheDir = env.GetString(hub.EnvCacheDir, "/tmp/cache")
+	SharedDir = env.Get(hub.EnvSharedDir, "/tmp/shared")
+	CacheDir = env.Get(hub.EnvCacheDir, "/tmp/cache")
 	SourceDir = path.Join(SharedDir, "source")
 	RuleDir = path.Join(Dir, "rules")
 	BinDir = path.Join(SharedDir, "bin")
@@ -42,6 +42,8 @@ func init() {
 type Data struct {
 	// Verbosity level.
 	Verbosity int `json:"verbosity"`
+	// Profile id.
+	Profile api.Ref `json:"profile"`
 	// Mode options.
 	Mode Mode `json:"mode"`
 	// Scope options.
@@ -87,6 +89,12 @@ func main() {
 			return
 		}
 		//
+		// Apply profile.
+		err = applyProfile(d)
+		if err != nil {
+			return
+		}
+		//
 		// Build assets.
 		err = d.Mode.Build(application)
 		if err != nil {
@@ -119,6 +127,43 @@ func main() {
 
 		return
 	})
+}
+
+// applyProfile fetch and apply profile when specified.
+func applyProfile(d *Data) (err error) {
+	if d.Profile.ID == 0 {
+		return
+	}
+	d.Mode = Data{}.Mode
+	d.Scope = Data{}.Scope
+	d.Rules = Data{}.Rules
+	p, err := addon.AnalysisProfile.Get(d.Profile.ID)
+	if err != nil {
+		return
+	}
+	b, _ := yaml.Marshal(p)
+	addon.Activity(
+		"Using profile (id=%d): %s\n%s",
+		p.ID,
+		p.Name,
+		string(b))
+	err = d.Mode.With(&p.Mode)
+	if err != nil {
+		return
+	}
+	err = d.Scope.With(&p.Scope)
+	if err != nil {
+		return
+	}
+	err = d.Rules.With(&p.Rules)
+	if err != nil {
+		return
+	}
+	b, _ = yaml.Marshal(d)
+	addon.Activity(
+		"Using configuration:\n%s",
+		string(b))
+	return
 }
 
 // updateApplication creates analysis report and updates
@@ -157,7 +202,7 @@ func updateApplication(d *Data, appId uint, insights *builder.Insights, deps *bu
 	}
 	mark := time.Now()
 	analysis := addon.Application.Analysis(appId)
-	reported, err := analysis.Create(manifest.Path, binding.MIMEYAML)
+	reported, err := analysis.Create(manifest.Path, api.MIMEYAML)
 	if err != nil {
 		return
 	}

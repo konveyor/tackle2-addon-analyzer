@@ -9,8 +9,8 @@ import (
 	"sort"
 
 	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
-	hub "github.com/konveyor/tackle2-hub/addon"
-	"github.com/konveyor/tackle2-hub/api"
+	hub "github.com/konveyor/tackle2-hub/shared/addon"
+	"github.com/konveyor/tackle2-hub/shared/api"
 	"go.lsp.dev/uri"
 	"gopkg.in/yaml.v2"
 	"k8s.io/utils/pointer"

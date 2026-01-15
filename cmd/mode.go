@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/konveyor/analyzer-lsp/provider"
-	"github.com/konveyor/tackle2-addon/command"
-	"github.com/konveyor/tackle2-addon/scm"
-	"github.com/konveyor/tackle2-hub/api"
+	"github.com/konveyor/tackle2-hub/shared/addon/command"
+	"github.com/konveyor/tackle2-hub/shared/addon/scm"
+	"github.com/konveyor/tackle2-hub/shared/api"
 )
 
 // Mode settings.
@@ -23,6 +23,12 @@ type Mode struct {
 		appDir string
 		binary string
 	}
+}
+
+// With populates with profile.
+func (r *Mode) With(p *api.ApMode) (err error) {
+	r.WithDeps = p.WithDeps
+	return
 }
 
 // Build assets.

@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/konveyor/analyzer-lsp/provider"
-	hub "github.com/konveyor/tackle2-hub/addon"
-	"github.com/konveyor/tackle2-hub/api"
+	hub "github.com/konveyor/tackle2-hub/shared/addon"
+	"github.com/konveyor/tackle2-hub/shared/api"
 	"gopkg.in/yaml.v2"
 )
 
