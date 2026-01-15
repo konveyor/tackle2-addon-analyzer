@@ -49,14 +49,23 @@ func (r *Rules) With(p *api.ApRules) (err error) {
 		if err != nil {
 			return
 		}
-		if ref.Selection != "" {
-			r.Labels.Included = append(r.Labels.Included, ref.Selection)
-			continue
-		}
-		for _, label := range target.Labels {
-			r.Labels.Included = append(
-				r.Labels.Included,
-				label.Label)
+		if target.Choice {
+			if ref.Selection != "" {
+				r.Labels.Included = append(
+					r.Labels.Included,
+					ref.Selection)
+			} else {
+				addon.Activity(
+					"[RULESET] Target (id=%d) %s: has no selection",
+					target.ID,
+					target.Name)
+			}
+		} else {
+			for _, label := range target.Labels {
+				r.Labels.Included = append(
+					r.Labels.Included,
+					label.Label)
+			}
 		}
 	}
 	r.Labels.Included = append(r.Labels.Included, p.Labels.Included...)
