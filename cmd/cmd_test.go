@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/konveyor/analyzer-lsp/provider"
+	"github.com/konveyor/tackle2-hub/shared/api"
 	"github.com/onsi/gomega"
 )
 
@@ -102,39 +103,171 @@ func TestRuleSelector(t *testing.T) {
 	g.Expect(selector.String()).To(gomega.Equal(expected))
 }
 
-func TestLabelMatch(t *testing.T) {
+func TestRulesetLabelMatch(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
-	// match name
-	included := Label("konveyor.io/target=thing")
-	rule := Label("konveyor.io/target=thing")
-	g.Expect(rule.Match(included)).To(gomega.BeTrue())
-	// name not matched.
-	included = "konveyor.io/target=dog"
-	rule = "konveyor.io/target=cat+"
-	g.Expect(rule.Match(included)).To(gomega.BeFalse())
-	// match versioned
-	included = "konveyor.io/target=thing4"
-	rule = "konveyor.io/target=thing4"
-	g.Expect(rule.Match(included)).To(gomega.BeTrue())
-	// match versioned plus
-	included = "konveyor.io/target=thing4"
-	rule = "konveyor.io/target=thing4+"
-	g.Expect(rule.Match(included)).To(gomega.BeTrue())
-	// match versioned ALL
-	included = "konveyor.io/target=thing"
-	rule = "konveyor.io/target=thing4+"
-	g.Expect(rule.Match(included)).To(gomega.BeTrue())
-	// match version greater-than
-	included = "konveyor.io/target=thing5"
-	rule = "konveyor.io/target=thing4+"
-	g.Expect(rule.Match(included)).To(gomega.BeTrue())
-	included = "konveyor.io/target=thing4.1"
-	rule = "konveyor.io/target=thing4.0+"
-	g.Expect(rule.Match(included)).To(gomega.BeTrue())
-	// match version less-than
-	included = "konveyor.io/target=thing3"
-	rule = "konveyor.io/target=thing4-"
-	g.Expect(rule.Match(included)).To(gomega.BeTrue())
+	allRuleSets := []api.RuleSet{
+		{
+			Name: "target a",
+			Rules: []api.Rule{
+				{
+					Name:   "target a",
+					Labels: []string{"konveyor.io/target=a"},
+				},
+			},
+		},
+		{
+			Name: "target b",
+			Rules: []api.Rule{
+				{
+					Name:   "target b",
+					Labels: []string{"konveyor.io/target=b"},
+				},
+			},
+		},
+		{
+			Name: "no target",
+			Rules: []api.Rule{
+				{
+					Name:   "no target",
+					Labels: []string{"konveyor.io/source=b"},
+				},
+			},
+		},
+		{
+			Name: "thing 4+",
+			Rules: []api.Rule{
+				{
+					Name:   "4.0+",
+					Labels: []string{"konveyor.io/thing=thing4.0+"},
+				},
+			},
+		},
+		{
+			Name: "thing 4-",
+			Rules: []api.Rule{
+				{
+					Name:   "4.0-",
+					Labels: []string{"konveyor.io/thing=thing4.0-"},
+				},
+			},
+		},
+	}
+
+	l := Labels{
+		Included: []string{"konveyor.io/target=a"},
+		Excluded: []string{},
+	}
+	g.Expect(l.selectedRuleSets(allRuleSets)).To(gomega.Equal([]api.RuleSet{
+		{
+			Name: "target a",
+			Rules: []api.Rule{
+				{
+					Name:   "target a",
+					Labels: []string{"konveyor.io/target=a"},
+				},
+			},
+		},
+	}))
+	l.Included = []string{"konveyor.io/target=a", "konveyor.io/target=b"}
+	g.Expect(l.selectedRuleSets(allRuleSets)).To(gomega.Equal([]api.RuleSet{
+		{
+			Name: "target a",
+			Rules: []api.Rule{
+				{
+					Name:   "target a",
+					Labels: []string{"konveyor.io/target=a"},
+				},
+			},
+		},
+		{
+			Name: "target b",
+			Rules: []api.Rule{
+				{
+					Name:   "target b",
+					Labels: []string{"konveyor.io/target=b"},
+				},
+			},
+		},
+	}))
+	l.Included = []string{"konveyor.io/target"}
+	g.Expect(l.selectedRuleSets(allRuleSets)).To(gomega.Equal([]api.RuleSet{
+		{
+			Name: "target a",
+			Rules: []api.Rule{
+				{
+					Name:   "target a",
+					Labels: []string{"konveyor.io/target=a"},
+				},
+			},
+		},
+		{
+			Name: "target b",
+			Rules: []api.Rule{
+				{
+					Name:   "target b",
+					Labels: []string{"konveyor.io/target=b"},
+				},
+			},
+		},
+	}))
+	l.Included = []string{"konveyor.io/thing=thing4"}
+	g.Expect(l.selectedRuleSets(allRuleSets)).To(gomega.Equal([]api.RuleSet{
+		{
+			Name: "thing 4+",
+			Rules: []api.Rule{
+				{
+					Name:   "4.0+",
+					Labels: []string{"konveyor.io/thing=thing4.0+"},
+				},
+			},
+		},
+		{
+			Name: "thing 4-",
+			Rules: []api.Rule{
+				{
+					Name:   "4.0-",
+					Labels: []string{"konveyor.io/thing=thing4.0-"},
+				},
+			},
+		},
+	}))
+	l.Included = []string{"konveyor.io/thing=thing5"}
+	g.Expect(l.selectedRuleSets(allRuleSets)).To(gomega.Equal([]api.RuleSet{
+		{
+			Name: "thing 4+",
+			Rules: []api.Rule{
+				{
+					Name:   "4.0+",
+					Labels: []string{"konveyor.io/thing=thing4.0+"},
+				},
+			},
+		},
+	}))
+	l.Included = []string{"konveyor.io/thing=thing4.1"}
+	g.Expect(l.selectedRuleSets(allRuleSets)).To(gomega.Equal([]api.RuleSet{
+		{
+			Name: "thing 4+",
+			Rules: []api.Rule{
+				{
+					Name:   "4.0+",
+					Labels: []string{"konveyor.io/thing=thing4.0+"},
+				},
+			},
+		},
+	}))
+	l.Included = []string{"konveyor.io/thing=thing3"}
+	g.Expect(l.selectedRuleSets(allRuleSets)).To(gomega.Equal([]api.RuleSet{
+		{
+			Name: "thing 4-",
+			Rules: []api.Rule{
+				{
+					Name:   "4.0-",
+					Labels: []string{"konveyor.io/thing=thing4.0-"},
+				},
+			},
+		},
+	}))
+
 }
 
 func TestIncidentSelector(t *testing.T) {
