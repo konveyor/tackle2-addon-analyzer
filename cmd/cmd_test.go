@@ -415,6 +415,11 @@ func TestRawInject(t *testing.T) {
 func TestProfile(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
+	var fetched struct {
+		targets []uint
+		files   []uint
+	}
+
 	// Mock the restClient.
 	richClient := binding.New("")
 	richClient.Use(&client.Stub{
@@ -481,6 +486,7 @@ func TestProfile(t *testing.T) {
 						{Label: "konveyor.io/target=B"},
 						{Label: "konveyor.io/target=C"},
 					}
+					fetched.targets = append(fetched.targets, id)
 				case 2:
 					r.ID = id
 					r.Name = "TargetB"
@@ -489,9 +495,22 @@ func TestProfile(t *testing.T) {
 						{Label: "konveyor.io/target=E"},
 						{Label: "konveyor.io/target=F"},
 					}
+					fetched.targets = append(fetched.targets, id)
 				default:
 					err = &binding.NotFound{}
 				}
+			default:
+				err = &binding.NotFound{}
+			}
+			return
+		},
+		FileGetFn: func(path, destination string) (err error) {
+			_, idStr := path2.Split(path)
+			nStr, _ := strconv.Atoi(idStr)
+			id := uint(nStr)
+			switch id {
+			case 10, 20:
+				fetched.files = append(fetched.files, id)
 			default:
 				err = &binding.NotFound{}
 			}
@@ -513,11 +532,14 @@ func TestProfile(t *testing.T) {
 			}
 			return
 		},
+		IsDirFn: func(path string, must bool) (isDir bool, err error) {
+			return
+		},
 	})
 	addon.Use(richClient)
 	addon.Load()
 
-	// Test
+	// Test profile applied.
 	d := Data{}
 	d.Profile = api.Ref{ID: 1}
 	err := applyProfile(&d)
@@ -563,4 +585,10 @@ func TestProfile(t *testing.T) {
 		{ID: 20},
 	}
 	g.Expect(d2).To(gomega.Equal(d))
+	g.Expect(fetched.targets).To(gomega.Equal([]uint{1, 2}))
+
+	// Test files fetched.
+	err = d2.Rules.addFiles()
+	g.Expect(err).To(gomega.BeNil())
+	g.Expect(fetched.files).To(gomega.Equal([]uint{10, 20}))
 }
