@@ -105,9 +105,9 @@ func (r *Tagger) ensureTags(catMap map[string]uint, tags []string) (tagIds []uin
 
 // ensureAssociated ensure wanted tags are associated.
 func (r *Tagger) ensureAssociated(appID uint, wanted []uint) (err error) {
-	tags := addon.Application.Tags(appID)
-	tags.Source(r.Source)
-	err = tags.Replace(wanted)
+	err = addon.Application.Select(appID).
+		Tag.Source(r.Source).
+		Replace(wanted)
 	return
 }
 

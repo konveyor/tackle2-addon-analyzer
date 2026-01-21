@@ -201,16 +201,19 @@ func updateApplication(d *Data, appId uint, insights *builder.Insights, deps *bu
 		return
 	}
 	mark := time.Now()
-	analysis := addon.Application.Analysis(appId)
-	reported, err := analysis.Create(manifest.Path, api.MIMEYAML)
+	reported, err := addon.Application.
+		Select(appId).
+		Analysis.
+		Upload(manifest.Path, api.MIMEYAML)
 	if err != nil {
 		return
 	}
 	addon.Activity("Analysis %d reported. duration: %s", reported.ID, time.Since(mark))
 	// Facts.
-	facts := addon.Application.Facts(appId)
-	facts.Source(Source)
-	err = facts.Replace(insights.Facts())
+	err = addon.Application.Select(appId).
+		Fact.
+		Source(Source).
+		Replace(insights.Facts())
 	if err == nil {
 		addon.Activity("Facts updated.")
 	}
