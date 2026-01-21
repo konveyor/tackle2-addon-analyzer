@@ -14,6 +14,8 @@ require (
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4
 )
 
+replace github.com/konveyor/tackle2-hub/shared => github.com/jortel/tackle2-hub/shared v0.0.0-20260121200052-05e634b16aaf
+
 require (
 	github.com/PaesslerAG/gval v1.2.2 // indirect
 	github.com/cbroglie/mustache v1.3.0 // indirect

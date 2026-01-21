@@ -36,10 +36,10 @@ github.com/iancoleman/orderedmap v0.3.0 h1:5cbR2grmZR/DiVt+VJopEhtVs9YGInGIxAoMJ
 github.com/iancoleman/orderedmap v0.3.0/go.mod h1:XuLcCUkdL5owUCQeF2Ue9uuw1EptkJDkXXS7VoV7XGE=
 github.com/jortel/go-utils v0.1.5 h1:fBkvlojnbrx5rqJt+1fx9dlGV5NjjnCyGgWyXsQ12Ws=
 github.com/jortel/go-utils v0.1.5/go.mod h1:R9W67T6eTYPcofmSuvvv3lOcNuF4zh7ZoBfaoTA9zss=
+github.com/jortel/tackle2-hub/shared v0.0.0-20260121200052-05e634b16aaf h1:MDO0moLSV5xg5SJpKD0bIxvDI/YppGYKMH3TR16iSBo=
+github.com/jortel/tackle2-hub/shared v0.0.0-20260121200052-05e634b16aaf/go.mod h1:kJBH9U7Lcn7p3o0etF7O2S6dnERX50ekAfi2PCwKyng=
 github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf h1:zzDuUJmF2wGW1ra+upIMHHEKC9MUfjvD5Ehm4jaX188=
 github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf/go.mod h1:/7nwwqN27iODJy/PBai9W16KH91LrPGx1nwu21+rCOg=
-github.com/konveyor/tackle2-hub/shared v0.0.0-20260121050245-2a2b5ac9f766 h1:4eHUkGDKdL6xsPwivaezn7CeBQ2h2qpcnszskhGPQ7k=
-github.com/konveyor/tackle2-hub/shared v0.0.0-20260121050245-2a2b5ac9f766/go.mod h1:kJBH9U7Lcn7p3o0etF7O2S6dnERX50ekAfi2PCwKyng=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
