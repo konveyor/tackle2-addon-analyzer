@@ -6,15 +6,13 @@ toolchain go1.24.11
 
 require (
 	github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf
-	github.com/konveyor/tackle2-hub/shared v0.0.0-20260121050245-2a2b5ac9f766
+	github.com/konveyor/tackle2-hub/shared v0.0.0-20260122125754-9ed5ba1a71b1
 	github.com/onsi/gomega v1.31.1
 	go.lsp.dev/uri v0.3.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4
 )
-
-replace github.com/konveyor/tackle2-hub/shared => github.com/jortel/tackle2-hub/shared v0.0.0-20260121200052-05e634b16aaf
 
 require (
 	github.com/PaesslerAG/gval v1.2.2 // indirect
