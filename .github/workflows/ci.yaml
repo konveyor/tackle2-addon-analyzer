@@ -6,11 +6,25 @@ on:
   pull_request:
 
 jobs:
+  test-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.24'
+
+      - name: Run unit tests
+        run: make test
+
   build-and-upload-for-global-ci:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
 
       - name: save tackle2-addon-analyzer image
         run: |
@@ -23,9 +37,8 @@ jobs:
           name: tackle2-addon-analyzer
           path: /tmp/tackle2-addon-analyzer.tar
           retention-days: 1
-
   test-integration:
-    needs: build-and-upload-for-global-ci
+    needs: [test-unit, build-and-upload-for-global-ci]
     uses: konveyor/ci/.github/workflows/global-ci.yml@main
     with:
       component_name: tackle2-addon-analyzer

@@ -75,7 +75,7 @@ func (r *Mode) fetchRepository(application *api.Application) (err error) {
 		return
 	}
 	identity, _, err :=
-		addon.Application.Identity(application.ID).Search().
+		addon.Application.Select(application.ID).Identity.Search().
 			Direct("source").
 			Indirect("source").
 			Find()

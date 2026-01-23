@@ -2,10 +2,14 @@ package main
 
 import (
 	"errors"
+	path2 "path"
+	"strconv"
 	"testing"
 
 	"github.com/konveyor/analyzer-lsp/provider"
 	"github.com/konveyor/tackle2-hub/shared/api"
+	"github.com/konveyor/tackle2-hub/shared/binding"
+	"github.com/konveyor/tackle2-hub/shared/binding/client"
 	"github.com/onsi/gomega"
 )
 
@@ -406,4 +410,185 @@ func TestRawInject(t *testing.T) {
 	}
 	md2 := inj.inject(md).(map[string]any)
 	g.Expect(md2["Location"]).To(gomega.Equal(path))
+}
+
+func TestProfile(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	var fetched struct {
+		targets []uint
+		files   []uint
+	}
+
+	// Mock the restClient.
+	richClient := binding.New("")
+	richClient.Use(&client.Stub{
+		GetFn: func(path string, object any, _ ...binding.Param) (err error) {
+			_, idStr := path2.Split(path)
+			nStr, _ := strconv.Atoi(idStr)
+			id := uint(nStr)
+			switch r := object.(type) {
+			case *api.Task:
+			case *api.AnalysisProfile:
+				r.ID = id
+				r.Name = "Test"
+				r.Mode = api.ApMode{
+					WithDeps: true,
+				}
+				r.Scope = api.ApScope{
+					WithKnownLibs: true,
+					Packages: api.InExList{
+						Included: []string{
+							"pA",
+							"pB",
+						},
+						Excluded: []string{
+							"pC",
+							"pD",
+						},
+					},
+				}
+				r.Rules = api.ApRules{
+					Targets: []api.ApTargetRef{
+						{ID: 1},
+						{ID: 2},
+					},
+					Labels: api.InExList{
+						Included: []string{
+							"tA",
+							"tB",
+						},
+						Excluded: []string{
+							"tC",
+							"tD",
+						},
+					},
+					Files: []api.Ref{
+						{ID: 10},
+						{ID: 20},
+					},
+					Repository: &api.Repository{
+						URL:    "http://rules.com/pub",
+						Branch: "master",
+						Path:   "test",
+					},
+					Identity: &api.Ref{
+						ID: 30,
+					},
+				}
+			case *api.Target:
+				switch id {
+				case 1:
+					r.ID = id
+					r.Name = "TargetA"
+					r.Labels = []api.TargetLabel{
+						{Label: "konveyor.io/target=A"},
+						{Label: "konveyor.io/target=B"},
+						{Label: "konveyor.io/target=C"},
+					}
+					fetched.targets = append(fetched.targets, id)
+				case 2:
+					r.ID = id
+					r.Name = "TargetB"
+					r.Labels = []api.TargetLabel{
+						{Label: "konveyor.io/target=D"},
+						{Label: "konveyor.io/target=E"},
+						{Label: "konveyor.io/target=F"},
+					}
+					fetched.targets = append(fetched.targets, id)
+				default:
+					err = &binding.NotFound{}
+				}
+			default:
+				err = &binding.NotFound{}
+			}
+			return
+		},
+		FileGetFn: func(path, destination string) (err error) {
+			_, idStr := path2.Split(path)
+			nStr, _ := strconv.Atoi(idStr)
+			id := uint(nStr)
+			switch id {
+			case 10, 20:
+				fetched.files = append(fetched.files, id)
+			default:
+				err = &binding.NotFound{}
+			}
+			return
+		},
+		PostFn: func(path string, object any) (err error) {
+			switch object.(type) {
+			case *api.TaskReport:
+			default:
+				err = &binding.NotFound{}
+			}
+			return
+		},
+		PutFn: func(path string, object any, _ ...binding.Param) (err error) {
+			switch object.(type) {
+			case *api.TaskReport:
+			default:
+				err = &binding.NotFound{}
+			}
+			return
+		},
+		IsDirFn: func(path string, must bool) (isDir bool, err error) {
+			return
+		},
+	})
+	addon.Use(richClient)
+	addon.Load()
+
+	// Test profile applied.
+	d := Data{}
+	d.Profile = api.Ref{ID: 1}
+	err := applyProfile(&d)
+	g.Expect(err).To(gomega.BeNil())
+
+	// Validate the profile has been applied to the Data.
+	d2 := Data{}
+	d2.Profile = api.Ref{ID: 1}
+	d2.Mode.WithDeps = true
+	d2.Scope.WithKnownLibs = true
+	d2.Scope.Packages.Included = []string{
+		"pA",
+		"pB",
+	}
+	d2.Scope.Packages.Excluded = []string{
+		"pC",
+		"pD",
+	}
+	d2.Rules.Repository = &api.Repository{
+		URL:    "http://rules.com/pub",
+		Branch: "master",
+		Path:   "test",
+	}
+	d2.Rules.Labels.Included = []string{
+		"konveyor.io/target=A",
+		"konveyor.io/target=B",
+		"konveyor.io/target=C",
+		"konveyor.io/target=D",
+		"konveyor.io/target=E",
+		"konveyor.io/target=F",
+		"tA",
+		"tB",
+	}
+	d2.Rules.Labels.Excluded = []string{
+		"tC",
+		"tD",
+	}
+	d2.Rules.Identity = &api.Ref{
+		ID: 30,
+	}
+	d2.Rules.ruleFiles = []api.Ref{
+		{ID: 10},
+		{ID: 20},
+	}
+	g.Expect(d2).To(gomega.Equal(d))
+	g.Expect(fetched.targets).To(gomega.Equal([]uint{1, 2}))
+
+	// Test files fetched.
+	err = d2.Rules.addFiles()
+	g.Expect(err).To(gomega.BeNil())
+	g.Expect(fetched.files).To(gomega.Equal([]uint{10, 20}))
 }
