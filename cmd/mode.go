@@ -53,7 +53,6 @@ func (r *Mode) AddOptions(options *command.Options, settings *Settings) (err err
 		settings.Mode(provider.FullAnalysisMode)
 	} else {
 		settings.Mode(provider.SourceOnlyAnalysisMode)
-		options.Add("--no-dependency-rules")
 	}
 	return
 }
