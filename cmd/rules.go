@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	liberr "github.com/jortel/go-utils/error"
 	"github.com/konveyor/analyzer-lsp/engine/labels"
 	"github.com/konveyor/analyzer-lsp/parser"
 	"github.com/konveyor/tackle2-hub/shared/addon/command"
@@ -400,10 +401,15 @@ func (r *Labels) RuleSets() (matched []api.RuleSet, err error) {
 	return
 }
 
-// selectedRuleSets returns rulesets that matches the included labels.
+// selectedRuleSets returns rulesets that match the included labels.
 func (r *Labels) selectedRuleSets(allRuleSets []api.RuleSet) (sets []api.RuleSet, err error) {
-	selector, err := labels.NewLabelSelector[*ruleSetLabels](strings.Join(r.Included, " || "), nil)
+	if len(r.Included) == 0 {
+		return
+	}
+	expression := strings.Join(r.Included, " || ")
+	selector, err := labels.NewLabelSelector[*ruleSetLabels](expression, nil)
 	if err != nil {
+		err = liberr.Wrap(err)
 		return
 	}
 	for _, ruleSet := range allRuleSets {
