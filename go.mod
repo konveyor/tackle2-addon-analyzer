@@ -6,7 +6,7 @@ toolchain go1.24.11
 
 require (
 	github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf
-	github.com/konveyor/tackle2-hub/shared v0.0.0-20260122125754-9ed5ba1a71b1
+	github.com/konveyor/tackle2-hub/shared v0.0.0-20260128154334-ba5e9559613b
 	github.com/onsi/gomega v1.31.1
 	go.lsp.dev/uri v0.3.0
 	gopkg.in/yaml.v2 v2.4.0
