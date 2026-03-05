@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
+	"github.com/konveyor/tackle2-addon-analyzer/pkg/progress"
 	hub "github.com/konveyor/tackle2-hub/shared/addon"
 	"github.com/konveyor/tackle2-hub/shared/api"
 	"github.com/konveyor/tackle2-hub/shared/env"
@@ -106,8 +107,11 @@ func main() {
 		}
 		//
 		// Run the analyzer.
+
+		reporter := progress.NewAddonReporter(addon)
 		analyzer := Analyzer{}
 		analyzer.Data = d
+		analyzer.Reporter = reporter
 		insights, deps, err := analyzer.Run()
 		if err != nil {
 			return

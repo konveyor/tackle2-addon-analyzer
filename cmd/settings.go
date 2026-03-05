@@ -24,7 +24,7 @@ const (
 // Settings - provider settings file.
 type Settings struct {
 	index   int
-	content []provider.Config
+	Configs []provider.Config
 }
 
 // Read file.
@@ -37,11 +37,11 @@ func (r *Settings) Read() (err error) {
 		_ = f.Close()
 	}()
 	b, err := io.ReadAll(f)
-	err = yaml.Unmarshal(b, &r.content)
+	err = yaml.Unmarshal(b, &r.Configs)
 	if err != nil {
 		return
 	}
-	r.index = len(r.content)
+	r.index = len(r.Configs)
 	return
 }
 
@@ -64,7 +64,7 @@ func (r *Settings) AppendExtensions(mode *Mode) (err error) {
 		if err != nil {
 			return
 		}
-		r.content = append(r.content, md.Provider)
+		r.Configs = append(r.Configs, md.Provider)
 	}
 	return
 }
@@ -78,7 +78,7 @@ func (r *Settings) Write() (err error) {
 	defer func() {
 		_ = f.Close()
 	}()
-	b, err := yaml.Marshal(r.content)
+	b, err := yaml.Marshal(r.Configs)
 	if err != nil {
 		return
 	}
@@ -88,7 +88,7 @@ func (r *Settings) Write() (err error) {
 
 // Mode update the mode on each provider.
 func (r *Settings) Mode(mode provider.AnalysisMode) {
-	extensions := r.content[r.index:]
+	extensions := r.Configs[r.index:]
 	for i := range extensions {
 		p := extensions[i]
 		for i := range p.InitConfig {
@@ -123,7 +123,7 @@ func (r *Settings) ProxySettings() (err error) {
 	if len(http)+len(https) == 0 {
 		return
 	}
-	extensions := r.content[r.index:]
+	extensions := r.Configs[r.index:]
 	for i := range extensions {
 		p := &extensions[i]
 		p.Proxy = &provider.Proxy{
@@ -192,8 +192,8 @@ func (r *Settings) path() (p string) {
 
 // hasProvider returns true when the provider found.
 func (r *Settings) hasProvider(p *provider.Config) (found bool) {
-	for i := range r.content {
-		if r.content[i].Name == p.Name {
+	for i := range r.Configs {
+		if r.Configs[i].Name == p.Name {
 			found = true
 			break
 		}

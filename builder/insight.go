@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"os"
 	"sort"
 
+	"github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	output "github.com/konveyor/analyzer-lsp/output/v1/konveyor"
 	hub "github.com/konveyor/tackle2-hub/shared/addon"
 	"github.com/konveyor/tackle2-hub/shared/api"
 	"go.lsp.dev/uri"
-	"gopkg.in/yaml.v2"
 	"k8s.io/utils/pointer"
 )
 
@@ -21,9 +20,10 @@ var (
 )
 
 // NewInsights returns a new insights builder.
-func NewInsights(path string) (b *Insights, err error) {
-	b = &Insights{}
-	err = b.read(path)
+func NewInsights(o []konveyor.RuleSet) (b *Insights, err error) {
+	b = &Insights{
+		input: o,
+	}
 	return
 }
 
@@ -123,21 +123,6 @@ func (b *Insights) Write(writer io.Writer) (err error) {
 	wr.Write(api.EndInsightsMarker)
 	wr.Write("\n")
 	err = wr.Error()
-	return
-}
-
-// read ruleSets.
-func (b *Insights) read(path string) (err error) {
-	b.input = []output.RuleSet{}
-	f, err := os.Open(path)
-	if err != nil {
-		return
-	}
-	defer func() {
-		_ = f.Close()
-	}()
-	d := yaml.NewDecoder(f)
-	err = d.Decode(&b.input)
 	return
 }
 

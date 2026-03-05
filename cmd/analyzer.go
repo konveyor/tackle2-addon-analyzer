@@ -4,45 +4,81 @@ import (
 	"os"
 	"path"
 
+	"github.com/jortel/go-utils/logr"
+	"github.com/konveyor/analyzer-lsp/konveyor"
+	"github.com/konveyor/analyzer-lsp/progress"
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
-	"github.com/konveyor/tackle2-hub/shared/addon/command"
-	"github.com/konveyor/tackle2-hub/shared/env"
+	"gopkg.in/yaml.v2"
 )
-
-var (
-	AnalyzerBin = ""
-)
-
-func init() {
-	AnalyzerBin = env.Get(
-		"ANALYZER",
-		"/usr/local/bin/konveyor-analyzer")
-}
 
 // Analyzer application analyzer.
 type Analyzer struct {
 	*Data
+	Reporter progress.Reporter
 }
 
 // Run analyzer.
 func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err error) {
-	output := path.Join(Dir, "insights.yaml")
+
+	analyzerOpts, err := r.options()
+	if err != nil {
+		return
+	}
+	log := logr.New("analyzer", r.Verbosity+4)
+	analyzerOpts = append(analyzerOpts, konveyor.WithLogger(log))
+
+	if r.Reporter != nil {
+		analyzerOpts = append(analyzerOpts, konveyor.WithReporters(r.Reporter))
+	}
+	analyzer, err := konveyor.NewAnalyzer(analyzerOpts...)
+	if err != nil {
+		return
+	}
+	defer analyzer.Stop()
+
+	_, err = analyzer.ParseRules()
+	if err != nil {
+		return
+	}
+
+	err = analyzer.ProviderStart()
+	if err != nil {
+		return
+	}
+
+	for _, p := range analyzer.GetProviders() {
+		log.Info("capabilities", "caps", p.Capabilities())
+	}
+
 	depOutput := path.Join(Dir, "deps.yaml")
-	cmd := command.New(AnalyzerBin)
-	cmd.Options, err = r.options(output, depOutput)
-	if err != nil {
-		return
+	output := path.Join(Dir, "insights.yaml")
+
+	if !r.Data.Mode.Discovery {
+		go func() {
+			analyzer.GetDependencies(depOutput, false)
+		}()
 	}
+	results := analyzer.Run()
+
 	if Verbosity > 0 {
-		if w, cast := cmd.Writer.(*command.Writer); cast {
-			w.Reporter().Verbosity = command.LiveOutput
+		// Create the files and post
+		i, mErr := yaml.Marshal(results)
+		if mErr != nil {
+			err = mErr
+			return
 		}
-	}
-	err = cmd.Run()
-	if err != nil {
-		return
-	}
-	if Verbosity > 0 {
+		file, cErr := os.Create(output)
+		if cErr != nil {
+			err = cErr
+			return
+		}
+		_, wErr := file.Write(i)
+		file.Close()
+		if wErr != nil {
+			err = wErr
+			return
+		}
+
 		f, pErr := addon.File.Post(output)
 		if pErr != nil {
 			err = pErr
@@ -58,7 +94,7 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 			addon.Attach(f)
 		}
 	}
-	insights, err = builder.NewInsights(output)
+	insights, err = builder.NewInsights(results)
 	if err != nil {
 		return
 	}
@@ -70,49 +106,37 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 }
 
 // options builds Analyzer options.
-func (r *Analyzer) options(output, depOutput string) (options command.Options, err error) {
-	settings := &Settings{}
-	err = settings.AppendExtensions(&r.Mode)
+func (r *Analyzer) options() (options []konveyor.AnalyzerOption, err error) {
+
+	options = append(options, r.Mode.ToOption())
+	options = append(options, r.Rules.ToOptions()...)
 	if err != nil {
 		return
 	}
-	options = command.Options{
-		"--provider-settings",
-		settings.path(),
-		"--output-file",
-		output,
-	}
-	if !r.Data.Mode.Discovery {
-		options.Add("--dep-output-file", depOutput)
-	}
-	err = r.Tagger.AddOptions(&options)
+	options = append(options, r.Scope.ToOptions(r.Mode)...)
 	if err != nil {
 		return
 	}
-	err = r.Mode.AddOptions(&options, settings)
-	if err != nil {
-		return
-	}
-	err = r.Rules.AddOptions(&options)
-	if err != nil {
-		return
-	}
-	err = r.Scope.AddOptions(&options, r.Mode)
-	if err != nil {
-		return
-	}
+	settings := Settings{}
 	err = settings.ProxySettings()
 	if err != nil {
 		return
 	}
-	err = settings.Write()
+	err = settings.AppendExtensions(&r.Mode)
 	if err != nil {
 		return
 	}
-	f, err := addon.File.Post(settings.path())
-	if err != nil {
-		return
+	if r.Verbosity > 0 {
+		err = settings.Write()
+		if err != nil {
+			return
+		}
+		f, pErr := addon.File.Post(settings.path())
+		if pErr != nil {
+			return
+		}
+		addon.Attach(f)
 	}
-	addon.Attach(f)
+	options = append(options, konveyor.WithProviderConfigs(settings.Configs))
 	return
 }

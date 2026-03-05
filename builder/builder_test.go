@@ -166,7 +166,7 @@ func TestInsightBuilder(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	builder, err := NewInsights(f.Name())
+	builder, err := NewInsights(report)
 	g.Expect(err).To(gomega.BeNil())
 
 	bfr := bytes.NewBuffer([]byte{})
