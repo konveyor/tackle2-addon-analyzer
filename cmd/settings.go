@@ -165,7 +165,7 @@ func (r *Settings) getProxy(kind string) (url string, excluded []string, err err
 		return
 	}
 	if p.Identity != nil {
-		id, err = addon.Identity.Get(p.Identity.ID)
+		id, err = addon.Identity.Decrypted().Get(p.Identity.ID)
 		if err == nil {
 			user = id.User
 			password = id.Password
