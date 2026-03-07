@@ -124,11 +124,6 @@ func main() {
 		}
 
 		addon.Activity("Done.")
-		if !d.Mode.Discovery {
-			addon.Activity("SLEEPING (1) hour.")
-			time.Sleep(time.Hour)
-		}
-
 		return
 	})
 }
