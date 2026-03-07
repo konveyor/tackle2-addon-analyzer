@@ -423,7 +423,7 @@ func TestProfile(t *testing.T) {
 	// Mock the restClient.
 	richClient := binding.New("")
 	richClient.Use(&client.Stub{
-		GetFn: func(path string, object any, _ ...binding.Param) (err error) {
+		DoGet: func(path string, object any, _ ...binding.Param) (err error) {
 			_, idStr := path2.Split(path)
 			nStr, _ := strconv.Atoi(idStr)
 			id := uint(nStr)
@@ -504,7 +504,7 @@ func TestProfile(t *testing.T) {
 			}
 			return
 		},
-		FileGetFn: func(path, destination string) (err error) {
+		DoFileGet: func(path, destination string) (err error) {
 			_, idStr := path2.Split(path)
 			nStr, _ := strconv.Atoi(idStr)
 			id := uint(nStr)
@@ -516,7 +516,7 @@ func TestProfile(t *testing.T) {
 			}
 			return
 		},
-		PostFn: func(path string, object any) (err error) {
+		DoPost: func(path string, object any) (err error) {
 			switch object.(type) {
 			case *api.TaskReport:
 			default:
@@ -524,7 +524,7 @@ func TestProfile(t *testing.T) {
 			}
 			return
 		},
-		PutFn: func(path string, object any, _ ...binding.Param) (err error) {
+		DoPut: func(path string, object any, _ ...binding.Param) (err error) {
 			switch object.(type) {
 			case *api.TaskReport:
 			default:
@@ -532,7 +532,7 @@ func TestProfile(t *testing.T) {
 			}
 			return
 		},
-		IsDirFn: func(path string, must bool) (isDir bool, err error) {
+		DoIsDir: func(path string, must bool) (isDir bool, err error) {
 			return
 		},
 	})
