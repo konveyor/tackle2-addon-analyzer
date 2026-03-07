@@ -5,8 +5,9 @@ go 1.24.0
 toolchain go1.24.11
 
 require (
+	github.com/jortel/go-utils v0.1.5
 	github.com/konveyor/analyzer-lsp v0.7.0-alpha.2.0.20250528164516-ec5a199590bf
-	github.com/konveyor/tackle2-hub/shared v0.0.0-20260306170918-3a8c8be2a7b7
+	github.com/konveyor/tackle2-hub/shared v0.0.0-20260306231449-91eaaa65805c
 	github.com/onsi/gomega v1.31.1
 	go.lsp.dev/uri v0.3.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -23,7 +24,6 @@ require (
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
-	github.com/jortel/go-utils v0.1.5 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
