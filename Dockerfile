@@ -3,7 +3,7 @@ ENV GOPATH=$APP_ROOT
 COPY --chown=1001:0 . .
 RUN make cmd
 
-FROM quay.io/konveyor/analyzer-lsp:latest
+FROM registry.access.redhat.com/ubi9/ubi-minimal
 USER root
 RUN microdnf -y install \
  glibc-langpack-en \

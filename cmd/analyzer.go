@@ -6,15 +6,14 @@ import (
 
 	"github.com/jortel/go-utils/logr"
 	"github.com/konveyor/analyzer-lsp/konveyor"
-	"github.com/konveyor/analyzer-lsp/progress"
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
+	addonprogress "github.com/konveyor/tackle2-addon-analyzer/progress"
 	"gopkg.in/yaml.v2"
 )
 
 // Analyzer application analyzer.
 type Analyzer struct {
 	*Data
-	Reporter progress.Reporter
 }
 
 // Run analyzer.
@@ -27,9 +26,7 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 	log := logr.New("analyzer", r.Verbosity+4)
 	analyzerOpts = append(analyzerOpts, konveyor.WithLogger(log))
 
-	if r.Reporter != nil {
-		analyzerOpts = append(analyzerOpts, konveyor.WithReporters(r.Reporter))
-	}
+	analyzerOpts = append(analyzerOpts, konveyor.WithReporters(addonprogress.NewAddonReporter(addon)))
 	analyzer, err := konveyor.NewAnalyzer(analyzerOpts...)
 	if err != nil {
 		return
@@ -53,12 +50,14 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 	depOutput := path.Join(Dir, "deps.yaml")
 	output := path.Join(Dir, "insights.yaml")
 
-	if !r.Data.Mode.Discovery {
-		go func() {
-			analyzer.GetDependencies(depOutput, false)
-		}()
-	}
 	results := analyzer.Run()
+	if !r.Data.Mode.Discovery {
+		depErr := analyzer.GetDependencies(depOutput, false)
+		if depErr != nil {
+			err = depErr
+			return
+		}
+	}
 
 	if Verbosity > 0 {
 		// Create the files and post
@@ -110,13 +109,7 @@ func (r *Analyzer) options() (options []konveyor.AnalyzerOption, err error) {
 
 	options = append(options, r.Mode.ToOption())
 	options = append(options, r.Rules.ToOptions()...)
-	if err != nil {
-		return
-	}
 	options = append(options, r.Scope.ToOptions(r.Mode)...)
-	if err != nil {
-		return
-	}
 	settings := Settings{}
 	err = settings.ProxySettings()
 	if err != nil {
