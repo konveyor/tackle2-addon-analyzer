@@ -5,7 +5,7 @@ import (
 	"path"
 
 	"github.com/jortel/go-utils/logr"
-	"github.com/konveyor/analyzer-lsp/konveyor"
+	"github.com/konveyor/analyzer-lsp/core"
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
 	addonprogress "github.com/konveyor/tackle2-addon-analyzer/progress"
 	"gopkg.in/yaml.v2"
@@ -24,10 +24,10 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 		return
 	}
 	log := logr.New("analyzer", r.Verbosity+4)
-	analyzerOpts = append(analyzerOpts, konveyor.WithLogger(log))
+	analyzerOpts = append(analyzerOpts, core.WithLogger(log))
 
-	analyzerOpts = append(analyzerOpts, konveyor.WithReporters(addonprogress.NewAddonReporter(addon)))
-	analyzer, err := konveyor.NewAnalyzer(analyzerOpts...)
+	analyzerOpts = append(analyzerOpts, core.WithReporters(addonprogress.NewAddonReporter(addon)))
+	analyzer, err := core.NewAnalyzer(analyzerOpts...)
 	if err != nil {
 		return
 	}
@@ -105,7 +105,7 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 }
 
 // options builds Analyzer options.
-func (r *Analyzer) options() (options []konveyor.AnalyzerOption, err error) {
+func (r *Analyzer) options() (options []core.AnalyzerOption, err error) {
 
 	options = append(options, r.Mode.ToOption())
 	options = append(options, r.Rules.ToOptions()...)
@@ -130,6 +130,6 @@ func (r *Analyzer) options() (options []konveyor.AnalyzerOption, err error) {
 		}
 		addon.Attach(f)
 	}
-	options = append(options, konveyor.WithProviderConfigs(settings.Configs))
+	options = append(options, core.WithProviderConfigs(settings.Configs))
 	return
 }

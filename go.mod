@@ -60,4 +60,4 @@ require (
 	google.golang.org/protobuf v1.36.6 // indirect
 )
 
-replace github.com/konveyor/analyzer-lsp => github.com/shawn-hurley/analyzer-lsp v0.0.0-20260305222833-ef3a50baa63c
+replace github.com/konveyor/analyzer-lsp => github.com/shawn-hurley/analyzer-lsp v0.0.0-20260311165113-301f830fe3a5

@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 
-	"github.com/konveyor/analyzer-lsp/konveyor"
+	"github.com/konveyor/analyzer-lsp/core"
 	"github.com/konveyor/tackle2-hub/shared/api"
 )
 
@@ -25,20 +25,20 @@ func (r *Scope) With(p *api.ApScope) (err error) {
 }
 
 // AddOptions adds analyzer options.
-func (r *Scope) ToOptions(mode Mode) (options []konveyor.AnalyzerOption) {
+func (r *Scope) ToOptions(mode Mode) (options []core.AnalyzerOption) {
 	// If withDeps is false, we are only every doing source analysis
 	// adding a dep label selector is strictly wrong in this situation
 	if mode.WithDeps {
 		// We want to filter out open source violations when we are not running
 		// with known libraries.
 		if !r.WithKnownLibs {
-			options = append(options, konveyor.WithDepLabelSelector("!konveyor.io/dep-source=open-source"))
+			options = append(options, core.WithDepLabelSelector("!konveyor.io/dep-source=open-source"))
 		}
 
 	}
 	selector := r.incidentSelector()
 	if selector != "" {
-		options = append(options, konveyor.WithIncidentSelector(selector))
+		options = append(options, core.WithIncidentSelector(selector))
 	}
 	return
 }
