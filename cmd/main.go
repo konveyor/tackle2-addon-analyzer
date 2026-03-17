@@ -124,7 +124,6 @@ func main() {
 		}
 
 		addon.Activity("Done.")
-
 		return
 	})
 }

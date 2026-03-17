@@ -346,7 +346,9 @@ func (r *ResourceInjector) build(md *Metadata) (err error) {
 		switch strings.ToLower(parsed.kind) {
 		case "identity":
 			identity, found, nErr :=
-				addon.Application.Identity(application.ID).Search().
+				addon.Application.Select(application.ID).Identity.
+					Decrypted().
+					Search().
 					Direct(parsed.value).
 					Indirect(parsed.value).
 					Find()
