@@ -59,6 +59,7 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 		}
 	}
 
+	_, statErr := os.Stat(depOutput)
 	if Verbosity > 0 {
 		// Create the files and post
 		i, mErr := yaml.Marshal(results)
@@ -84,7 +85,7 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 			return
 		}
 		addon.Attach(f)
-		if _, stErr := os.Stat(depOutput); stErr == nil {
+		if statErr == nil {
 			f, pErr = addon.File.Post(depOutput)
 			if pErr != nil {
 				err = pErr
@@ -97,9 +98,11 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 	if err != nil {
 		return
 	}
-	deps, err = builder.NewDeps(depOutput)
-	if err != nil {
-		return
+	if statErr == nil {
+		deps, err = builder.NewDeps(depOutput)
+		if err != nil {
+			return
+		}
 	}
 	return
 }
