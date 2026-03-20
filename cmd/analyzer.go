@@ -127,6 +127,7 @@ func (r *Analyzer) options() (options []core.AnalyzerOption, err error) {
 		}
 		f, pErr := addon.File.Post(settings.path())
 		if pErr != nil {
+			err = pErr
 			return
 		}
 		addon.Attach(f)

@@ -50,10 +50,10 @@ func (r *Mode) Build(application *api.Application) (err error) {
 // AddOptions adds analyzer options.
 func (r *Mode) ToOption() (option core.AnalyzerOption) {
 	if r.WithDeps {
-		addon.Activity("[ANAYLZER] using source mode analysis")
+		addon.Activity("[ANAYLZER] using full analysis mode")
 		option = core.WithAnalysisMode(string(provider.FullAnalysisMode))
 	} else {
-		addon.Activity("[ANAYLZER] using source mode analysis")
+		addon.Activity("[ANAYLZER] using source analysis mode")
 		option = core.WithAnalysisMode(string(provider.SourceOnlyAnalysisMode))
 	}
 	return

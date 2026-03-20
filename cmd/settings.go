@@ -37,6 +37,9 @@ func (r *Settings) Read() (err error) {
 		_ = f.Close()
 	}()
 	b, err := io.ReadAll(f)
+	if err != nil {
+		return err
+	}
 	err = yaml.Unmarshal(b, &r.Configs)
 	if err != nil {
 		return
