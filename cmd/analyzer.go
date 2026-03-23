@@ -112,11 +112,11 @@ func (r *Analyzer) options() (options []core.AnalyzerOption, err error) {
 	options = append(options, r.Rules.ToOptions()...)
 	options = append(options, r.Scope.ToOptions(r.Mode)...)
 	settings := Settings{}
-	err = settings.ProxySettings()
+	err = settings.AppendExtensions(&r.Mode)
 	if err != nil {
 		return
 	}
-	err = settings.AppendExtensions(&r.Mode)
+	err = settings.ProxySettings()
 	if err != nil {
 		return
 	}
