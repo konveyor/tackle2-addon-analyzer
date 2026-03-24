@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jortel/go-utils/logr"
 	"github.com/konveyor/analyzer-lsp/provider"
 	hub "github.com/konveyor/tackle2-hub/shared/addon"
 	"github.com/konveyor/tackle2-hub/shared/api"
@@ -50,14 +51,17 @@ func (r *Settings) Read() (err error) {
 
 // AppendExtensions adds extension fragments.
 func (r *Settings) AppendExtensions(mode *Mode) (err error) {
+	log := logr.New("settings", r.Verbosity+4)
 	addon, err := addon.Addon(true)
 	if err != nil {
 		return
 	}
 	for _, extension := range addon.Extensions {
+		log.Info("using extension to add to config", "extension", extension)
 		var md *Metadata
 		md, err = r.metadata(&extension)
 		if r.hasProvider(&md.Provider) {
+			log.Info("provider already found", "provider", &md.Provider)
 			continue
 		}
 		builtin := r.injectBuiltins(md, mode)
@@ -206,12 +210,16 @@ func (r *Settings) hasProvider(p *provider.Config) (found bool) {
 
 // metadata returns the metadata object within the extension.
 func (r *Settings) metadata(extension *api.Extension) (md *Metadata, err error) {
+	log := logr.WithName("settings")
+	log.Info("setting metadata", "extension", extension)
 	injector := Injector{}
 	mp := injector.asMap(extension.Metadata)
+	log.Info("setting metadata", "extension", extension, "as map", mp)
 	md = &Metadata{}
 	err = injector.object(mp, md)
 	if err != nil {
 		return
 	}
+	log.Info("setting metadata", "extension", extension, "metadata", md)
 	return
 }
