@@ -6,8 +6,8 @@ toolchain go1.25.8
 
 require (
 	github.com/jortel/go-utils v0.1.5
-	github.com/konveyor/analyzer-lsp v0.9.0-beta.1.0.20260318171141-1e9eb64d6989
-	github.com/konveyor/tackle2-hub/shared v0.0.0-20260317144527-dcbbf2c28635
+	github.com/konveyor/analyzer-lsp v0.9.0-beta.1.0.20260320020643-2f18c2bc4d91
+	github.com/konveyor/tackle2-hub/shared v0.0.0-20260323211830-a081b03f0745
 	github.com/onsi/gomega v1.31.1
 	go.lsp.dev/uri v0.3.0
 	gopkg.in/yaml.v2 v2.4.0
