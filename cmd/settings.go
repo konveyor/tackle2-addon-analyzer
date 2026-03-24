@@ -51,7 +51,7 @@ func (r *Settings) Read() (err error) {
 
 // AppendExtensions adds extension fragments.
 func (r *Settings) AppendExtensions(mode *Mode) (err error) {
-	log := logr.New("settings", r.Verbosity+4)
+	log := logr.New("settings", 5)
 	addon, err := addon.Addon(true)
 	if err != nil {
 		return
