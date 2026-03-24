@@ -343,6 +343,16 @@ func (r *ResourceInjector) build(md *Metadata) (err error) {
 	for _, resource := range md.Resources {
 		parsed := ParsedSelector{}
 		parsed.With(resource.Selector)
+
+		ids, nErr := addon.Identity.List()
+		if nErr != nil {
+			err = nErr
+			return
+		}
+		for _, id := range ids {
+			addon.Activity("[IDENTITY] listed (id=%d), %s", id.ID, id.Name)
+		}
+
 		switch strings.ToLower(parsed.kind) {
 		case "identity":
 			identity, found, nErr :=
@@ -357,6 +367,7 @@ func (r *ResourceInjector) build(md *Metadata) (err error) {
 				return
 			}
 			if found {
+				addon.Activity("[ANALYZER] using identity (id=%d), %s", identity.ID, identity.Name)
 				err = r.add(&resource, identity)
 				if err != nil {
 					return

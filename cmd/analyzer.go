@@ -120,18 +120,8 @@ func (r *Analyzer) options() (options []core.AnalyzerOption, err error) {
 	if err != nil {
 		return
 	}
-	if r.Verbosity > 0 {
-		err = settings.Write()
-		if err != nil {
-			return
-		}
-		f, pErr := addon.File.Post(settings.path())
-		if pErr != nil {
-			err = pErr
-			return
-		}
-		addon.Attach(f)
-	}
 	options = append(options, core.WithProviderConfigs(settings.Configs))
+	b, _ := yaml.Marshal(settings.Configs)
+	addon.Activity("[ANALYZER] options:\n%s", string(b))
 	return
 }
