@@ -71,6 +71,11 @@ func (r *Settings) AppendExtensions(mode *Mode) (err error) {
 		if err != nil {
 			return
 		}
+		rinjector := ResourceInjector{}
+		rinjector.Use(rinjector.asMap(md.Provider))
+		rinjector.Inject(md)
+		log.Info("!!!!!!!!!!TESTING!!!!!!!!", "provider", md.Provider)
+
 		r.Configs = append(r.Configs, md.Provider)
 	}
 	return
@@ -220,6 +225,6 @@ func (r *Settings) metadata(extension *api.Extension) (md *Metadata, err error) 
 	if err != nil {
 		return
 	}
-	log.Info("setting metadata", "extension", extension, "metadata", md)
+	log.Info("setting metadata", "extension", extension, "metadata", md.Provider.InitConfig)
 	return
 }
