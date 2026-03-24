@@ -52,10 +52,19 @@ func (r *Settings) Read() (err error) {
 // AppendExtensions adds extension fragments.
 func (r *Settings) AppendExtensions(mode *Mode) (err error) {
 	log := logr.New("settings", 5)
+
+	ids, nErr := addon.Identity.List()
+	if nErr != nil {
+		err = nErr
+		return
+	}
+	log.Info("_______________________  Listed", "ids", ids)
+
 	addon, err := addon.Addon(true)
 	if err != nil {
 		return
 	}
+
 	for _, extension := range addon.Extensions {
 		log.Info("using extension to add to config", "extension", extension)
 		var md *Metadata
