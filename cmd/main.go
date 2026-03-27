@@ -106,6 +106,7 @@ func main() {
 		}
 		//
 		// Run the analyzer.
+
 		analyzer := Analyzer{}
 		analyzer.Data = d
 		insights, deps, err := analyzer.Run()

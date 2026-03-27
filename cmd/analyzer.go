@@ -1,23 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path"
 
+	"github.com/jortel/go-utils/logr"
+	"github.com/konveyor/analyzer-lsp/core"
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
-	"github.com/konveyor/tackle2-hub/shared/addon/command"
-	"github.com/konveyor/tackle2-hub/shared/env"
+	addonprogress "github.com/konveyor/tackle2-addon-analyzer/progress"
+	"github.com/konveyor/tackle2-hub/shared/api"
+	"gopkg.in/yaml.v2"
 )
-
-var (
-	AnalyzerBin = ""
-)
-
-func init() {
-	AnalyzerBin = env.Get(
-		"ANALYZER",
-		"/usr/local/bin/konveyor-analyzer")
-}
 
 // Analyzer application analyzer.
 type Analyzer struct {
@@ -26,30 +20,79 @@ type Analyzer struct {
 
 // Run analyzer.
 func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err error) {
-	output := path.Join(Dir, "insights.yaml")
-	depOutput := path.Join(Dir, "deps.yaml")
-	cmd := command.New(AnalyzerBin)
-	cmd.Options, err = r.options(output, depOutput)
+
+	analyzerOpts, err := r.options()
 	if err != nil {
 		return
 	}
-	if Verbosity > 0 {
-		if w, cast := cmd.Writer.(*command.Writer); cast {
-			w.Reporter().Verbosity = command.LiveOutput
+	log := logr.New("analyzer", r.Verbosity+4)
+	analyzerOpts = append(analyzerOpts, core.WithLogger(log))
+
+	analyzerOpts = append(analyzerOpts, core.WithReporters(addonprogress.NewAddonReporter(addon)))
+	// If there are any errors from opts they will be set here.
+	analyzer, err := core.NewAnalyzer(analyzerOpts...)
+	if err != nil {
+		addon.Error(api.TaskError{
+			Severity:    "Error",
+			Description: fmt.Sprintf("Unable to start Analyzer errs: %s", err.Error()),
+		})
+		return
+	}
+	defer analyzer.Stop()
+
+	_, err = analyzer.ParseRules()
+	if err != nil {
+		return
+	}
+
+	err = analyzer.ProviderStart()
+	if err != nil {
+		return
+	}
+
+	for _, p := range analyzer.GetProviders() {
+		log.Info("capabilities", "caps", p.Capabilities())
+	}
+
+	depOutput := path.Join(Dir, "deps.yaml")
+	output := path.Join(Dir, "insights.yaml")
+
+	results := analyzer.Run()
+	if !r.Data.Mode.Discovery {
+		depErr := analyzer.GetDependencies(depOutput, false)
+		if depErr != nil {
+			err = depErr
+			return
 		}
 	}
-	err = cmd.Run()
-	if err != nil {
-		return
-	}
-	if Verbosity > 0 {
+
+	if r.Verbosity > 0 {
+		// Create the files and post
+		i, mErr := yaml.Marshal(results)
+		if mErr != nil {
+			err = mErr
+			return
+		}
+		file, cErr := os.Create(output)
+		if cErr != nil {
+			err = cErr
+			return
+		}
+		_, wErr := file.Write(i)
+		file.Close()
+		if wErr != nil {
+			err = wErr
+			return
+		}
+
 		f, pErr := addon.File.Post(output)
 		if pErr != nil {
 			err = pErr
 			return
 		}
 		addon.Attach(f)
-		if _, stErr := os.Stat(depOutput); stErr == nil {
+
+		if _, statErr := os.Stat(depOutput); statErr == nil {
 			f, pErr = addon.File.Post(depOutput)
 			if pErr != nil {
 				err = pErr
@@ -58,7 +101,7 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 			addon.Attach(f)
 		}
 	}
-	insights, err = builder.NewInsights(output)
+	insights, err = builder.NewInsights(results)
 	if err != nil {
 		return
 	}
@@ -70,34 +113,13 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 }
 
 // options builds Analyzer options.
-func (r *Analyzer) options(output, depOutput string) (options command.Options, err error) {
-	settings := &Settings{}
+func (r *Analyzer) options() (options []core.AnalyzerOption, err error) {
+
+	options = append(options, r.Mode.ToOption())
+	options = append(options, r.Rules.ToOptions()...)
+	options = append(options, r.Scope.ToOptions(r.Mode)...)
+	settings := Settings{}
 	err = settings.AppendExtensions(&r.Mode)
-	if err != nil {
-		return
-	}
-	options = command.Options{
-		"--provider-settings",
-		settings.path(),
-		"--output-file",
-		output,
-	}
-	if !r.Data.Mode.Discovery {
-		options.Add("--dep-output-file", depOutput)
-	}
-	err = r.Tagger.AddOptions(&options)
-	if err != nil {
-		return
-	}
-	err = r.Mode.AddOptions(&options, settings)
-	if err != nil {
-		return
-	}
-	err = r.Rules.AddOptions(&options)
-	if err != nil {
-		return
-	}
-	err = r.Scope.AddOptions(&options, r.Mode)
 	if err != nil {
 		return
 	}
@@ -109,10 +131,12 @@ func (r *Analyzer) options(output, depOutput string) (options command.Options, e
 	if err != nil {
 		return
 	}
-	f, err := addon.File.Post(settings.path())
-	if err != nil {
+	f, pErr := addon.File.Post(settings.path())
+	if pErr != nil {
+		err = pErr
 		return
 	}
 	addon.Attach(f)
+	options = append(options, core.WithProviderConfigs(settings.Configs))
 	return
 }

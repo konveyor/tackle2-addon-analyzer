@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	liberr "github.com/jortel/go-utils/error"
+	"github.com/konveyor/analyzer-lsp/core"
 	"github.com/konveyor/analyzer-lsp/engine/labels"
 	"github.com/konveyor/analyzer-lsp/parser"
-	"github.com/konveyor/tackle2-hub/shared/addon/command"
 	"github.com/konveyor/tackle2-hub/shared/addon/scm"
 	"github.com/konveyor/tackle2-hub/shared/api"
 	"github.com/konveyor/tackle2-hub/shared/nas"
@@ -103,13 +103,13 @@ func (r *Rules) Build() (err error) {
 }
 
 // AddOptions adds analyzer options.
-func (r *Rules) AddOptions(options *command.Options) (err error) {
-	for _, path := range r.rules {
-		options.Add("--rules", path)
-	}
-	err = r.addSelector(options)
-	if err != nil {
-		return
+func (r *Rules) ToOptions() (options []core.AnalyzerOption) {
+
+	options = append(options, core.WithRuleFilepaths(r.rules))
+
+	if selector := r.getSelector(); selector != "" {
+		addon.Activity("[ANALYZER] using label selector: %s", selector)
+		options = append(options, core.WithLabelSelector(selector))
 	}
 	return
 }
@@ -333,15 +333,12 @@ func (r *Rules) addRepository() (err error) {
 }
 
 // addSelector adds label selector.
-func (r *Rules) addSelector(options *command.Options) (err error) {
+func (r *Rules) getSelector() (selector string) {
 	ruleSelector := RuleSelector{
 		Included: r.Labels.Included,
 		Excluded: r.Labels.Excluded,
 	}
-	selector := ruleSelector.String()
-	if selector != "" {
-		options.Add("--label-selector", selector)
-	}
+	selector = ruleSelector.String()
 	return
 }
 
