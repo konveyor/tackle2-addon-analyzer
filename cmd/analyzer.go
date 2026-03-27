@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/konveyor/analyzer-lsp/core"
 	"github.com/konveyor/tackle2-addon-analyzer/builder"
 	addonprogress "github.com/konveyor/tackle2-addon-analyzer/progress"
+	"github.com/konveyor/tackle2-hub/shared/api"
 	"gopkg.in/yaml.v2"
 )
 
@@ -27,8 +29,13 @@ func (r *Analyzer) Run() (insights *builder.Insights, deps *builder.Deps, err er
 	analyzerOpts = append(analyzerOpts, core.WithLogger(log))
 
 	analyzerOpts = append(analyzerOpts, core.WithReporters(addonprogress.NewAddonReporter(addon)))
+	// If there are any errors from opts they will be set here.
 	analyzer, err := core.NewAnalyzer(analyzerOpts...)
 	if err != nil {
+		addon.Error(api.TaskError{
+			Severity:    "Error",
+			Description: fmt.Sprintf("Unable to start Analyzer errs: %s", err.Error()),
+		})
 		return
 	}
 	defer analyzer.Stop()
@@ -120,18 +127,16 @@ func (r *Analyzer) options() (options []core.AnalyzerOption, err error) {
 	if err != nil {
 		return
 	}
-	if r.Verbosity > 0 {
-		err = settings.Write()
-		if err != nil {
-			return
-		}
-		f, pErr := addon.File.Post(settings.path())
-		if pErr != nil {
-			err = pErr
-			return
-		}
-		addon.Attach(f)
+	err = settings.Write()
+	if err != nil {
+		return
 	}
+	f, pErr := addon.File.Post(settings.path())
+	if pErr != nil {
+		err = pErr
+		return
+	}
+	addon.Attach(f)
 	options = append(options, core.WithProviderConfigs(settings.Configs))
 	return
 }

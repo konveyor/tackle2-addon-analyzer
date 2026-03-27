@@ -38,11 +38,7 @@ func (r *Scope) ToOptions(mode Mode) (options []core.AnalyzerOption) {
 	}
 	selector := r.incidentSelector()
 	if selector != "" {
-		if optErr := core.WithIncidentSelector(selector); optErr != nil {
-			options = append(options, core.WithIncidentSelector(selector))
-		} else {
-			addon.Activity("invalid label selector: %s, rules will not be filtered", selector)
-		}
+		options = append(options, core.WithIncidentSelector(selector))
 	}
 	return
 }
