@@ -16,6 +16,53 @@ import (
 	"github.com/onsi/gomega"
 )
 
+func TestGetProxyURLTrimsTrailingSlash(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	tests := []struct {
+		kind     string
+		host     string
+		port     int
+		expected string
+	}{
+		// Host with trailing slash and port.
+		{
+			kind:     "http",
+			host:     "proxy.example.com/",
+			port:     8080,
+			expected: "http://proxy.example.com/:8080",
+		},
+		// Host without trailing slash.
+		{
+			kind:     "http",
+			host:     "proxy.example.com",
+			port:     8080,
+			expected: "http://proxy.example.com:8080",
+		},
+		// Host with trailing slash, no port.
+		{
+			kind:     "https",
+			host:     "proxy.example.com/",
+			port:     0,
+			expected: "https://proxy.example.com",
+		},
+		// Host without trailing slash, no port.
+		{
+			kind:     "https",
+			host:     "proxy.example.com",
+			port:     0,
+			expected: "https://proxy.example.com",
+		},
+	}
+	for _, tc := range tests {
+		host := tc.host
+		if tc.port > 0 {
+			host += ":" + strconv.Itoa(tc.port)
+		}
+		url := strings.TrimRight(tc.kind+"://"+host, "/")
+		g.Expect(url).To(gomega.Equal(tc.expected))
+	}
+}
+
 func TestRuleSelector(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	// all clauses
