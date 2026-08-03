@@ -3,7 +3,8 @@ ENV GOPATH=$APP_ROOT
 COPY --chown=1001:0 . .
 RUN make cmd
 
-FROM quay.io/konveyor/analyzer-lsp:latest
+ARG ANALYZER_LSP_IMAGE=quay.io/konveyor/analyzer-lsp:latest
+FROM ${ANALYZER_LSP_IMAGE}
 USER root
 RUN microdnf -y install \
  glibc-langpack-en \
