@@ -1,9 +1,10 @@
-FROM registry.access.redhat.com/ubi9/go-toolset:latest as addon
+ARG ANALYZER_LSP_IMAGE=quay.io/konveyor/analyzer-lsp:release-0.9
+
+FROM registry.access.redhat.com/ubi9/go-toolset:latest AS addon
 ENV GOPATH=$APP_ROOT
 COPY --chown=1001:0 . .
 RUN make cmd
 
-ARG ANALYZER_LSP_IMAGE=quay.io/konveyor/analyzer-lsp:latest
 FROM ${ANALYZER_LSP_IMAGE}
 USER root
 RUN microdnf -y install \
