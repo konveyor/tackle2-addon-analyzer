@@ -5,7 +5,7 @@ go 1.25.12
 require (
 	github.com/jortel/go-utils v0.1.5
 	github.com/konveyor/analyzer-lsp v0.9.0-beta.1.0.20260318171141-1e9eb64d6989
-	github.com/konveyor/tackle2-hub/shared v0.0.0-20260317144527-dcbbf2c28635
+	github.com/konveyor/tackle2-hub/shared v0.0.0-20260904131632-98e6f1ae6a5f
 	github.com/onsi/gomega v1.31.1
 	go.lsp.dev/uri v0.3.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -23,7 +23,7 @@ require (
 	github.com/bufbuild/protocompile v0.10.0 // indirect
 	github.com/cbroglie/mustache v1.4.0 // indirect
 	github.com/dlclark/regexp2 v1.11.4 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -35,7 +35,7 @@ require (
 	github.com/jhump/protoreflect v1.16.0 // indirect
 	github.com/phayes/freeport v0.0.0-20220201140144-74d24b5ae9f5 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/spf13/cobra v1.9.1 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/swaggest/jsonschema-go v0.3.70 // indirect
