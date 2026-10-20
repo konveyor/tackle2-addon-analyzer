@@ -37,12 +37,15 @@ func (e *SelectorNotSupported) Is(err error) (matched bool) {
 
 // FieldNotMatched used to report resource field not matched.
 type FieldNotMatched struct {
-	Kind  string
-	Field string
+	Selector string
+	Field    string
 }
 
 func (e *FieldNotMatched) Error() (s string) {
-	return fmt.Sprintf("Resource injector: field=%s.%s, not-matched.", e.Kind, e.Field)
+	return fmt.Sprintf(
+		"Resource injector: field='%s' not-matched in resource selected by: '%s'.",
+		e.Field,
+		e.Selector)
 }
 
 func (e *FieldNotMatched) Is(err error) (matched bool) {
@@ -401,8 +404,8 @@ func (r *ResourceInjector) add(resource *Resource, object any) (err error) {
 		v, found := mp[f.Name]
 		if !found {
 			err = &FieldNotMatched{
-				Kind:  resource.Selector,
-				Field: f.Name,
+				Selector: resource.Selector,
+				Field:    f.Name,
 			}
 			return
 		}
