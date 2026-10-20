@@ -60,8 +60,8 @@ github.com/jhump/protoreflect v1.16.0 h1:54fZg+49widqXYQ0b+usAFHbMkBGR4PpXrsHc8+
 github.com/jhump/protoreflect v1.16.0/go.mod h1:oYPd7nPvcBw/5wlDfm/AVmU9zH9BgqGCI469pGxfj/8=
 github.com/jortel/go-utils v0.1.5 h1:fBkvlojnbrx5rqJt+1fx9dlGV5NjjnCyGgWyXsQ12Ws=
 github.com/jortel/go-utils v0.1.5/go.mod h1:R9W67T6eTYPcofmSuvvv3lOcNuF4zh7ZoBfaoTA9zss=
-github.com/konveyor/analyzer-lsp v0.9.0-beta.1.0.20260318171141-1e9eb64d6989 h1:kU8fvJk+2E8sZiYnKZePukUCmH9B6SECFl+5xnL5I3o=
-github.com/konveyor/analyzer-lsp v0.9.0-beta.1.0.20260318171141-1e9eb64d6989/go.mod h1:Iwz1ffcFw9PIC0KB55Wz/sGXVfpRE2lvKrEl90Y31+c=
+github.com/konveyor/analyzer-lsp v0.11.1-0.20260928164415-0000b8872a12 h1:BauhUORGHytieFxvqHS2bylBwHIMUrGR6k5oLHw4PW0=
+github.com/konveyor/analyzer-lsp v0.11.1-0.20260928164415-0000b8872a12/go.mod h1:zMwTEE+0R9k9OGU1WY1yVohK17myWe/ACtxJtAgNB+g=
 github.com/konveyor/tackle2-hub/shared v0.0.0-20260904131632-98e6f1ae6a5f h1:2lCJgxe8MWwChnn5sPHIwuiPS0supeV1UtbwOzdUQgE=
 github.com/konveyor/tackle2-hub/shared v0.0.0-20260904131632-98e6f1ae6a5f/go.mod h1:DBpy7S/qWyOmxK9QaqiHUHKkQ3gMRXXnEY8/FsA6fgA=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=

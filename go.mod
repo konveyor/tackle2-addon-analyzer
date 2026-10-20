@@ -4,7 +4,7 @@ go 1.25.12
 
 require (
 	github.com/jortel/go-utils v0.1.5
-	github.com/konveyor/analyzer-lsp v0.9.0-beta.1.0.20260318171141-1e9eb64d6989
+	github.com/konveyor/analyzer-lsp v0.11.1-0.20260928164415-0000b8872a12
 	github.com/konveyor/tackle2-hub/shared v0.0.0-20260904131632-98e6f1ae6a5f
 	github.com/onsi/gomega v1.31.1
 	go.lsp.dev/uri v0.3.0
