@@ -62,8 +62,8 @@ github.com/jortel/go-utils v0.1.5 h1:fBkvlojnbrx5rqJt+1fx9dlGV5NjjnCyGgWyXsQ12Ws
 github.com/jortel/go-utils v0.1.5/go.mod h1:R9W67T6eTYPcofmSuvvv3lOcNuF4zh7ZoBfaoTA9zss=
 github.com/konveyor/analyzer-lsp v0.11.1-0.20260928164415-0000b8872a12 h1:BauhUORGHytieFxvqHS2bylBwHIMUrGR6k5oLHw4PW0=
 github.com/konveyor/analyzer-lsp v0.11.1-0.20260928164415-0000b8872a12/go.mod h1:zMwTEE+0R9k9OGU1WY1yVohK17myWe/ACtxJtAgNB+g=
-github.com/konveyor/tackle2-hub/shared v0.0.0-20260904131632-98e6f1ae6a5f h1:2lCJgxe8MWwChnn5sPHIwuiPS0supeV1UtbwOzdUQgE=
-github.com/konveyor/tackle2-hub/shared v0.0.0-20260904131632-98e6f1ae6a5f/go.mod h1:DBpy7S/qWyOmxK9QaqiHUHKkQ3gMRXXnEY8/FsA6fgA=
+github.com/konveyor/tackle2-hub/shared v0.0.0-20261020175429-1334415cccad h1:6S5NPQqLqbdFDu4NV/kxtHCMOFvQqO6w2KzuMnQh8q0=
+github.com/konveyor/tackle2-hub/shared v0.0.0-20261020175429-1334415cccad/go.mod h1:DBpy7S/qWyOmxK9QaqiHUHKkQ3gMRXXnEY8/FsA6fgA=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
