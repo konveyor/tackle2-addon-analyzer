@@ -19,7 +19,7 @@ require (
 	github.com/PaesslerAG/gval v1.2.2 // indirect
 	github.com/antchfx/jsonquery v1.3.0 // indirect
 	github.com/antchfx/xmlquery v1.4.5-0.20250930041715-a4181c99a362 // indirect
-	github.com/antchfx/xpath v1.3.5 // indirect
+	github.com/antchfx/xpath v1.3.6 // indirect
 	github.com/bufbuild/protocompile v0.10.0 // indirect
 	github.com/cbroglie/mustache v1.4.0 // indirect
 	github.com/dlclark/regexp2 v1.11.4 // indirect
